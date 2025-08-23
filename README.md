@@ -1,160 +1,137 @@
-# Currently Webapp
+# Currently
 
-A modern, full-stack web application built with Next.js and Supabase, featuring authentication, dashboard functionality, and a beautiful user interface.
+**Currently** is a modern productivity and time management platform that helps individuals and teams stay organized, track their activities, and optimize their daily workflows.
 
-## Features
+## What is Currently?
 
-- **Authentication System**: Complete user authentication with sign-up, login, password reset, and session management
-- **Protected Dashboard**: Multi-page dashboard with analytics, calendar, documents, notifications, and user management
-- **Modern UI**: Built with [shadcn/ui](https://ui.shadcn.com/) components and [Tailwind CSS](https://tailwindcss.com)
-- **Theme Support**: Dark/light mode toggle with persistent theme preferences
-- **Responsive Design**: Mobile-first approach with responsive layouts
-- **Organization Management**: Multi-tenant support with organization switching
-- **Real-time Features**: Built on Supabase for real-time data synchronization
-- **Type Safety**: Full TypeScript support throughout the application
-
-## Tech Stack
-
-- **Frontend**: Next.js 14 with App Router
-- **Backend**: Supabase (PostgreSQL, Auth, Real-time)
-- **Styling**: Tailwind CSS
-- **Components**: shadcn/ui
-- **Language**: TypeScript
-- **Deployment**: Vercel-ready
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+ 
-- npm, yarn, or pnpm
-- Supabase account and project
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/jakedewar/currently-web.git
-   cd currently-web
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   # or
-   yarn install
-   # or
-   pnpm install
-   ```
-
-3. **Set up environment variables**
-   
-   Create a `.env.local` file in the root directory:
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   ```
-
-   You can find these values in your [Supabase project settings](https://supabase.com/dashboard/project/_?showConnect=true).
-
-4. **Run the development server**
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   # or
-   pnpm dev
-   ```
-
-5. **Open your browser**
-   
-   Navigate to [http://localhost:3000](http://localhost:3000) to see the application.
-
-## Project Structure
-
-```
-currently-web/
-├── app/                    # Next.js App Router pages
-│   ├── auth/              # Authentication pages
-│   ├── protected/         # Protected dashboard pages
-│   └── globals.css        # Global styles
-├── components/            # Reusable UI components
-│   ├── ui/               # shadcn/ui components
-│   └── ...               # Custom components
-├── hooks/                # Custom React hooks
-├── lib/                  # Utility functions and configurations
-│   └── supabase/         # Supabase client configuration
-└── middleware.ts         # Next.js middleware for auth
-```
+Currently is a comprehensive web application designed to help you understand and improve how you spend your time. Whether you're a freelancer tracking billable hours, a team manager monitoring productivity, or someone looking to build better habits, Currently provides the tools you need to gain insights into your daily patterns and make meaningful improvements.
 
 ## Key Features
 
-### Authentication
-- User registration and login
-- Password reset functionality
-- Session management with cookies
-- Protected routes with middleware
+### 🕒 **Time Tracking & Analytics**
+- **Real-time Activity Monitoring**: Track what you're working on with simple start/stop timers
+- **Detailed Analytics**: Visualize your productivity patterns with charts and insights
+- **Project-based Tracking**: Organize your time by projects, clients, or categories
+- **Productivity Insights**: Identify your most productive hours and optimize your schedule
 
-### Dashboard
-- **Analytics**: Data visualization and insights
-- **Calendar**: Event management and scheduling
-- **Documents**: File management and organization
-- **Notifications**: Real-time notification system
-- **Search**: Global search functionality
-- **Settings**: User and application preferences
-- **Users**: User management and profiles
+### 📅 **Smart Calendar Integration**
+- **Schedule Management**: Plan your day with an intuitive calendar interface
+- **Time Blocking**: Allocate specific time slots for different tasks and projects
+- **Meeting Tracking**: Log and analyze time spent in meetings and calls
+- **Goal Setting**: Set daily, weekly, and monthly productivity targets
 
-### UI/UX
-- Clean, modern design
-- Responsive layout for all devices
-- Smooth animations and transitions
-- Accessible components
-- Theme switching (dark/light mode)
+### 📊 **Comprehensive Dashboard**
+- **Overview Dashboard**: Get a quick snapshot of your current status and recent activity
+- **Performance Metrics**: Track key productivity indicators and trends
+- **Custom Reports**: Generate detailed reports for clients, managers, or personal review
+- **Data Export**: Export your data for external analysis or backup
 
-## Deployment
+### 👥 **Team Collaboration**
+- **Multi-user Support**: Invite team members and track collective productivity
+- **Organization Management**: Manage multiple teams or departments
+- **Shared Projects**: Collaborate on time tracking for shared initiatives
+- **Team Analytics**: Understand team productivity patterns and bottlenecks
 
-### Deploy to Vercel
+### 🔔 **Smart Notifications**
+- **Break Reminders**: Get notified when it's time to take breaks
+- **Goal Alerts**: Stay on track with productivity goal notifications
+- **Meeting Reminders**: Never miss important scheduled activities
+- **Customizable Alerts**: Set up notifications that work for your workflow
 
-1. **Fork or clone this repository**
-2. **Connect to Vercel**
-   - Go to [vercel.com](https://vercel.com)
-   - Import your GitHub repository
-   - Vercel will automatically detect Next.js settings
+### 🎨 **Beautiful, Modern Interface**
+- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile
+- **Dark/Light Themes**: Choose your preferred visual theme
+- **Intuitive Navigation**: Easy-to-use interface that gets out of your way
+- **Accessibility**: Designed with accessibility in mind for all users
 
-3. **Configure environment variables**
-   - Add your Supabase URL and anon key in Vercel project settings
-   - Deploy!
+## Why Choose Currently?
 
-### Deploy to other platforms
+### For Individuals
+- **Build Better Habits**: Understand your patterns and create more productive routines
+- **Track Personal Projects**: Monitor time spent on hobbies, learning, or personal goals
+- **Improve Work-Life Balance**: See where your time goes and make intentional choices
+- **Increase Self-Awareness**: Gain insights into your productivity rhythms
 
-The application can be deployed to any platform that supports Next.js:
-- Netlify
-- Railway
-- DigitalOcean App Platform
-- AWS Amplify
+### For Freelancers & Consultants
+- **Accurate Time Billing**: Track billable hours with precision and confidence
+- **Client Reporting**: Generate professional reports for client transparency
+- **Project Profitability**: Analyze which projects are most profitable
+- **Tax Preparation**: Keep detailed records for tax season
 
-## Contributing
+### For Teams & Organizations
+- **Team Productivity**: Understand how your team spends time and identify improvements
+- **Project Management**: Track time across multiple projects and initiatives
+- **Resource Allocation**: Make data-driven decisions about team assignments
+- **Performance Insights**: Identify top performers and areas for improvement
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+## Getting Started
 
-## License
+### Quick Start
+1. **Sign Up**: Create your account in seconds
+2. **Set Up Your Profile**: Add your projects, clients, or categories
+3. **Start Tracking**: Begin monitoring your activities with one click
+4. **Review Insights**: Check your dashboard for productivity patterns
+5. **Optimize**: Use the data to improve your workflow
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+### For Teams
+1. **Create Organization**: Set up your team workspace
+2. **Invite Members**: Add team members with appropriate permissions
+3. **Configure Projects**: Set up shared projects and categories
+4. **Establish Guidelines**: Create team norms for time tracking
+5. **Monitor Progress**: Use team analytics to drive improvements
+
+## Technology
+
+Currently is built with modern web technologies to ensure reliability, performance, and security:
+
+- **Frontend**: Next.js 14 with React for a fast, responsive interface
+- **Backend**: Supabase for secure data storage and real-time features
+- **Authentication**: Secure user management with Supabase Auth
+- **Styling**: Tailwind CSS for beautiful, consistent design
+- **Components**: shadcn/ui for accessible, professional UI elements
+
+## Privacy & Security
+
+- **Your Data, Your Control**: All your time tracking data belongs to you
+- **Secure Storage**: Industry-standard encryption and security practices
+- **Privacy First**: We don't sell your data or use it for advertising
+- **GDPR Compliant**: Full compliance with data protection regulations
+- **Regular Backups**: Automatic data backups to prevent loss
 
 ## Support
 
-If you have any questions or need help, please:
-- Open an issue on GitHub
-- Check the [Supabase documentation](https://supabase.com/docs)
-- Review the [Next.js documentation](https://nextjs.org/docs)
+Need help getting started or have questions?
 
-## Acknowledgments
+- **Documentation**: Comprehensive guides and tutorials
+- **Community**: Join our community forum for tips and discussions
+- **Email Support**: Get help from our support team
+- **Feature Requests**: Suggest new features to improve Currently
 
-- Built with [Next.js](https://nextjs.org)
-- Powered by [Supabase](https://supabase.com)
-- UI components from [shadcn/ui](https://ui.shadcn.com)
-- Styled with [Tailwind CSS](https://tailwindcss.com)
+## Roadmap
+
+We're constantly improving Currently based on user feedback. Upcoming features include:
+
+- **Mobile App**: Native iOS and Android applications
+- **API Access**: Integrate Currently with your existing tools
+- **Advanced Analytics**: Machine learning-powered insights
+- **Integrations**: Connect with popular productivity tools
+- **Offline Support**: Track time even without internet connection
+
+## Contributing
+
+Currently is open source and we welcome contributions! Whether you're a developer, designer, or just passionate about productivity, there are many ways to help:
+
+- **Report Bugs**: Help us identify and fix issues
+- **Suggest Features**: Share ideas for new functionality
+- **Improve Documentation**: Help make Currently easier to use
+- **Code Contributions**: Submit pull requests for improvements
+
+## License
+
+Currently is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+**Start tracking your time, gain insights, and optimize your productivity with Currently today!**
+
+[Get Started](#) | [View Demo](#) | [Documentation](#)
