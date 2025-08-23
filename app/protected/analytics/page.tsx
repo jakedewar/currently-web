@@ -34,7 +34,6 @@ import {
   Search,
   Eye,
   User,
-  Building2,
   Figma
 } from "lucide-react";
 import { ClientOnly } from "@/components/ui/client-only";
