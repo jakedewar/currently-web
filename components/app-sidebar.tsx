@@ -1,6 +1,6 @@
 "use client"
 
-import { Home, Waves, Users, Settings, LogOut, Building2, Plus } from "lucide-react"
+import { Home, Waves, Users, Settings, LogOut, Building2, Plus, Bug, Megaphone } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { useEffect, useState } from "react"
@@ -20,41 +20,75 @@ import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import type { User } from "@supabase/supabase-js"
 
-// Mock data - in a real app, this would come from your API/database
-const mockOrganizations: Organization[] = [
-  {
-    id: "1",
-    name: "Acme Corp",
-    slug: "acme-corp",
-    avatar: undefined,
-    role: "owner",
-  },
-  {
-    id: "2", 
-    name: "Startup Inc",
-    slug: "startup-inc",
-    avatar: undefined,
-    role: "admin",
-  },
-  {
-    id: "3",
-    name: "Freelance Projects",
-    slug: "freelance-projects", 
-    avatar: undefined,
-    role: "member",
-  },
-]
-
 export function AppSidebar() {
   const pathname = usePathname()
-  const { currentOrganization, organizations, setCurrentOrganization } = useOrganization()
+  const { currentOrganization, setCurrentOrganization } = useOrganization()
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
+  const [userProfile, setUserProfile] = useState<{ full_name: string | null } | null>(null)
   const [loading, setLoading] = useState(true)
+  const [userOrganizations, setUserOrganizations] = useState<Organization[]>([])
 
-  // Initialize with mock data if no organizations exist
-  const displayOrganizations = organizations.length > 0 ? organizations : mockOrganizations
-  const displayCurrentOrganization = currentOrganization || mockOrganizations[0]
+  // Fetch user data and organizations on component mount
+  useEffect(() => {
+    const fetchUserAndOrganizations = async () => {
+      const supabase = createClient()
+      
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      setUser(user)
+      
+      if (user) {
+        // Fetch user profile to get full name
+        const { data: profile } = await supabase
+          .from('users')
+          .select('full_name')
+          .eq('id', user.id)
+          .single()
+        
+        setUserProfile(profile)
+
+        // Fetch user's organizations with their roles
+        const { data: orgMemberships, error } = await supabase
+          .from('organization_members')
+          .select(`
+            role,
+            organizations (
+              id,
+              name,
+              slug,
+              avatar_url
+            )
+          `)
+          .eq('user_id', user.id)
+
+        if (!error && orgMemberships) {
+          const orgs: Organization[] = orgMemberships.map(membership => ({
+            id: membership.organizations.id,
+            name: membership.organizations.name,
+            slug: membership.organizations.slug,
+            avatar: membership.organizations.avatar_url || undefined,
+            role: membership.role as "owner" | "admin" | "member",
+          }))
+          
+          setUserOrganizations(orgs)
+          
+          // Set the first organization as current if none is set
+          if (orgs.length > 0 && !currentOrganization) {
+            setCurrentOrganization(orgs[0])
+          }
+        }
+      }
+      
+      setLoading(false)
+    }
+    
+    fetchUserAndOrganizations()
+  }, [currentOrganization, setCurrentOrganization])
+
+  // Use real organizations or show empty state
+  const displayOrganizations = userOrganizations
+  const displayCurrentOrganization = currentOrganization || userOrganizations[0]
 
   const navItems = [
     {
@@ -74,18 +108,18 @@ export function AppSidebar() {
     },
   ]
 
-
-
-  // Fetch user data on component mount
-  useEffect(() => {
-    const fetchUser = async () => {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
-      setLoading(false)
-    }
-    fetchUser()
-  }, [])
+  const footerNavItems = [
+    {
+      href: "/protected/report-bug",
+      icon: Bug,
+      label: "Report Bug",
+    },
+    {
+      href: "/protected/feedback",
+      icon: Megaphone,
+      label: "Share Feedback",
+    },
+  ]
 
   const handleOrganizationChange = (org: Organization) => {
     setCurrentOrganization(org)
@@ -102,9 +136,16 @@ export function AppSidebar() {
     router.push("/auth/login")
   }
 
-  const getUserInitials = (email: string | undefined) => {
-    if (!email) return 'U'
-    return email.split('@')[0].substring(0, 2).toUpperCase()
+  const getUserInitials = (name: string | undefined) => {
+    if (!name) return 'U'
+    return name.split(' ').map(word => word.charAt(0)).join('').toUpperCase().substring(0, 2)
+  }
+
+  const getUserDisplayName = () => {
+    if (userProfile?.full_name) {
+      return userProfile.full_name
+    }
+    return user?.email || 'User'
   }
 
   return (
@@ -139,6 +180,28 @@ export function AppSidebar() {
         </div>
       </nav>
 
+      {/* Footer Navigation Items */}
+      <div className="p-4">
+        <div className="space-y-1">
+          {footerNavItems.map((item) => {
+            const isActive = pathname === item.href
+            return (
+              <a
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
+                  isActive && "bg-primary/10 text-primary"
+                )}
+              >
+                <item.icon className="w-3 h-3" />
+                {item.label}
+              </a>
+            )
+          })}
+        </div>
+      </div>
+
       {/* User Profile Section */}
       <div className="border-t p-4">
         {loading ? (
@@ -156,15 +219,15 @@ export function AppSidebar() {
                 <div className="flex items-center gap-3 w-full">
                   <Avatar className="w-8 h-8">
                     <AvatarFallback className="text-xs">
-                      {getUserInitials(user.email)}
+                      {getUserInitials(getUserDisplayName())}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 text-left">
                     <div className="text-sm font-medium truncate">
-                      {user.email}
+                      {getUserDisplayName()}
                     </div>
                     <div className="text-xs text-muted-foreground truncate">
-                      {displayCurrentOrganization.name}
+                      {displayCurrentOrganization?.name || 'No organization'}
                     </div>
                   </div>
                 </div>
@@ -173,9 +236,9 @@ export function AppSidebar() {
             <DropdownMenuContent className="w-64" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{user.email}</p>
+                  <p className="text-sm font-medium leading-none">{getUserDisplayName()}</p>
                   <p className="text-xs leading-none text-muted-foreground">
-                    {displayCurrentOrganization.name}
+                    {displayCurrentOrganization?.name || 'No organization'}
                   </p>
                 </div>
               </DropdownMenuLabel>
