@@ -13,15 +13,15 @@ import { Search, Activity, Clock, MapPin } from "lucide-react";
 import Link from "next/link";
 
 interface User {
-  id: number;
+  id: string;
   name: string;
   email: string;
-  avatar: string;
-  department: string;
+  avatar: string | null;
+  department: string | null;
   currentWork: string;
   lastActive: string;
-  location?: string;
-  timezone?: string;
+  location?: string | null;
+  timezone?: string | null;
 }
 
 interface TeamTableProps {
@@ -29,7 +29,9 @@ interface TeamTableProps {
 }
 
 export function TeamTable({ users }: TeamTableProps) {
-  const getDepartmentColor = (department: string) => {
+  const getDepartmentColor = (department: string | null) => {
+    if (!department) return "bg-gray-500";
+    
     switch (department.toLowerCase()) {
       case "engineering":
         return "bg-blue-500";
@@ -80,7 +82,7 @@ export function TeamTable({ users }: TeamTableProps) {
                     <div className="flex items-center space-x-3">
                       <div className="relative">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={user.avatar} alt={user.name} />
+                          <AvatarImage src={user.avatar || undefined} alt={user.name} />
                           <AvatarFallback className="text-xs">
                             {user.name.split(" ").map((n) => n[0]).join("")}
                           </AvatarFallback>
@@ -99,7 +101,7 @@ export function TeamTable({ users }: TeamTableProps) {
                 <TableCell>
                   <Link href={`/protected/users/${user.id}`} className="block">
                     <Badge variant="outline" className="text-xs">
-                      {user.department}
+                      {user.department || 'Unknown'}
                     </Badge>
                   </Link>
                 </TableCell>

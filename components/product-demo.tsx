@@ -49,7 +49,7 @@ export function ProductDemo() {
             </div>
             
             <div className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-charcoal-800 rounded-lg">
-              <Image className="h-5 w-5 text-purple-600" />
+              <Image className="h-5 w-5 text-purple-600" aria-label="UI mockups icon" />
               <div className="flex-1">
                 <div className="font-medium text-sm">UI mockups</div>
                 <div className="text-xs text-slate-600 dark:text-slate-400">Figma • 3 hours ago</div>

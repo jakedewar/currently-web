@@ -66,7 +66,7 @@ export function StreamsList({ data }: StreamsListProps) {
     );
   }, [data.streams, searchQuery, statusFilter, priorityFilter, streamFilter, sortBy, data.currentUser.id]);
 
-  const hasOtherFilters = searchQuery || statusFilter !== "all" || priorityFilter !== "all";
+  const hasOtherFilters = Boolean(searchQuery) || statusFilter !== "all" || priorityFilter !== "all";
   const emptyState = getEmptyStateMessage(streamFilter, hasOtherFilters);
 
   return (
