@@ -126,21 +126,28 @@ export async function getStreamsData(): Promise<StreamsData> {
 
   // Get stream members separately to avoid relation issues
   const streamIds = streams?.map(s => s.id) || [];
+  // First get stream members
   const { data: streamMembers } = await supabase
     .from('stream_members')
-    .select(`
-      id,
-      user_id,
-      role,
-      joined_at,
-      stream_id,
-      users (
-        id,
-        full_name,
-        avatar_url
-      )
-    `)
+    .select('id, user_id, role, joined_at, stream_id')
     .in('stream_id', streamIds);
+
+  // Then get user details for those members
+  const userIds = streamMembers?.map(member => member.user_id) || [];
+  const { data: userDetails } = await supabase
+    .from('users')
+    .select('id, full_name, avatar_url')
+    .in('id', userIds);
+
+  // Combine the data
+  const streamMembersWithUsers = streamMembers?.map(member => ({
+    id: member.id,
+    user_id: member.user_id,
+    role: member.role,
+    joined_at: member.joined_at,
+    stream_id: member.stream_id,
+    users: userDetails?.find(user => user.id === member.user_id) || null
+  })) || [];
 
   // Get work items for streams
   const { data: workItems } = await supabase
@@ -174,7 +181,7 @@ export async function getStreamsData(): Promise<StreamsData> {
   // Combine the data
   const streamsWithRelations = streams?.map(stream => ({
     ...stream,
-    stream_members: streamMembers?.filter(m => m.stream_id === stream.id) || [],
+    stream_members: streamMembersWithUsers.filter(m => m.stream_id === stream.id),
     work_items: workItems?.filter(w => w.stream_id === stream.id) || [],
     stream_tools: streamTools?.filter(t => t.stream_id === stream.id) || []
   })) || [];
