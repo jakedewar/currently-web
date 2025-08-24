@@ -3,11 +3,11 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Await the params to fix the Next.js warning
-    const { id: userId } = context.params
+    const { id: userId } = await params
     const { searchParams } = new URL(request.url)
     const organizationId = searchParams.get('organizationId')
 
