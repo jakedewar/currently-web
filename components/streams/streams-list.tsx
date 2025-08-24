@@ -29,6 +29,7 @@ import {
   Eye,
   User
 } from "lucide-react";
+import { WorkItemsList } from "./work-items-list";
 import { ClientOnly } from "@/components/ui/client-only";
 import { StreamsData } from "@/lib/data/streams";
 import { 
@@ -92,7 +93,7 @@ export function StreamsList({ data }: StreamsListProps) {
           />
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 sm:flex-nowrap">
           <ClientOnly>
             <Select value={streamFilter} onValueChange={(value) => setStreamFilter(value as "all" | "my")}>
               <SelectTrigger className="w-[140px] bg-transparent border-0 shadow-none hover:bg-muted/50">
@@ -155,10 +156,10 @@ export function StreamsList({ data }: StreamsListProps) {
           {filteredStreams.map((stream) => (
             <AccordionItem key={stream.id} value={`stream-${stream.id}`} className="border rounded-lg">
               <AccordionTrigger className="px-6 py-4 hover:no-underline">
-                <div className="flex items-center justify-between w-full pr-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full pr-4 gap-4 sm:gap-0">
                   {/* Stream Header Info */}
-                  <div className="flex items-center gap-4 flex-1">
-                    <div className="flex items-center gap-3">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 flex-1">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                       <CardTitle className="text-lg">{stream.name}</CardTitle>
                       <Badge variant={stream.status === 'active' ? 'default' : 'secondary'}>
                         {stream.status}
@@ -180,25 +181,26 @@ export function StreamsList({ data }: StreamsListProps) {
                   </div>
                   
                   {/* Progress and Dates - Always Visible */}
-                  <div className="flex items-center gap-6">
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
-                        <span>{formatDate(stream.start_date)} - {formatDate(stream.end_date)}</span>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 w-full sm:w-auto">
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground order-2 sm:order-1">
+                      <div className="flex items-center gap-1 whitespace-nowrap">
+                        <Calendar className="h-4 w-4 flex-shrink-0" />
+                        <span className="hidden sm:inline">{formatDate(stream.start_date)} - {formatDate(stream.end_date)}</span>
+                        <span className="sm:hidden">{formatDate(stream.start_date)}</span>
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 order-1 sm:order-2">
                       <div className="text-right">
                         <div className="text-sm font-medium">{stream.progress}%</div>
-                        <div className="text-xs text-muted-foreground">Complete</div>
+                        <div className="text-xs text-muted-foreground hidden sm:block">Complete</div>
                       </div>
-                      <div className="w-20">
+                      <div className="w-16 sm:w-20">
                         <Progress value={stream.progress} className="h-2" />
                       </div>
                     </div>
                     
-                    <div className="ml-2 p-1 hover:bg-muted rounded cursor-pointer">
+                    <div className="ml-2 p-1 hover:bg-muted rounded cursor-pointer order-3">
                       <MoreHorizontal className="h-4 w-4" />
                     </div>
                   </div>
@@ -238,31 +240,14 @@ export function StreamsList({ data }: StreamsListProps) {
 
                   {/* Work Items */}
                   <div>
-                    <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
-                      <FolderOpen className="h-4 w-4" />
-                      Work Items ({stream.work_items.length})
-                    </h4>
-                    <div className="space-y-2">
-                      {stream.work_items.map((item) => (
-                        <div key={item.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50">
-                          {getStatusIcon(item.status)}
-                          <div className="flex-1">
-                            <span className="text-sm font-medium">{item.title}</span>
-                            <div className="flex items-center gap-2 mt-1">
-                              <Badge variant="outline" className="text-xs">
-                                {item.type}
-                              </Badge>
-                              {item.tool && (
-                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                  {getToolIcon(item.tool)}
-                                  <span>{item.tool}</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                    <WorkItemsList
+                      streamId={stream.id}
+                      workItems={stream.work_items}
+                      onWorkItemCreated={() => {
+                        // Refetch streams data to update the list
+                        window.location.reload();
+                      }}
+                    />
                   </div>
 
                   {/* Connected Tools */}

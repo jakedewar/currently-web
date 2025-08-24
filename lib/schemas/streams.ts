@@ -23,4 +23,23 @@ export const CreateStreamSchema = z.object({
     .uuid('Invalid organization ID'),
 })
 
+export const CreateWorkItemSchema = z.object({
+  title: z.string()
+    .min(1, 'Title is required')
+    .max(200, 'Title must be less than 200 characters'),
+  description: z.string()
+    .max(500, 'Description must be less than 500 characters')
+    .optional(),
+  type: z.enum(['url'])
+    .default('url'),
+  status: z.enum(['active', 'completed', 'archived'])
+    .default('active'),
+  url: z.string()
+    .url('Invalid URL format')
+    .min(1, 'URL is required'),
+  stream_id: z.string()
+    .uuid('Invalid stream ID'),
+})
+
 export type CreateStreamInput = z.infer<typeof CreateStreamSchema>
+export type CreateWorkItemInput = z.infer<typeof CreateWorkItemSchema>

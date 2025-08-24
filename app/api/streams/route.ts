@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const { name, description, priority, status, organization_id } = result.data
+    const { name, description, priority, status, organization_id, start_date, end_date } = result.data
 
     // Check rate limit if Redis is configured
     if (redis) {
@@ -86,7 +86,9 @@ export async function POST(request: Request) {
           status: status || 'active',
           progress: 0,
           organization_id,
-          created_by: user.id
+          created_by: user.id,
+          start_date,
+          end_date
         })
         .select(`
           *,

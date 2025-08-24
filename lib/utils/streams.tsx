@@ -56,6 +56,7 @@ export function filterStreams(
   // Filter by stream type (My Streams vs All Streams)
   if (filters.streamFilter === "my") {
     filtered = filtered.filter(stream => 
+      // Include streams where user is either a member or the creator
       stream.stream_members.some(member => member.user_id === currentUserId) ||
       stream.created_by === currentUserId
     );
