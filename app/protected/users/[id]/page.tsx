@@ -1,6 +1,8 @@
 "use client"
 
 import { useEffect, useState, use } from "react"
+import { StreamsList } from "@/components/streams/streams-list"
+import type { StreamsData } from "@/lib/data/streams"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
@@ -24,6 +26,73 @@ interface UserProfile {
   timezone: string | null;
   organization_role: string;
   joined_at: string | null;
+}
+
+function UserStreams({ userId }: { userId: string }) {
+  const [streamsData, setStreamsData] = useState<StreamsData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const { currentOrganization } = useOrganization()
+
+  useEffect(() => {
+    const fetchUserStreams = async () => {
+      if (!currentOrganization) {
+        setError('Please select an organization')
+        setLoading(false)
+        return
+      }
+
+      try {
+        const response = await fetch(`/api/users/${userId}/streams?organizationId=${currentOrganization.id}`)
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to fetch user streams')
+        }
+
+        setStreamsData(data)
+        setError(null)
+      } catch (err) {
+        console.error('Error fetching user streams:', err)
+        setError(err instanceof Error ? err.message : 'Failed to load user streams')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUserStreams()
+  }, [userId, currentOrganization])
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="p-4 border rounded-lg animate-pulse">
+            <div className="h-6 bg-muted rounded w-1/4 mb-2" />
+            <div className="h-4 bg-muted rounded w-1/2" />
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-6">
+        <p className="text-muted-foreground">{error}</p>
+      </div>
+    )
+  }
+
+  if (!streamsData || streamsData.streams.length === 0) {
+    return (
+      <div className="text-center py-6">
+        <p className="text-muted-foreground">No streams found for this user.</p>
+      </div>
+    )
+  }
+
+  return <StreamsList data={streamsData} />
 }
 
 export default function UserPage({ params }: { params: Promise<{ id: string }> }) {
@@ -203,9 +272,7 @@ export default function UserPage({ params }: { params: Promise<{ id: string }> }
         </TabsList>
 
         <TabsContent value="streams" className="space-y-4">
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No streams found for this user.</p>
-          </div>
+          <UserStreams userId={id} />
         </TabsContent>
 
         <TabsContent value="tasks" className="space-y-4">

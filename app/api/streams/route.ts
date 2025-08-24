@@ -189,23 +189,25 @@ export async function GET(request: Request) {
       )
     }
 
-    // Get stream members
+    // Get stream members and user details separately
     const streamIds = streams?.map(s => s.id) || []
     const { data: streamMembers } = await supabase
       .from('stream_members')
-      .select(`
-        id,
-        user_id,
-        role,
-        joined_at,
-        stream_id,
-        users (
-          id,
-          full_name,
-          avatar_url
-        )
-      `)
+      .select('id, user_id, role, joined_at, stream_id')
       .in('stream_id', streamIds)
+
+    // Get user details
+    const userIds = streamMembers?.map(member => member.user_id) || []
+    const { data: users } = await supabase
+      .from('users')
+      .select('id, full_name, avatar_url')
+      .in('id', userIds)
+
+    // Combine stream members with user details
+    const streamMembersWithUsers = streamMembers?.map(member => ({
+      ...member,
+      users: users?.find(user => user.id === member.user_id) || null
+    })) || []
 
     // Get work items
     const { data: workItems } = await supabase
@@ -239,7 +241,7 @@ export async function GET(request: Request) {
     // Combine the data
     const streamsWithRelations = streams?.map(stream => ({
       ...stream,
-      stream_members: streamMembers?.filter(m => m.stream_id === stream.id) || [],
+      stream_members: streamMembersWithUsers.filter(m => m.stream_id === stream.id) || [],
       work_items: workItems?.filter(w => w.stream_id === stream.id) || [],
       stream_tools: streamTools?.filter(t => t.stream_id === stream.id) || []
     })) || []
