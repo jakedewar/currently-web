@@ -16,74 +16,72 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { createClient } from "@/lib/supabase/client"
+
 import { useRouter } from "next/navigation"
-import type { User } from "@supabase/supabase-js"
+interface UserProfile {
+  id: string;
+  full_name: string | null;
+  email: string | null;
+  avatar_url: string | null;
+  department: string | null;
+  location: string | null;
+  timezone: string | null;
+}
 
 export function AppSidebar() {
   const pathname = usePathname()
   const { currentOrganization, setCurrentOrganization } = useOrganization()
   const router = useRouter()
-  const [user, setUser] = useState<User | null>(null)
-  const [userProfile, setUserProfile] = useState<{ full_name: string | null } | null>(null)
+  const [user, setUser] = useState<UserProfile | null>(null)
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [userOrganizations, setUserOrganizations] = useState<Organization[]>([])
 
   // Fetch user data and organizations on component mount
   useEffect(() => {
     const fetchUserAndOrganizations = async () => {
-      const supabase = createClient()
-      
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
-      
-      if (user) {
-        // Fetch user profile to get full name
-        const { data: profile } = await supabase
-          .from('users')
-          .select('full_name')
-          .eq('id', user.id)
-          .single()
-        
-        setUserProfile(profile)
+      try {
+        // Get current user profile
+        const profileResponse = await fetch('/api/users/me');
+        const profileData = await profileResponse.json();
 
-        // Fetch user's organizations with their roles
-        const { data: orgMemberships, error } = await supabase
-          .from('organization_members')
-          .select(`
-            role,
-            organizations (
-              id,
-              name,
-              slug,
-              avatar_url
-            )
-          `)
-          .eq('user_id', user.id)
-
-        if (!error && orgMemberships) {
-          const orgs: Organization[] = orgMemberships.map(membership => ({
-            id: membership.organizations.id,
-            name: membership.organizations.name,
-            slug: membership.organizations.slug,
-            avatar: membership.organizations.avatar_url || undefined,
-            role: membership.role as "owner" | "admin" | "member",
-          }))
-          
-          setUserOrganizations(orgs)
-          
-          // Set the first organization as current if none is set
-          if (orgs.length > 0 && !currentOrganization) {
-            setCurrentOrganization(orgs[0])
-          }
+        if (!profileResponse.ok) {
+          throw new Error(profileData.error || 'Failed to fetch user profile');
         }
+
+        setUser(profileData);
+        setUserProfile(profileData);
+
+        // Get user's organizations
+        const orgsResponse = await fetch('/api/users/me/organizations');
+        const orgsData = await orgsResponse.json();
+
+        if (!orgsResponse.ok) {
+          throw new Error(orgsData.error || 'Failed to fetch organizations');
+        }
+
+        const orgs: Organization[] = orgsData.organizations.map((org: { id: string; name: string; slug: string; avatar_url?: string; role: "owner" | "admin" | "member" }) => ({
+          id: org.id,
+          name: org.name,
+          slug: org.slug,
+          avatar: org.avatar_url || undefined,
+          role: org.role as "owner" | "admin" | "member",
+        }));
+
+        setUserOrganizations(orgs);
+
+        // Set the first organization as current if none is set
+        if (orgs.length > 0 && !currentOrganization) {
+          setCurrentOrganization(orgs[0]);
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false)
-    }
-    
-    fetchUserAndOrganizations()
+    };
+
+    fetchUserAndOrganizations();
   }, [currentOrganization, setCurrentOrganization])
 
   // Use real organizations or show empty state
@@ -97,7 +95,7 @@ export function AppSidebar() {
       label: "Dashboard",
     },
     {
-      href: "/protected/analytics",
+      href: "/protected/streams",
       icon: Waves,
       label: "Streams",
     },
@@ -131,9 +129,15 @@ export function AppSidebar() {
   }
 
   const handleLogout = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push("/auth/login")
+    try {
+      const response = await fetch('/auth/signout', { method: 'POST' });
+      if (!response.ok) {
+        throw new Error('Failed to sign out');
+      }
+      router.push("/auth/login");
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   }
 
   const getUserInitials = (name: string | undefined) => {
@@ -145,7 +149,7 @@ export function AppSidebar() {
     if (userProfile?.full_name) {
       return userProfile.full_name
     }
-    return user?.email || 'User'
+    return user?.email || user?.id || 'User'
   }
 
   return (

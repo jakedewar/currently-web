@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { TeamTable } from "@/components/team-table"
-import { createClient } from "@/lib/supabase/client"
 import { useOrganization } from "@/components/organization-provider"
+import { type Database } from "@/lib/supabase/types"
 
 interface TeamMember {
   id: string
@@ -29,61 +29,36 @@ export default function UsersPage() {
         return
       }
 
-      const supabase = createClient()
-      
-      // First, fetch all members of the current organization
-      const { data: memberships, error: membershipError } = await supabase
-        .from('organization_members')
-        .select('user_id, role, joined_at')
-        .eq('organization_id', currentOrganization.id)
+      try {
+        const response = await fetch(`/api/users?organizationId=${currentOrganization.id}`);
+        const data = await response.json();
 
-      if (membershipError) {
-        console.error('Error fetching organization members:', membershipError)
-        setLoading(false)
-        return
-      }
-
-      if (memberships && memberships.length > 0) {
-        // Get all user IDs
-        const userIds = memberships.map(m => m.user_id)
-        
-        // Fetch user profiles for all members
-        const { data: userProfiles, error: userError } = await supabase
-          .from('users')
-          .select('id, full_name, avatar_url, department, location, timezone')
-          .in('id', userIds)
-
-        if (userError) {
-          console.error('Error fetching user profiles:', userError)
-          setLoading(false)
-          return
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to fetch team members');
         }
 
-        // Combine the data
-        const teamMembers: TeamMember[] = memberships.map(membership => {
-          const userProfile = userProfiles?.find(u => u.id === membership.user_id)
-          return {
-            id: membership.user_id,
-            name: userProfile?.full_name || 'Unknown User',
-            email: '-', // We don't have email in the users table
-            avatar: userProfile?.avatar_url || null,
-            department: userProfile?.department || '-',
-            currentWork: `Member since ${new Date(membership.joined_at || '').toLocaleDateString()}`,
-            lastActive: 'Recently active',
-            location: userProfile?.location || '-',
-            timezone: userProfile?.timezone || '-',
-          }
-        })
+        const teamMembers: TeamMember[] = data.users.map((user: Database['public']['Tables']['users']['Row']) => ({
+          id: user.id,
+          name: user.full_name || 'Unknown User',
+          email: '-', // We don't have email in the users table
+          avatar: user.avatar_url || null,
+          department: user.department || '-',
+          currentWork: `Member since ${new Date(user.created_at || '').toLocaleDateString()}`,
+          lastActive: 'Recently active',
+          location: user.location || '-',
+          timezone: user.timezone || '-',
+        }));
 
-        setUsers(teamMembers)
-      } else {
-        setUsers([])
+        setUsers(teamMembers);
+      } catch (err) {
+        console.error('Error fetching team members:', err);
+        setUsers([]);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      setLoading(false)
-    }
-
-    fetchTeamMembers()
+    fetchTeamMembers();
   }, [currentOrganization])
 
   if (loading) {

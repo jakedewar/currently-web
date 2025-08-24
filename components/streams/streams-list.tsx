@@ -45,6 +45,15 @@ interface StreamsListProps {
 }
 
 export function StreamsList({ data }: StreamsListProps) {
+  console.log('StreamsList data:', {
+    streams: data.streams.map(stream => ({
+      id: stream.id,
+      name: stream.name,
+      memberCount: stream.stream_members?.length,
+      members: stream.stream_members
+    })),
+    currentUser: data.currentUser
+  });
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "completed" | "paused">("all");
   const [priorityFilter, setPriorityFilter] = useState<"all" | "high" | "medium" | "low">("all");

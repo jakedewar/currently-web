@@ -1,9 +1,9 @@
 "use client"
 
 import { useEffect, useState, use } from "react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Button } from "@/components/ui/button"
 import { 
   Clock, 
   MapPin, 
@@ -11,10 +11,9 @@ import {
   Video,
   ArrowLeft,
   Waves
-} from "lucide-react";
-import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
-import { useOrganization } from "@/components/organization-provider";
+} from "lucide-react"
+import Link from "next/link"
+import { useOrganization } from "@/components/organization-provider"
 
 interface UserProfile {
   id: string;
@@ -23,75 +22,65 @@ interface UserProfile {
   department: string | null;
   location: string | null;
   timezone: string | null;
-  created_at: string | null;
-  updated_at: string | null;
-}
-
-interface OrganizationMember {
-  role: string;
+  organization_role: string;
   joined_at: string | null;
 }
 
 export default function UserPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
-  const { currentOrganization } = useOrganization();
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [membership, setMembership] = useState<OrganizationMember | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { id } = use(params)
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const { currentOrganization } = useOrganization()
 
   useEffect(() => {
     const fetchUserData = async () => {
       if (!currentOrganization) {
-        setError("No organization selected");
-        setLoading(false);
-        return;
+        setError('Please select an organization')
+        setLoading(false)
+        return
       }
-
-      const supabase = createClient();
 
       try {
-        // Fetch user profile
-        const { data: profile, error: profileError } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', id)
-          .single();
+        const response = await fetch(`/api/users/${id}?organizationId=${currentOrganization.id}`)
+        const data = await response.json()
 
-        if (profileError) {
-          console.error('Error fetching user profile:', profileError);
-          setError("User not found");
-          setLoading(false);
-          return;
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to fetch user data')
         }
 
-        setUserProfile(profile);
-
-        // Fetch organization membership
-        const { data: memberData, error: memberError } = await supabase
-          .from('organization_members')
-          .select('role, joined_at')
-          .eq('user_id', id)
-          .eq('organization_id', currentOrganization.id)
-          .single();
-
-        if (memberError) {
-          console.error('Error fetching membership:', memberError);
-          // Don't set error here as user might exist but not be in this org
-        } else {
-          setMembership(memberData);
-        }
-
+        setUserProfile(data)
+        setError(null)
       } catch (err) {
-        console.error('Error fetching user data:', err);
-        setError("Failed to load user data");
+        console.error('Error fetching user data:', err)
+        setError(err instanceof Error ? err.message : 'Failed to load user data')
+      } finally {
+        setLoading(false)
       }
+    }
 
-      setLoading(false);
-    };
+    fetchUserData()
+  }, [id, currentOrganization])
 
-    fetchUserData();
-  }, [id, currentOrganization]);
+  if (!currentOrganization) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Link href="/protected/users">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Team
+            </Button>
+          </Link>
+        </div>
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">
+            Please select an organization to view user details.
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   if (loading) {
     return (
@@ -114,7 +103,7 @@ export default function UserPage({ params }: { params: Promise<{ id: string }> }
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   if (error || !userProfile) {
@@ -134,15 +123,15 @@ export default function UserPage({ params }: { params: Promise<{ id: string }> }
           </p>
         </div>
       </div>
-    );
+    )
   }
 
-  const displayName = userProfile.full_name || 'Unknown User';
-  const displayDepartment = userProfile.department || 'No department';
-  const displayLocation = userProfile.location || 'No location';
-  const displayTimezone = userProfile.timezone || 'No timezone';
-  const displayRole = membership?.role ? `${membership.role.charAt(0).toUpperCase() + membership.role.slice(1)}` : 'Member';
-  const joinDate = membership?.joined_at ? new Date(membership.joined_at).toLocaleDateString() : 'Unknown';
+  const displayName = userProfile.full_name || 'Unknown User'
+  const displayDepartment = userProfile.department || 'No department'
+  const displayLocation = userProfile.location || 'No location'
+  const displayTimezone = userProfile.timezone || 'No timezone'
+  const displayRole = userProfile.organization_role ? `${userProfile.organization_role.charAt(0).toUpperCase() + userProfile.organization_role.slice(1)}` : 'Member'
+  const joinDate = userProfile.joined_at ? new Date(userProfile.joined_at).toLocaleDateString() : 'Unknown'
 
   return (
     <div className="space-y-6">
@@ -201,7 +190,7 @@ export default function UserPage({ params }: { params: Promise<{ id: string }> }
         <div className="flex items-center gap-2">
           <Waves className="h-4 w-4 text-primary" />
           <span className="text-sm text-muted-foreground">Currently:</span>
-          <span className="text-sm font-medium">Member of {currentOrganization?.name}</span>
+          <span className="text-sm font-medium">Member of {currentOrganization.name}</span>
         </div>
       </div>
 
@@ -232,5 +221,5 @@ export default function UserPage({ params }: { params: Promise<{ id: string }> }
         </TabsContent>
       </Tabs>
     </div>
-  );
+  )
 }

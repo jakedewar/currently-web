@@ -133,19 +133,14 @@ export async function getStreamsData(): Promise<StreamsData> {
       user_id,
       role,
       joined_at,
-      stream_id
+      stream_id,
+      users (
+        id,
+        full_name,
+        avatar_url
+      )
     `)
     .in('stream_id', streamIds);
-
-  // Get user details for stream members
-  const memberUserIds = streamMembers?.map(m => m.user_id).filter(Boolean) || [];
-  const { data: memberUsers } = await supabase
-    .from('users')
-    .select('id, full_name, avatar_url')
-    .in('id', memberUserIds);
-
-  // Create a map of user details
-  const userMap = new Map(memberUsers?.map(u => [u.id, u]) || []);
 
   // Get work items for streams
   const { data: workItems } = await supabase
@@ -179,10 +174,7 @@ export async function getStreamsData(): Promise<StreamsData> {
   // Combine the data
   const streamsWithRelations = streams?.map(stream => ({
     ...stream,
-    stream_members: streamMembers?.filter(m => m.stream_id === stream.id).map(member => ({
-      ...member,
-      users: userMap.get(member.user_id) || null
-    })) || [],
+    stream_members: streamMembers?.filter(m => m.stream_id === stream.id) || [],
     work_items: workItems?.filter(w => w.stream_id === stream.id) || [],
     stream_tools: streamTools?.filter(t => t.stream_id === stream.id) || []
   })) || [];
