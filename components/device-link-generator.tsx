@@ -41,10 +41,10 @@ export function DeviceLinkGenerator() {
         title: "Device link code generated",
         description: "Use this code in your Chrome extension to connect your account",
       })
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
-        description: `Failed to generate code: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        description: "Failed to generate code",
         variant: "destructive",
       })
     } finally {
@@ -62,7 +62,7 @@ export function DeviceLinkGenerator() {
         title: "Code copied",
         description: "Device link code copied to clipboard",
       })
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to copy code to clipboard",
