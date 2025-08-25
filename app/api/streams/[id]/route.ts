@@ -3,10 +3,10 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  ctx: RouteContext<'/api/streams/[id]'>
 ): Promise<NextResponse> {
   try {
-    const streamId = params.id
+    const { id: streamId } = await ctx.params
     const supabase = await createClient()
 
     // Get current user
