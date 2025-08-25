@@ -7,6 +7,9 @@ export const CreateStreamSchema = z.object({
   description: z.string()
     .max(500, 'Description must be less than 500 characters')
     .optional(),
+  emoji: z.string()
+    .max(10, 'Emoji must be less than 10 characters')
+    .optional(),
   priority: z.enum(['low', 'medium', 'high'])
     .default('medium'),
   status: z.enum(['active', 'completed', 'paused', 'archived'])

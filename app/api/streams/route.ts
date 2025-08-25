@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const { name, description, priority, status, organization_id, start_date, end_date } = result.data
+    const { name, description, emoji, priority, status, organization_id, start_date, end_date } = result.data
 
     // Check rate limit if Redis is configured
     if (redis) {
@@ -82,6 +82,7 @@ export async function POST(request: Request) {
         .insert({
           name,
           description,
+          emoji,
           priority: priority || 'medium',
           status: status || 'active',
           progress: 0,

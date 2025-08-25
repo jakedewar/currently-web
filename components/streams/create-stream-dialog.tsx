@@ -24,6 +24,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Plus } from "lucide-react"
 import { useOrganization } from "@/components/organization-provider"
 import { useToast } from "@/hooks/use-toast"
+import { EmojiPicker } from "@/components/ui/emoji-picker"
 
 interface CreateStreamDialogProps {
   onStreamCreated: () => void
@@ -38,6 +39,7 @@ export function CreateStreamDialog({ onStreamCreated }: CreateStreamDialogProps)
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    emoji: '',
     priority: 'medium',
     status: 'active',
     progress: 0,
@@ -98,6 +100,7 @@ export function CreateStreamDialog({ onStreamCreated }: CreateStreamDialogProps)
       setFormData({
         name: '',
         description: '',
+        emoji: '',
         priority: 'medium',
         status: 'active',
         progress: 0,
@@ -141,6 +144,14 @@ export function CreateStreamDialog({ onStreamCreated }: CreateStreamDialogProps)
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Enter stream name"
                 required
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="emoji">Emoji</Label>
+              <EmojiPicker
+                value={formData.emoji}
+                onValueChange={(emoji) => setFormData({ ...formData, emoji })}
+                placeholder="Choose an emoji for this stream"
               />
             </div>
             <div className="grid gap-2">

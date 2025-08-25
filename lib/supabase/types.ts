@@ -172,6 +172,7 @@ export type Database = {
           created_at: string | null
           created_by: string
           description: string | null
+          emoji: string | null
           end_date: string | null
           id: string
           name: string
@@ -186,6 +187,7 @@ export type Database = {
           created_at?: string | null
           created_by: string
           description?: string | null
+          emoji?: string | null
           end_date?: string | null
           id?: string
           name: string
@@ -200,6 +202,7 @@ export type Database = {
           created_at?: string | null
           created_by?: string
           description?: string | null
+          emoji?: string | null
           end_date?: string | null
           id?: string
           name?: string

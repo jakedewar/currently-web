@@ -259,7 +259,12 @@ export function StreamsList({ data, pathname: customPathname }: StreamsListProps
               {/* Header with Title and Actions */}
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-semibold truncate mb-2">{stream.name}</h3>
+                  <div className="flex items-center gap-2 mb-2">
+                    {stream.emoji && (
+                      <span className="text-2xl">{stream.emoji}</span>
+                    )}
+                    <h3 className="text-lg font-semibold truncate">{stream.name}</h3>
+                  </div>
                   <div className="flex items-center gap-2">
                     <StatusBadge status={stream.status} variant="compact" />
                     <PriorityBadge priority={stream.priority} variant="compact" />

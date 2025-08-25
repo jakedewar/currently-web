@@ -130,7 +130,12 @@ export function StreamHeader({ stream, userRole, onStreamUpdated }: StreamHeader
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <h1 className="text-xl sm:text-2xl font-bold tracking-tight">{stream.name}</h1>
+              <div className="flex items-center gap-2">
+                {stream.emoji && (
+                  <span className="text-3xl">{stream.emoji}</span>
+                )}
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight">{stream.name}</h1>
+              </div>
               <div className="flex items-center gap-2 flex-wrap">
                 <StatusBadge status={stream.status} variant="compact" />
                 <PriorityBadge priority={stream.priority} variant="compact" />

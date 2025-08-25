@@ -92,9 +92,14 @@ export function ArchivedStreams({ streams, onStreamUpdated }: ArchivedStreamsPro
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
-                    <CardTitle className="text-base font-semibold truncate mb-1">
-                      {stream.name}
-                    </CardTitle>
+                    <div className="flex items-center gap-2 mb-1">
+                      {stream.emoji && (
+                        <span className="text-xl">{stream.emoji}</span>
+                      )}
+                      <CardTitle className="text-base font-semibold truncate">
+                        {stream.name}
+                      </CardTitle>
+                    </div>
                     <div className="flex items-center gap-2">
                       <StatusBadge status={stream.status} variant="compact" />
                       <PriorityBadge priority={stream.priority} variant="compact" />

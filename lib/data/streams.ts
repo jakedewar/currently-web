@@ -5,6 +5,7 @@ export interface Stream {
   id: string;
   name: string;
   description: string | null;
+  emoji: string | null;
   progress: number;
   start_date: string | null;
   end_date: string | null;
@@ -56,6 +57,7 @@ export interface StreamsData {
     id: string;
     name: string;
     description: string | null;
+    emoji: string | null;
     progress: number;
     start_date: string | null;
     end_date: string | null;
@@ -118,6 +120,7 @@ export async function getUserStreams(userId: string): Promise<StreamsData> {
       id,
       name,
       description,
+      emoji,
       progress,
       start_date,
       end_date,
@@ -228,6 +231,7 @@ export async function getStreamsData(): Promise<StreamsData> {
       id,
       name,
       description,
+      emoji,
       progress,
       start_date,
       end_date,
