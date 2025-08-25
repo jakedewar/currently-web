@@ -27,7 +27,6 @@ import {
   Users,
   CheckCircle,
   XCircle,
-  Clock,
   Link as LinkIcon,
   UserPlus
 } from 'lucide-react'
@@ -172,16 +171,7 @@ export function Stream({ stream, currentUserId, onStreamUpdated }: StreamProps) 
     }
   }
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <CheckCircle className="h-4 w-4 text-green-500" />
-      case 'archived':
-        return <XCircle className="h-4 w-4 text-gray-500" />
-      default:
-        return <Clock className="h-4 w-4 text-blue-500" />
-    }
-  }
+
 
   const isCurrentUserMember = stream.stream_members.some(member => member.user_id === currentUserId)
   const isCurrentUserOwner = stream.created_by === currentUserId
