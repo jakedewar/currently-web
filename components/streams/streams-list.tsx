@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,8 @@ import {
   Users,
   UserPlus,
   Archive,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -39,6 +41,8 @@ interface StreamsListProps {
   data: StreamsData;
   pathname?: string;
 }
+
+const STREAMS_PER_PAGE = 6;
 
 export function StreamsList({ data, pathname: customPathname }: StreamsListProps) {
   const router = useRouter();
@@ -61,6 +65,7 @@ export function StreamsList({ data, pathname: customPathname }: StreamsListProps
   const [streamFilter, setStreamFilter] = useState<"all" | "my">("all");
   const [sortBy, setSortBy] = useState<"progress" | "name" | "startDate" | "endDate">("progress");
   const [showArchived, setShowArchived] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Filter streams based on current filters
   const filteredStreams = useMemo(() => {
@@ -80,6 +85,22 @@ export function StreamsList({ data, pathname: customPathname }: StreamsListProps
   // Separate archived streams
   const archivedStreams = data.streams.filter(stream => stream.status === 'archived');
   const activeStreams = filteredStreams.filter(stream => stream.status !== 'archived');
+
+  // Pagination logic
+  const totalPages = Math.ceil(activeStreams.length / STREAMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * STREAMS_PER_PAGE;
+  const endIndex = startIndex + STREAMS_PER_PAGE;
+  const paginatedStreams = activeStreams.slice(startIndex, endIndex);
+
+  // Reset to first page when filters change
+  const resetPagination = () => {
+    setCurrentPage(1);
+  };
+
+  // Update pagination when filters change
+  useEffect(() => {
+    resetPagination();
+  }, [searchQuery, statusFilter, priorityFilter, streamFilter, sortBy]);
 
   const hasOtherFilters = Boolean(searchQuery) || statusFilter !== "all" || priorityFilter !== "all";
   const emptyState = getEmptyStateMessage(streamFilter, hasOtherFilters);
@@ -216,8 +237,8 @@ export function StreamsList({ data, pathname: customPathname }: StreamsListProps
       </div>
 
       {/* Stream Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {activeStreams.map((stream) => {
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {paginatedStreams.map((stream) => {
           const isMember = isUserMemberOfStream(stream);
           const isOwner = isUserOwnerOfStream(stream);
           const canJoin = !isMember && !isOwner;
@@ -226,9 +247,9 @@ export function StreamsList({ data, pathname: customPathname }: StreamsListProps
           return (
             <Card
               key={stream.id}
-              className={`p-5 hover:shadow-md transition-shadow cursor-pointer h-fit flex flex-col ${
+              className={`p-7 hover:shadow-md transition-shadow cursor-pointer h-fit flex flex-col ${
                 stream.status === 'archived' ? 'opacity-75 bg-muted/30' : ''
-              }`}
+              } ${canJoin ? 'border-blue-200 hover:border-blue-300' : ''}`}
               onClick={() => {
                 // Store the current path as the referrer
                 sessionStorage.setItem('streamReferrer', customPathname || pathname)
@@ -236,74 +257,76 @@ export function StreamsList({ data, pathname: customPathname }: StreamsListProps
               }}
             >
               {/* Header with Title and Actions */}
-              <div className="flex items-start justify-between mb-3">
+              <div className="flex items-start justify-between mb-4">
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-base font-semibold truncate mb-1">{stream.name}</h3>
+                  <h3 className="text-lg font-semibold truncate mb-2">{stream.name}</h3>
                   <div className="flex items-center gap-2">
                     <StatusBadge status={stream.status} variant="compact" />
                     <PriorityBadge priority={stream.priority} variant="compact" />
                   </div>
                 </div>
-                <div className="flex items-center gap-2 ml-3 flex-shrink-0">
-                  {canJoin && (
-                    <Button
-                      size="sm"
-                      onClick={(e) => handleJoinStream(stream.id, e)}
-                      disabled={isJoining}
-                      className="bg-blue-600 hover:bg-blue-700 h-8 px-3"
-                    >
-                      <UserPlus className="h-3 w-3 mr-1" />
-                      {isJoining ? '...' : 'Join'}
-                    </Button>
-                  )}
-                </div>
               </div>
 
-              {/* Description - fixed height */}
-              <div className="h-12 mb-4">
-                <p className="text-sm text-muted-foreground line-clamp-2">
+              {/* Description - increased height */}
+              <div className="h-16 mb-5">
+                <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
                   {stream.description || "No description available"}
                 </p>
               </div>
 
               {/* Progress */}
-              <div className="mb-4">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-medium text-muted-foreground">Progress</span>
-                  <span className="text-xs text-muted-foreground">{stream.progress}%</span>
+              <div className="mb-5">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-muted-foreground">Progress</span>
+                  <span className="text-sm text-muted-foreground">{stream.progress}%</span>
                 </div>
-                <Progress value={stream.progress} className="h-1.5" />
+                <Progress value={stream.progress} className="h-2" />
               </div>
 
               {/* Bottom Metadata */}
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    <span className="truncate max-w-20">{formatDate(stream.start_date)}</span>
+              <div className="flex items-center justify-between text-sm text-muted-foreground mt-auto">
+                <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    <span className="truncate max-w-24">{formatDate(stream.start_date)}</span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <Users className="h-3 w-3" />
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
                     <span>{stream.stream_members.length}</span>
                   </div>
                 </div>
                 
-                {/* Role indicator */}
+                {/* Role indicator or Join button */}
                 <div className="flex-shrink-0">
                   {isOwner && (
-                    <Badge variant="outline" className="text-xs px-2 py-0.5">
+                    <Badge variant="outline" className="text-xs px-3 py-1">
                       Owner
                     </Badge>
                   )}
                   {isMember && !isOwner && (
-                    <Badge variant="outline" className="text-xs px-2 py-0.5">
+                    <Badge variant="outline" className="text-xs px-3 py-1">
                       Member
                     </Badge>
                   )}
                   {canJoin && (
-                    <Badge variant="outline" className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 border-blue-200">
-                      Join
-                    </Badge>
+                    <Button
+                      size="sm"
+                      onClick={(e) => handleJoinStream(stream.id, e)}
+                      disabled={isJoining}
+                      className="bg-blue-600 hover:bg-blue-700 text-white h-7 px-3 text-xs font-medium"
+                    >
+                      {isJoining ? (
+                        <>
+                          <div className="animate-spin rounded-full h-2 w-2 border-b-2 border-white mr-1" />
+                          Joining
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus className="h-3 w-3 mr-1" />
+                          Join
+                        </>
+                      )}
+                    </Button>
                   )}
                 </div>
               </div>
@@ -311,6 +334,50 @@ export function StreamsList({ data, pathname: customPathname }: StreamsListProps
           );
         })}
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            Showing {startIndex + 1} to {Math.min(endIndex, activeStreams.length)} of {activeStreams.length} streams
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Previous
+            </Button>
+            
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <Button
+                  key={page}
+                  variant={currentPage === page ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setCurrentPage(page)}
+                  className="w-8 h-8 p-0"
+                >
+                  {page}
+                </Button>
+              ))}
+            </div>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Empty State (when no streams match filters) */}
       {activeStreams.length === 0 && (

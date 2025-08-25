@@ -104,7 +104,7 @@ export default function Home() {
             className="mb-6 text-primary"
           >
             <Sparkles className="h-3 w-3 mr-2" />
-            New • Start Building, Stop Searching
+            New • Stop Searching, Start Building
           </Badge>
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
             Stop losing work in the chaos
