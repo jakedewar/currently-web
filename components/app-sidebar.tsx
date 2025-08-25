@@ -166,7 +166,8 @@ export function AppSidebar() {
           {navItems.map((item) => {
             // Check if the current path matches the nav item or is a sub-route
             const isActive = pathname === item.href || 
-              (item.href === "/protected/users" && pathname.startsWith("/protected/users/"))
+              (item.href === "/protected/users" && pathname.startsWith("/protected/users/")) ||
+              (item.href === "/protected/streams" && pathname.startsWith("/protected/streams/"))
             return (
               <a
                 key={item.href}

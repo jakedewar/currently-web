@@ -1,17 +1,9 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import {
   Select,
   SelectContent,
@@ -21,31 +13,32 @@ import {
 } from "@/components/ui/select";
 import { 
   FolderOpen, 
-  Users, 
-  Calendar,
   Plus,
-  MoreHorizontal,
   Search,
-  Eye,
-  User
+  ArrowRight,
+  Calendar,
+  Users,
 } from "lucide-react";
-import { WorkItemsList } from "./work-items-list";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { ClientOnly } from "@/components/ui/client-only";
 import { StreamsData } from "@/lib/data/streams";
 import { 
-  getStatusIcon, 
-  getToolIcon, 
-  getPriorityColor, 
-  formatDate, 
   filterStreams, 
-  getEmptyStateMessage 
+  getEmptyStateMessage,
+  getPriorityColor,
+  formatDate,
 } from "@/lib/utils/streams";
+import { useRouter, usePathname } from "next/navigation";
 
 interface StreamsListProps {
   data: StreamsData;
+  pathname?: string;
 }
 
-export function StreamsList({ data }: StreamsListProps) {
+export function StreamsList({ data, pathname: customPathname }: StreamsListProps) {
+  const router = useRouter();
+  const pathname = usePathname();
   console.log('StreamsList data:', {
     streams: data.streams.map(stream => ({
       id: stream.id,
@@ -151,123 +144,52 @@ export function StreamsList({ data }: StreamsListProps) {
       </div>
 
       {/* Stream Cards */}
-      <ClientOnly>
-        <Accordion type="multiple" className="space-y-4">
-          {filteredStreams.map((stream) => (
-            <AccordionItem key={stream.id} value={`stream-${stream.id}`} className="border rounded-lg">
-              <AccordionTrigger className="px-6 py-4 hover:no-underline">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full pr-4 gap-4 sm:gap-0">
-                  {/* Stream Header Info */}
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 flex-1">
-                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                      <CardTitle className="text-lg">{stream.name}</CardTitle>
-                      <Badge variant={stream.status === 'active' ? 'default' : 'secondary'}>
-                        {stream.status}
-                      </Badge>
-                      <div className={`w-3 h-3 rounded-full ${getPriorityColor(stream.priority)}`}></div>
-                      {stream.stream_members.some(member => member.user_id === data.currentUser.id) && (
-                        <Badge variant="outline" className="text-xs">
-                          <User className="h-3 w-3 mr-1" />
-                          Member
-                        </Badge>
-                      )}
-                      {stream.created_by === data.currentUser.id && (
-                        <Badge variant="outline" className="text-xs">
-                          <Eye className="h-3 w-3 mr-1" />
-                          Owner
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {/* Progress and Dates - Always Visible */}
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 w-full sm:w-auto">
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground order-2 sm:order-1">
-                      <div className="flex items-center gap-1 whitespace-nowrap">
-                        <Calendar className="h-4 w-4 flex-shrink-0" />
-                        <span className="hidden sm:inline">{formatDate(stream.start_date)} - {formatDate(stream.end_date)}</span>
-                        <span className="sm:hidden">{formatDate(stream.start_date)}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-3 order-1 sm:order-2">
-                      <div className="text-right">
-                        <div className="text-sm font-medium">{stream.progress}%</div>
-                        <div className="text-xs text-muted-foreground hidden sm:block">Complete</div>
-                      </div>
-                      <div className="w-16 sm:w-20">
-                        <Progress value={stream.progress} className="h-2" />
-                      </div>
-                    </div>
-                    
-                    <div className="ml-2 p-1 hover:bg-muted rounded cursor-pointer order-3">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </div>
-                  </div>
+      <div className="grid gap-4">
+        {filteredStreams.map((stream) => (
+          <Card
+            key={stream.id}
+            className="p-6 hover:shadow-md transition-shadow cursor-pointer"
+            onClick={() => {
+              // Store the current path as the referrer
+              sessionStorage.setItem('streamReferrer', customPathname || pathname)
+              router.push(`/protected/streams/${stream.id}`)
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-semibold">{stream.name}</h3>
+                  <Badge variant={stream.status === 'active' ? 'default' : 'secondary'}>
+                    {stream.status}
+                  </Badge>
+                  <div className={`w-2 h-2 rounded-full ${getPriorityColor(stream.priority)}`} />
                 </div>
-              </AccordionTrigger>
-              
-              <AccordionContent className="px-6 pb-6">
-                <div className="space-y-6 pt-4">
-                  {/* Stream Description */}
-                  <div>
-                    <p className="text-muted-foreground">{stream.description || "No description available"}</p>
-                  </div>
-                  
-                  {/* Team Members */}
-                  <div>
-                    <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
-                      <Users className="h-4 w-4" />
-                      Team ({stream.stream_members.length})
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {stream.stream_members.map((member) => (
-                        <div key={member.id} className="flex items-center gap-2 bg-muted/50 rounded-full px-3 py-1">
-                          <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center">
-                            <span className="text-xs font-medium text-primary">
-                              {member.users?.full_name?.split(' ').map(n => n[0]).join('') || 'U'}
-                            </span>
-                          </div>
-                          <span className="text-sm">{member.users?.full_name || 'Unknown User'}</span>
-                          <span className="text-xs text-muted-foreground">({member.role})</span>
-                          {member.user_id === data.currentUser.id && (
-                            <Badge variant="outline" className="text-xs">You</Badge>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                <p className="text-sm text-muted-foreground line-clamp-1">
+                  {stream.description || "No description available"}
+                </p>
+              </div>
+              <ArrowRight className="h-5 w-5 text-muted-foreground" />
+            </div>
 
-                  {/* Work Items */}
-                  <div>
-                    <WorkItemsList
-                      streamId={stream.id}
-                      workItems={stream.work_items}
-                      onWorkItemCreated={() => {
-                        // Refetch streams data to update the list
-                        window.location.reload();
-                      }}
-                    />
-                  </div>
-
-                  {/* Connected Tools */}
-                  <div>
-                    <h4 className="text-sm font-medium mb-3">Connected Tools</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {stream.stream_tools.map((tool) => (
-                        <Badge key={tool.id} variant="secondary" className="text-xs">
-                          {getToolIcon(tool.tool_name)}
-                          <span className="ml-1">{tool.tool_name}</span>
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
+            <div className="flex flex-wrap gap-4 mt-4 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                <span>{formatDate(stream.start_date)} - {formatDate(stream.end_date)}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span>{stream.progress}% Complete</span>
+                <div className="w-24">
+                  <Progress value={stream.progress} className="h-2" />
                 </div>
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      </ClientOnly>
+              </div>
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                <span>{stream.stream_members.length} members</span>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
 
       {/* Empty State (when no streams match filters) */}
       {filteredStreams.length === 0 && (

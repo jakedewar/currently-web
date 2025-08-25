@@ -5,6 +5,8 @@ import { useCallback, useEffect, useState } from "react"
 import type { StreamsData } from "@/lib/data/streams"
 import { useOrganization } from "@/components/organization-provider"
 import { CreateStreamDialog } from "@/components/streams/create-stream-dialog"
+import { LoadingStream } from "@/components/streams/loading-stream"
+import { Accordion } from "@/components/ui/accordion"
 
 
 export default function StreamsPage() {
@@ -71,14 +73,11 @@ export default function StreamsPage() {
           </div>
           <CreateStreamDialog onStreamCreated={fetchStreams} />
         </div>
-        <div className="space-y-4">
+        <Accordion type="multiple" className="space-y-4">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="p-4 border rounded-lg animate-pulse">
-              <div className="h-6 bg-muted rounded w-1/4 mb-2" />
-              <div className="h-4 bg-muted rounded w-1/2" />
-            </div>
+            <LoadingStream key={i} />
           ))}
-        </div>
+        </Accordion>
       </div>
     )
   }

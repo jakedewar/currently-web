@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, use } from "react"
+import { usePathname } from "next/navigation"
 import { StreamsList } from "@/components/streams/streams-list"
 import type { StreamsData } from "@/lib/data/streams"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -29,6 +30,7 @@ interface UserProfile {
 }
 
 function UserStreams({ userId }: { userId: string }) {
+  const pathname = usePathname()
   const [streamsData, setStreamsData] = useState<StreamsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -92,7 +94,7 @@ function UserStreams({ userId }: { userId: string }) {
     )
   }
 
-  return <StreamsList data={streamsData} />
+  return <StreamsList data={streamsData} pathname={pathname} />
 }
 
 export default function UserPage({ params }: { params: Promise<{ id: string }> }) {
