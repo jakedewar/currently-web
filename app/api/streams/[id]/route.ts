@@ -3,10 +3,10 @@ import { NextResponse } from 'next/server'
 
 export async function GET(
   request: Request,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const params = await Promise.resolve(context.params)
+    const streamId = params.id
     const supabase = await createClient()
 
     // Get current user
@@ -44,7 +44,7 @@ export async function GET(
     const { data: streamMember } = await supabase
       .from('stream_members')
       .select('role')
-      .eq('stream_id', params.id)
+      .eq('stream_id', streamId)
       .eq('user_id', user.id)
       .single()
 
@@ -72,7 +72,7 @@ export async function GET(
         created_by,
         organization_id
       `)
-      .eq('id', params.id)
+      .eq('id', streamId)
       .single()
 
     if (!stream) {
@@ -97,7 +97,7 @@ export async function GET(
           avatar_url
         )
       `)
-      .eq('stream_id', params.id)
+      .eq('stream_id', streamId)
 
     // Get work items
     const { data: workItems } = await supabase
@@ -114,7 +114,7 @@ export async function GET(
         stream_id,
         created_by
       `)
-      .eq('stream_id', params.id)
+      .eq('stream_id', streamId)
       .order('created_at', { ascending: false })
 
     // Get stream tools
@@ -127,7 +127,7 @@ export async function GET(
         connected_at,
         stream_id
       `)
-      .eq('stream_id', params.id)
+      .eq('stream_id', streamId)
 
     // Get stream activity (we'll implement this later)
     const streamActivity = []

@@ -4,6 +4,7 @@ import { getDashboardData } from "@/lib/data/dashboard";
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import { RecentWork } from "@/components/dashboard/recent-work";
 import { TeamActivity } from "@/components/dashboard/team-activity";
+import { DynamicDashboardSection } from "@/components/dashboard/dynamic-dashboard-section";
 
 export default async function ProtectedPage() {
   const dashboardData = await getDashboardData();
@@ -29,13 +30,11 @@ export default async function ProtectedPage() {
       <StatsCards stats={dashboardData.stats} />
 
       {/* Recent Work and Team Activity */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <RecentWork workItems={dashboardData.workItems} />
-        <TeamActivity 
-          teamActivity={dashboardData.teamActivity} 
-          activityUsers={dashboardData.activityUsers} 
-        />
-      </div>  
+      <DynamicDashboardSection 
+        initialWorkItems={dashboardData.workItems}
+        initialTeamActivity={dashboardData.teamActivity}
+        initialActivityUsers={dashboardData.activityUsers}
+      />
     </div>
   );
 }
