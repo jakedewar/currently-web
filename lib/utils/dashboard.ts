@@ -1,4 +1,4 @@
-import { Clock, FolderOpen, TrendingUp, Users } from "lucide-react";
+import { Clock, Waves, TrendingUp, Users } from "lucide-react";
 
 export function getStatusColor(status: string): string {
   switch (status) {
@@ -70,7 +70,7 @@ export function getDashboardStats(stats: {
       title: "Active Streams",
       value: stats.activeStreams.toString(),
       description: "Streams you're working on",
-      icon: FolderOpen,
+      icon: Waves,
       trend: stats.activeStreams > 0 ? `+${stats.activeStreams} active` : "No active streams",
       color: "text-primary",
     },

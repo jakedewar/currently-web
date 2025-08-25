@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, FileText, MessageSquare } from "lucide-react";
+import { Clock, Waves, MessageSquare } from "lucide-react";
 import { getStatusColor, formatTimeAgo } from "@/lib/utils/dashboard";
 
 interface WorkItem {
@@ -23,16 +23,16 @@ interface RecentWorkProps {
 
 export function RecentWork({ workItems }: RecentWorkProps) {
   const getToolIcon = (tool: string | null) => {
-    if (!tool) return <FileText className="h-3 w-3" />;
+    if (!tool) return <Waves className="h-3 w-3" />;
     
     switch (tool.toLowerCase()) {
-      case "figma": return <FileText className="h-3 w-3" />;
+      case "figma": return <Waves className="h-3 w-3" />;
       case "slack": return <MessageSquare className="h-3 w-3" />;
-      case "notion": return <FileText className="h-3 w-3" />;
-      case "google docs": return <FileText className="h-3 w-3" />;
-      case "linear": return <FileText className="h-3 w-3" />;
-      case "github": return <FileText className="h-3 w-3" />;
-      default: return <FileText className="h-3 w-3" />;
+      case "notion": return <Waves className="h-3 w-3" />;
+      case "google docs": return <Waves className="h-3 w-3" />;
+      case "linear": return <Waves className="h-3 w-3" />;
+      case "github": return <Waves className="h-3 w-3" />;
+      default: return <Waves className="h-3 w-3" />;
     }
   };
 
@@ -82,7 +82,7 @@ export function RecentWork({ workItems }: RecentWorkProps) {
             ))
           ) : (
             <div className="text-center py-8 text-muted-foreground">
-              <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <Waves className="h-8 w-8 mx-auto mb-2 opacity-50" />
               <p className="text-sm">No work items yet</p>
               <p className="text-xs">Create your first work item to get started</p>
             </div>
