@@ -4,6 +4,7 @@ import type { Stream, StreamMember, WorkItem } from '@/lib/data/streams'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
+import { PriorityBadge } from '@/components/ui/priority-badge'
 import {
   AccordionContent,
   AccordionItem,
@@ -29,7 +30,7 @@ import {
   Link as LinkIcon,
   UserPlus
 } from 'lucide-react'
-import { formatDate, getPriorityColor } from '@/lib/utils/streams'
+import { formatDate } from '@/lib/utils/streams'
 import { WorkItemsList } from './work-items-list'
 import { useToast } from '@/hooks/use-toast'
 import { useState } from 'react'
@@ -197,7 +198,7 @@ export function Stream({ stream, currentUserId, onStreamUpdated }: StreamProps) 
                   {getStatusIcon(stream.status)}
                   <span className="capitalize">{stream.status}</span>
                 </Badge>
-                <div className={`w-3 h-3 rounded-full ${getPriorityColor(stream.priority)}`} />
+                <PriorityBadge priority={stream.priority} variant="compact" />
               </div>
               {isCurrentUserMember && (
                 <Badge variant="outline" className="text-xs">

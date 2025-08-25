@@ -23,12 +23,12 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ClientOnly } from "@/components/ui/client-only";
+import { PriorityBadge } from "@/components/ui/priority-badge";
 import { StreamsData } from "@/lib/data/streams";
 import { ArchivedStreams } from "./archived-streams";
 import { 
   filterStreams, 
   getEmptyStateMessage,
-  getPriorityColor,
   formatDate,
 } from "@/lib/utils/streams";
 import { useRouter, usePathname } from "next/navigation";
@@ -178,7 +178,16 @@ export function StreamsList({ data, pathname: customPathname }: StreamsListProps
           <ClientOnly>
             <Select value={priorityFilter} onValueChange={(value) => setPriorityFilter(value as "all" | "high" | "medium" | "low")}>
               <SelectTrigger className="w-[140px] bg-transparent border-0 shadow-none hover:bg-muted/50">
-                <SelectValue placeholder="Priority" />
+                <SelectValue placeholder="Priority">
+                  {priorityFilter === "all" ? (
+                    "All Priority"
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <PriorityBadge priority={priorityFilter} variant="minimal" />
+                      {priorityFilter.charAt(0).toUpperCase() + priorityFilter.slice(1)}
+                    </div>
+                  )}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Priority</SelectItem>
@@ -231,12 +240,12 @@ export function StreamsList({ data, pathname: customPathname }: StreamsListProps
                   <h3 className="text-base font-semibold truncate mb-1">{stream.name}</h3>
                   <div className="flex items-center gap-2">
                     <Badge 
-                      variant={stream.status === 'active' ? 'default' : stream.status === 'archived' ? 'destructive' : 'secondary'} 
-                      className="text-xs"
+                      variant="outline"
+                      className="text-xs px-1.5 py-0.5 h-5 font-normal"
                     >
                       {stream.status === 'archived' ? 'Archived' : stream.status}
                     </Badge>
-                    <div className={`w-2 h-2 rounded-full ${getPriorityColor(stream.priority)}`} />
+                    <PriorityBadge priority={stream.priority} variant="compact" />
                   </div>
                 </div>
                 <div className="flex items-center gap-2 ml-3 flex-shrink-0">

@@ -8,6 +8,7 @@ interface ExtendedStream extends Stream {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
+import { PriorityBadge } from '@/components/ui/priority-badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,7 +28,7 @@ import {
   ArrowLeft,
   MoreVertical
 } from 'lucide-react'
-import { formatDate, getPriorityColor } from '@/lib/utils/streams'
+import { formatDate } from '@/lib/utils/streams'
 import { useToast } from '@/hooks/use-toast'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -146,7 +147,7 @@ export function StreamHeader({ stream, userRole, onStreamUpdated }: StreamHeader
                   {getStatusIcon(stream.status)}
                   <span className="capitalize">{stream.status}</span>
                 </Badge>
-                <div className={`w-3 h-3 rounded-full ${getPriorityColor(stream.priority)}`} />
+                <PriorityBadge priority={stream.priority} variant="compact" />
               </div>
             </div>
             <p className="text-sm sm:text-base text-muted-foreground">{stream.description || "No description available"}</p>

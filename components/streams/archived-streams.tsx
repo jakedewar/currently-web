@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
+import { PriorityBadge } from '@/components/ui/priority-badge'
 import { 
   Archive, 
   Calendar, 
@@ -13,7 +14,7 @@ import {
   RefreshCw
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import { getPriorityColor, formatDate } from '@/lib/utils/streams'
+import { formatDate } from '@/lib/utils/streams'
 import type { Stream, StreamMember } from '@/lib/data/streams'
 
 interface ArchivedStreamsProps {
@@ -98,7 +99,7 @@ export function ArchivedStreams({ streams, onStreamUpdated }: ArchivedStreamsPro
                       <Badge variant="destructive" className="text-xs">
                         Archived
                       </Badge>
-                      <div className={`w-2 h-2 rounded-full ${getPriorityColor(stream.priority)}`} />
+                      <PriorityBadge priority={stream.priority} variant="compact" />
                     </div>
                   </div>
                 </div>
