@@ -83,7 +83,12 @@ export async function GET(request: Request) {
     const users = memberships.map(membership => {
       const profile = userProfiles?.find(p => p.id === membership.user_id)
       return {
-        ...profile,
+        id: profile?.id,
+        full_name: profile?.full_name,
+        avatar_url: profile?.avatar_url,
+        department: profile?.department,
+        location: profile?.location,
+        timezone: profile?.timezone,
         organization_role: membership.role,
         joined_at: membership.joined_at
       }

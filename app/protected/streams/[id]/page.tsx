@@ -59,7 +59,7 @@ export default function StreamPage() {
     } finally {
       setLoading(false)
     }
-  }, [params.id])
+  }, [params.id]) // ✅ Only depend on the stream ID
 
   const handleJoinStream = async () => {
     setIsJoining(true)
@@ -168,7 +168,9 @@ export default function StreamPage() {
       <Card className="p-6">
         <div className="text-center">
           <h2 className="text-lg font-semibold mb-2">Error</h2>
-          <p className="text-muted-foreground">{error}</p>
+          <p className="text-muted-foreground">
+            The stream you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to it.
+          </p>
         </div>
       </Card>
     )

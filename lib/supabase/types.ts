@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action_type: string
+          created_at: string | null
+          entity_id: string | null
+          entity_type: string
+          id: string
+          metadata: Json | null
+          organization_id: string
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          metadata?: Json | null
+          organization_id: string
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          metadata?: Json | null
+          organization_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string | null
@@ -43,6 +84,59 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      organization_invitations: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string | null
+          created_by: string
+          email: string
+          expires_at: string
+          id: string
+          invitation_code: string
+          organization_id: string
+          role: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string | null
+          created_by: string
+          email: string
+          expires_at: string
+          id?: string
+          invitation_code: string
+          organization_id: string
+          role: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string | null
+          created_by?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          invitation_code?: string
+          organization_id?: string
+          role?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_invitations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       organization_members: {
         Row: {
@@ -316,6 +410,7 @@ export type Database = {
           tool: string | null
           type: string
           updated_at: string | null
+          url: string | null
         }
         Insert: {
           created_at?: string | null
@@ -328,6 +423,7 @@ export type Database = {
           tool?: string | null
           type: string
           updated_at?: string | null
+          url?: string | null
         }
         Update: {
           created_at?: string | null
@@ -340,6 +436,7 @@ export type Database = {
           tool?: string | null
           type?: string
           updated_at?: string | null
+          url?: string | null
         }
         Relationships: [
           {
@@ -356,9 +453,58 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_stream_creator_as_member: {
+        Args: { stream_id: string; user_id: string }
+        Returns: undefined
+      }
       calculate_stream_progress: {
         Args: { stream_uuid: string }
         Returns: number
+      }
+      cleanup_expired_invitations: {
+        Args: { days_old?: number }
+        Returns: undefined
+      }
+      create_stream_and_owner: {
+        Args: {
+          p_description: string
+          p_end_date: string
+          p_name: string
+          p_organization_id: string
+          p_priority: string
+          p_progress: number
+          p_start_date: string
+          p_status: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      create_stream_with_owner: {
+        Args: {
+          p_description: string
+          p_name: string
+          p_organization_id: string
+          p_priority: string
+          p_status: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      expire_organization_invitations: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      get_stream_members: {
+        Args: { p_stream_ids: string[] }
+        Returns: {
+          id: string
+          joined_at: string
+          role: string
+          stream_id: string
+          user_avatar_url: string
+          user_full_name: string
+          user_id: string
+        }[]
       }
     }
     Enums: {

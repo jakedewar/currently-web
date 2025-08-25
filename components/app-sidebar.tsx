@@ -1,10 +1,9 @@
 "use client"
 
-import { Home, Waves, Users, Settings, LogOut, Building2, Plus, Bug, Megaphone, Menu } from "lucide-react"
+import { Home, Waves, Users, LogOut, Building2, Bug, Megaphone, Menu } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { useEffect, useState } from "react"
-import { type Organization } from "@/components/organization-selector"
 import { useOrganization } from "@/components/organization-provider"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -17,78 +16,27 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from "@/components/ui/sheet"
-
+import { ChromeExtensionPromo } from "@/components/chrome-extension-promo"
 import { useRouter } from "next/navigation"
-interface UserProfile {
-  id: string;
-  full_name: string | null;
-  email: string | null;
-  avatar_url: string | null;
-  department: string | null;
-  location: string | null;
-  timezone: string | null;
-}
+import { useUser } from "@/hooks/use-user"
+import { useOrganizations } from "@/hooks/use-organizations"
 
 export function AppSidebar() {
   const pathname = usePathname()
   const { currentOrganization, setCurrentOrganization } = useOrganization()
   const router = useRouter()
-  const [user, setUser] = useState<UserProfile | null>(null)
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [userOrganizations, setUserOrganizations] = useState<Organization[]>([])
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
-  // Fetch user data and organizations on component mount
+  // Use React Query hooks for data fetching
+  const { data: userData, isLoading: userLoading, error: userError } = useUser()
+  const { data: orgsData, isLoading: orgsLoading, error: orgsError } = useOrganizations()
+
+  // Handle organization selection
   useEffect(() => {
-    const fetchUserAndOrganizations = async () => {
-      try {
-        // Get current user profile
-        const profileResponse = await fetch('/api/users/me');
-        const profileData = await profileResponse.json();
-
-        if (!profileResponse.ok) {
-          throw new Error(profileData.error || 'Failed to fetch user profile');
-        }
-
-        setUser(profileData);
-        setUserProfile(profileData);
-
-        // Get user's organizations
-        const orgsResponse = await fetch('/api/users/me/organizations');
-        const orgsData = await orgsResponse.json();
-
-        if (!orgsResponse.ok) {
-          throw new Error(orgsData.error || 'Failed to fetch organizations');
-        }
-
-        const orgs: Organization[] = orgsData.organizations.map((org: { id: string; name: string; slug: string; avatar_url?: string; role: "owner" | "admin" | "member" }) => ({
-          id: org.id,
-          name: org.name,
-          slug: org.slug,
-          avatar: org.avatar_url || undefined,
-          role: org.role as "owner" | "admin" | "member",
-        }));
-
-        setUserOrganizations(orgs);
-
-        // Set the first organization as current if none is set
-        if (orgs.length > 0 && !currentOrganization) {
-          setCurrentOrganization(orgs[0]);
-        }
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserAndOrganizations();
-  }, [currentOrganization, setCurrentOrganization])
-
-  // Use real organizations or show empty state
-  const displayOrganizations = userOrganizations
-  const displayCurrentOrganization = currentOrganization || userOrganizations[0]
+    if (orgsData?.organizations && orgsData.organizations.length > 0 && !currentOrganization) {
+      setCurrentOrganization(orgsData.organizations[0])
+    }
+  }, [orgsData?.organizations, currentOrganization, setCurrentOrganization])
 
   const navItems = [
     {
@@ -106,6 +54,11 @@ export function AppSidebar() {
       icon: Users,
       label: "Team",
     },
+    {
+      href: "/protected/organizations",
+      icon: Building2,
+      label: "Organizations",
+    },
   ]
 
   const footerNavItems = [
@@ -120,15 +73,6 @@ export function AppSidebar() {
       label: "Share Feedback",
     },
   ]
-
-  const handleOrganizationChange = (org: Organization) => {
-    setCurrentOrganization(org)
-    // In a real app, you would:
-    // 1. Update the URL to include the organization slug
-    // 2. Update any global state/context
-    // 3. Refetch data for the new organization
-    // 4. Update any organization-specific settings
-  }
 
   const handleLogout = async () => {
     try {
@@ -148,10 +92,10 @@ export function AppSidebar() {
   }
 
   const getUserDisplayName = () => {
-    if (userProfile?.full_name) {
-      return userProfile.full_name
+    if (userData?.full_name) {
+      return userData.full_name
     }
-    return user?.email || user?.id || 'User'
+    return userData?.id || 'User'
   }
 
   const SidebarContent = () => (
@@ -186,6 +130,11 @@ export function AppSidebar() {
             )
           })}
         </div>
+        
+        {/* Chrome Extension Promotion */}
+        <div className="mt-6">
+          <ChromeExtensionPromo />
+        </div>
       </nav>
 
       {/* Footer Navigation Items */}
@@ -213,7 +162,7 @@ export function AppSidebar() {
 
       {/* User Profile Section */}
       <div className="border-t p-4">
-        {loading ? (
+        {userLoading ? (
           <div className="flex items-center gap-3 p-2">
             <div className="w-8 h-8 bg-muted rounded-full animate-pulse" />
             <div className="flex-1 space-y-1">
@@ -221,82 +170,25 @@ export function AppSidebar() {
               <div className="h-2 bg-muted rounded w-2/3 animate-pulse" />
             </div>
           </div>
-        ) : user ? (
+        ) : userData ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="w-full justify-start p-2 h-auto">
-                <div className="flex items-center gap-3 w-full">
-                  <Avatar className="w-8 h-8">
-                    <AvatarFallback className="text-xs">
-                      {getUserInitials(getUserDisplayName())}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 text-left">
-                    <div className="text-sm font-medium truncate">
-                      {getUserDisplayName()}
-                    </div>
-                    <div className="text-xs text-muted-foreground truncate">
-                      {displayCurrentOrganization?.name || 'No organization'}
-                    </div>
+              <Button variant="ghost" className="w-full justify-start gap-3 p-2 h-auto">
+                <Avatar className="w-8 h-8">
+                  <AvatarFallback className="text-xs">
+                    {getUserInitials(userData.full_name || undefined)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 text-left">
+                  <div className="text-sm font-medium">{getUserDisplayName()}</div>
+                  <div className="text-xs text-muted-foreground truncate">
+                    {userData.department || 'No department'}
                   </div>
                 </div>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-64" align="end" forceMount>
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{getUserDisplayName()}</p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    {displayCurrentOrganization?.name || 'No organization'}
-                  </p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              
-              {/* Organization Management */}
-              <DropdownMenuLabel className="text-xs font-medium text-muted-foreground">
-                Organizations
-              </DropdownMenuLabel>
-              {displayOrganizations.map((org) => (
-                <DropdownMenuItem
-                  key={org.id}
-                  onClick={() => handleOrganizationChange(org)}
-                  className="flex items-center gap-3 px-3 py-2 cursor-pointer"
-                >
-                  <Avatar className="h-6 w-6">
-                    <AvatarFallback className="text-xs">
-                      {org.name.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-col items-start">
-                    <span className="text-sm font-medium truncate">
-                      {org.name}
-                    </span>
-                    <span className="text-xs text-muted-foreground capitalize">
-                      {org.role}
-                    </span>
-                  </div>
-                </DropdownMenuItem>
-              ))}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="flex items-center gap-3 px-3 py-2 cursor-pointer">
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-muted">
-                  <Plus className="h-3 w-3" />
-                </div>
-                <span className="text-sm">Create organization</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="flex items-center gap-3 px-3 py-2 cursor-pointer">
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-muted">
-                  <Building2 className="h-3 w-3" />
-                </div>
-                <span className="text-sm">Manage organizations</span>
-              </DropdownMenuItem>
-              
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => router.push('/protected/settings')}>
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
-              </DropdownMenuItem>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
@@ -318,6 +210,35 @@ export function AppSidebar() {
     </div>
   )
 
+  // Show loading state while data is being fetched
+  if (userLoading || orgsLoading) {
+    return (
+      <div className="flex h-screen w-64 flex-col border-r bg-background">
+        <div className="flex h-14 items-center border-b px-4">
+          <div className="h-6 w-32 animate-pulse rounded bg-muted" />
+        </div>
+        <div className="flex-1 space-y-4 p-4">
+          <div className="space-y-2">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-10 w-full animate-pulse rounded bg-muted" />
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state if data fetching failed
+  if (userError || orgsError) {
+    return (
+      <div className="flex h-screen w-64 flex-col border-r bg-background">
+        <div className="flex h-14 items-center border-b px-4">
+          <span className="text-sm text-muted-foreground">Error loading data</span>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <>
       {/* Desktop Sidebar */}
@@ -328,18 +249,15 @@ export function AppSidebar() {
       {/* Mobile Sidebar */}
       <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
         <SheetTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="lg:hidden fixed top-4 left-4 z-50 h-10 w-10 p-0"
-          >
+          <Button variant="ghost" size="sm" className="lg:hidden">
             <Menu className="h-5 w-5" />
-            <span className="sr-only">Open menu</span>
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="w-64 p-0">
-          <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-          <SheetDescription className="sr-only">Main navigation menu for the application</SheetDescription>
+          <SheetTitle className="sr-only">Navigation</SheetTitle>
+          <SheetDescription className="sr-only">
+            Navigation menu for the application
+          </SheetDescription>
           <SidebarContent />
         </SheetContent>
       </Sheet>

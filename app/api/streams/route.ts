@@ -3,6 +3,56 @@ import { NextResponse } from 'next/server'
 import { CreateStreamSchema } from '@/lib/schemas/streams'
 import { Redis } from '@upstash/redis'
 
+// Define types that match the actual query results
+type StreamResult = {
+  id: string
+  name: string
+  description: string | null
+  progress: number
+  start_date: string | null
+  end_date: string | null
+  status: string
+  priority: string
+  created_at: string | null
+  updated_at: string | null
+  created_by: string
+  organization_id: string
+}
+
+type StreamMemberResult = {
+  id: string
+  user_id: string
+  role: string
+  joined_at: string | null
+  stream_id: string
+}
+
+type WorkItemResult = {
+  id: string
+  title: string
+  description: string | null
+  type: string
+  status: string
+  tool: string | null
+  created_at: string | null
+  updated_at: string | null
+  stream_id: string
+  created_by: string
+}
+
+type StreamToolResult = {
+  id: string
+  tool_name: string
+  tool_type: string | null
+  connected_at: string | null
+  stream_id: string
+}
+
+type UserResult = {
+  id: string
+  full_name: string | null
+  avatar_url: string | null
+}
 
 // Initialize Redis for rate limiting (if configured)
 const redis = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
@@ -165,7 +215,7 @@ export async function GET(request: Request) {
       )
     }
 
-    // Get all streams for the organization (not just streams the user is a member of)
+    // Get all streams for the organization
     const { data: streams, error: streamsError } = await supabase
       .from('streams')
       .select(`
@@ -192,62 +242,76 @@ export async function GET(request: Request) {
       )
     }
 
-    // Get stream members and user details separately
-    const streamIds = streams?.map(s => s.id) || []
-    const { data: streamMembers } = await supabase
-      .from('stream_members')
-      .select('id, user_id, role, joined_at, stream_id')
-      .in('stream_id', streamIds)
+    if (!streams || streams.length === 0) {
+      return NextResponse.json({
+        streams: [],
+        currentUser: {
+          id: user.id,
+          full_name: user.user_metadata?.full_name || null,
+          avatar_url: user.user_metadata?.avatar_url || null,
+        }
+      })
+    }
 
-    // Get user details
-    const userIds = streamMembers?.map(member => member.user_id) || []
-    const { data: users } = await supabase
+    // Get all related data in parallel using Promise.all
+    const streamIds = streams.map((s: StreamResult) => s.id)
+    
+    const [
+      { data: streamMembers },
+      { data: workItems },
+      { data: streamTools }
+    ] = await Promise.all([
+      supabase
+        .from('stream_members')
+        .select('id, user_id, role, joined_at, stream_id')
+        .in('stream_id', streamIds),
+      supabase
+        .from('work_items')
+        .select(`
+          id,
+          title,
+          description,
+          type,
+          status,
+          tool,
+          created_at,
+          updated_at,
+          stream_id,
+          created_by
+        `)
+        .in('stream_id', streamIds),
+      supabase
+        .from('stream_tools')
+        .select(`
+          id,
+          tool_name,
+          tool_type,
+          connected_at,
+          stream_id
+        `)
+        .in('stream_id', streamIds)
+    ])
+
+    // Get user details for stream members in a single batch query
+    const userIds = streamMembers?.map((member: StreamMemberResult) => member.user_id) || []
+    const { data: users } = userIds.length > 0 ? await supabase
       .from('users')
       .select('id, full_name, avatar_url')
-      .in('id', userIds)
+      .in('id', userIds) : { data: null }
 
     // Combine stream members with user details
-    const streamMembersWithUsers = streamMembers?.map(member => ({
+    const streamMembersWithUsers = streamMembers?.map((member: StreamMemberResult) => ({
       ...member,
-      users: users?.find(user => user.id === member.user_id) || null
+      users: users?.find((user: UserResult) => user.id === member.user_id) || null
     })) || []
-
-    // Get work items
-    const { data: workItems } = await supabase
-      .from('work_items')
-      .select(`
-        id,
-        title,
-        description,
-        type,
-        status,
-        tool,
-        created_at,
-        updated_at,
-        stream_id,
-        created_by
-      `)
-      .in('stream_id', streamIds)
-
-    // Get stream tools
-    const { data: streamTools } = await supabase
-      .from('stream_tools')
-      .select(`
-        id,
-        tool_name,
-        tool_type,
-        connected_at,
-        stream_id
-      `)
-      .in('stream_id', streamIds)
 
     // Combine the data
-    const streamsWithRelations = streams?.map(stream => ({
+    const streamsWithRelations = streams.map((stream: StreamResult) => ({
       ...stream,
-      stream_members: streamMembersWithUsers.filter(m => m.stream_id === stream.id) || [],
-      work_items: workItems?.filter(w => w.stream_id === stream.id) || [],
-      stream_tools: streamTools?.filter(t => t.stream_id === stream.id) || []
-    })) || []
+      stream_members: streamMembersWithUsers.filter((m: StreamMemberResult & { users: UserResult | null }) => m.stream_id === stream.id) || [],
+      work_items: workItems?.filter((w: WorkItemResult) => w.stream_id === stream.id) || [],
+      stream_tools: streamTools?.filter((t: StreamToolResult) => t.stream_id === stream.id) || []
+    }))
 
     return NextResponse.json({
       streams: streamsWithRelations,

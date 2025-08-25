@@ -182,35 +182,22 @@ export function SignUpForm({
             throw memberError;
           }
         } else {
-          // For joining existing organization, we'll create a default one for now
-          // In a real app, you'd validate the invite code and join the existing org
-          const { data: orgData, error: orgError } = await supabase
-            .from('organizations')
-            .insert({
-              name: "My Organization",
-              slug: "my-organization",
-            })
-            .select()
-            .single();
+          // Join existing organization using invitation code
+          const response = await fetch('/api/invitations/accept', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ invitationCode: inviteCode.trim() }),
+          });
 
-          if (orgError) {
-            console.error('Default organization creation error:', orgError);
-            throw orgError;
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.error || 'Failed to join organization');
           }
 
-          // Add user as organization member
-          const { error: memberError } = await supabase
-            .from('organization_members')
-            .insert({
-              organization_id: orgData.id,
-              user_id: authData.user.id,
-              role: 'member',
-            });
-
-          if (memberError) {
-            console.error('Member creation error:', memberError);
-            throw memberError;
-          }
+          console.log('Successfully joined organization:', data.organization.name);
         }
 
         // Success - redirect to success page

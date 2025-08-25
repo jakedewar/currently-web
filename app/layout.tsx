@@ -3,6 +3,7 @@ import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Analytics } from '@vercel/analytics/react'
+import { Providers } from '@/components/providers'
 import './globals.css'
 
 const defaultUrl = process.env.VERCEL_URL
@@ -37,11 +38,13 @@ html {
 }
         `}</style>
       </head>
-      <body>
-        <ThemeProvider>
-          {children}
-        </ThemeProvider>
-        <Analytics />
+      <body suppressHydrationWarning={true}>
+        <Providers>
+          <ThemeProvider>
+            {children}
+          </ThemeProvider>
+          <Analytics />
+        </Providers>
       </body>
     </html>
   )

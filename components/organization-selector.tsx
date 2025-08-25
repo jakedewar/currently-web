@@ -108,7 +108,12 @@ export function OrganizationSelector({
           </div>
           <span className="text-sm">Create organization</span>
         </DropdownMenuItem>
-        <DropdownMenuItem className="flex items-center gap-3 px-3 py-2 cursor-pointer">
+        <DropdownMenuItem 
+          className="flex items-center gap-3 px-3 py-2 cursor-pointer"
+          onClick={() => {
+            window.location.href = '/protected/organizations'
+          }}
+        >
           <div className="flex h-6 w-6 items-center justify-center rounded-full bg-muted">
             <Settings className="h-3 w-3" />
           </div>

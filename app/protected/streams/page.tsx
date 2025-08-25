@@ -1,49 +1,17 @@
 'use client'
 
 import { StreamsList } from "@/components/streams/streams-list"
-import { useCallback, useEffect, useState } from "react"
-import type { StreamsData } from "@/lib/data/streams"
 import { useOrganization } from "@/components/organization-provider"
 import { CreateStreamDialog } from "@/components/streams/create-stream-dialog"
 import { LoadingStream } from "@/components/streams/loading-stream"
 import { Accordion } from "@/components/ui/accordion"
-
+import { useStreams } from "@/hooks/use-streams"
 
 export default function StreamsPage() {
-  const [streamsData, setStreamsData] = useState<StreamsData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const { currentOrganization } = useOrganization()
-
-
-  const fetchStreams = useCallback(async () => {
-    if (!currentOrganization) {
-      setError('Please select an organization')
-      setLoading(false)
-      return
-    }
-
-    try {
-      const response = await fetch(`/api/streams?organizationId=${currentOrganization.id}`)
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch streams')
-      }
-
-      setStreamsData(data)
-      setError(null)
-    } catch (err) {
-      console.error('Error fetching streams:', err)
-      setError(err instanceof Error ? err.message : 'Failed to load streams')
-    } finally {
-      setLoading(false)
-    }
-  }, [currentOrganization])
-
-  useEffect(() => {
-    fetchStreams()
-  }, [currentOrganization, fetchStreams])
+  
+  // Use React Query hook for streams data
+  const { data: streamsData, isLoading, error, refetch } = useStreams(currentOrganization?.id)
 
   if (!currentOrganization) {
     return (
@@ -55,13 +23,13 @@ export default function StreamsPage() {
               Please select an organization to view streams
             </p>
           </div>
-          <CreateStreamDialog onStreamCreated={fetchStreams} />
+          <CreateStreamDialog onStreamCreated={() => refetch()} />
         </div>
       </div>
     )
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="space-y-4 sm:space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -71,7 +39,7 @@ export default function StreamsPage() {
               Loading streams...
             </p>
           </div>
-          <CreateStreamDialog onStreamCreated={fetchStreams} />
+          <CreateStreamDialog onStreamCreated={() => refetch()} />
         </div>
         <Accordion type="multiple" className="space-y-3 sm:space-y-4">
           {[...Array(3)].map((_, i) => (
@@ -89,10 +57,10 @@ export default function StreamsPage() {
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Streams</h1>
             <p className="text-sm sm:text-base text-muted-foreground">
-              {error}
+              {error instanceof Error ? error.message : 'Failed to load streams'}
             </p>
           </div>
-          <CreateStreamDialog onStreamCreated={fetchStreams} />
+          <CreateStreamDialog onStreamCreated={() => refetch()} />
         </div>
       </div>
     )
@@ -104,12 +72,12 @@ export default function StreamsPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Streams</h1>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Manage {currentOrganization.name}&apos;s work streams and track progress
+            Manage your team&apos;s work streams and track progress
           </p>
         </div>
-        <CreateStreamDialog onStreamCreated={fetchStreams} />
+        <CreateStreamDialog onStreamCreated={() => refetch()} />
       </div>
-
+      
       {streamsData && <StreamsList data={streamsData} />}
     </div>
   )
