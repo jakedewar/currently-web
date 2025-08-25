@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { CreateWorkItemSchema } from '@/lib/schemas/streams'
 import { Redis } from '@upstash/redis'
 
@@ -12,12 +12,12 @@ const redis = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_RE
   : null
 
 export async function POST(
-  request: Request,
-  context: { params: { id: string } }
-) {
+  request: NextRequest,
+  ctx: RouteContext<'/api/streams/[id]/work-items'>
+): Promise<NextResponse> {
   try {
     const supabase = await createClient()
-    const params = await Promise.resolve(context.params)
+    const { id } = await ctx.params
 
     const { data: { user }, error: userError } = await supabase.auth.getUser()
     if (userError || !user) {
@@ -32,7 +32,7 @@ export async function POST(
     // Validate request body against schema
     const result = CreateWorkItemSchema.safeParse({
       ...body,
-      stream_id: params.id,
+      stream_id: id,
     })
 
     if (!result.success) {
@@ -121,11 +121,11 @@ export async function POST(
 }
 
 export async function GET(
-  request: Request,
-  context: { params: { id: string } }
-) {
-  const params = await Promise.resolve(context.params)
+  request: NextRequest,
+  ctx: RouteContext<'/api/streams/[id]/work-items'>
+): Promise<NextResponse> {
   try {
+    const { id } = await ctx.params
     const supabase = await createClient()
 
     // Get current user
@@ -141,7 +141,7 @@ export async function GET(
     const { data: streamMember, error: streamError } = await supabase
       .from('stream_members')
       .select('role')
-      .eq('stream_id', params.id)
+      .eq('stream_id', id)
       .eq('user_id', user.id)
       .single()
 
@@ -167,7 +167,7 @@ export async function GET(
         stream_id,
         created_by
       `)
-      .eq('stream_id', params.id)
+      .eq('stream_id', id)
       .order('created_at', { ascending: false })
 
     if (workItemsError) {
