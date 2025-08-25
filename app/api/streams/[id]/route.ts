@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -130,7 +130,7 @@ export async function GET(
       .eq('stream_id', streamId)
 
     // Get stream activity (we'll implement this later)
-    const streamActivity = []
+    const streamActivity: Array<never> = []
 
     return NextResponse.json({
       stream: {
