@@ -2,8 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Sparkles } from "lucide-react";
 import { getDashboardData } from "@/lib/data/dashboard";
 import { StatsCards } from "@/components/dashboard/stats-cards";
-import { RecentWork } from "@/components/dashboard/recent-work";
-import { TeamActivity } from "@/components/dashboard/team-activity";
+
 import { DynamicDashboardSection } from "@/components/dashboard/dynamic-dashboard-section";
 
 export default async function ProtectedPage() {
