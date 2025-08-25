@@ -5,10 +5,10 @@ import { Stream, StreamMember } from '@/lib/data/streams'
 interface ExtendedStream extends Stream {
   stream_members: StreamMember[];
 }
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { PriorityBadge } from '@/components/ui/priority-badge'
+import { StatusBadge } from '@/components/ui/status-badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,9 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { 
   Calendar,
-  XCircle,
   CheckCircle,
-  Clock,
   Settings,
   Share2,
   Archive,
@@ -62,16 +60,7 @@ export function StreamHeader({ stream, userRole, onStreamUpdated }: StreamHeader
     }
   }, [stream.stream_members])
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <CheckCircle className="h-4 w-4 text-green-500" />
-      case 'archived':
-        return <XCircle className="h-4 w-4 text-gray-500" />
-      default:
-        return <Clock className="h-4 w-4 text-blue-500" />
-    }
-  }
+
 
   const handleCopyStreamLink = async () => {
     try {
@@ -143,10 +132,7 @@ export function StreamHeader({ stream, userRole, onStreamUpdated }: StreamHeader
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight">{stream.name}</h1>
               <div className="flex items-center gap-2 flex-wrap">
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  {getStatusIcon(stream.status)}
-                  <span className="capitalize">{stream.status}</span>
-                </Badge>
+                <StatusBadge status={stream.status} variant="compact" />
                 <PriorityBadge priority={stream.priority} variant="compact" />
               </div>
             </div>

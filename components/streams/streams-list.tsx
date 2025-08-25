@@ -24,6 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ClientOnly } from "@/components/ui/client-only";
 import { PriorityBadge } from "@/components/ui/priority-badge";
+import { StatusBadge } from "@/components/ui/status-badge";
 import { StreamsData } from "@/lib/data/streams";
 import { ArchivedStreams } from "./archived-streams";
 import { 
@@ -239,12 +240,7 @@ export function StreamsList({ data, pathname: customPathname }: StreamsListProps
                 <div className="flex-1 min-w-0">
                   <h3 className="text-base font-semibold truncate mb-1">{stream.name}</h3>
                   <div className="flex items-center gap-2">
-                    <Badge 
-                      variant="outline"
-                      className="text-xs px-1.5 py-0.5 h-5 font-normal"
-                    >
-                      {stream.status === 'archived' ? 'Archived' : stream.status}
-                    </Badge>
+                    <StatusBadge status={stream.status} variant="compact" />
                     <PriorityBadge priority={stream.priority} variant="compact" />
                   </div>
                 </div>

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { PriorityBadge } from '@/components/ui/priority-badge'
+import { StatusBadge } from '@/components/ui/status-badge'
 import { 
   Archive, 
   Calendar, 
@@ -96,9 +97,7 @@ export function ArchivedStreams({ streams, onStreamUpdated }: ArchivedStreamsPro
                       {stream.name}
                     </CardTitle>
                     <div className="flex items-center gap-2">
-                      <Badge variant="destructive" className="text-xs">
-                        Archived
-                      </Badge>
+                      <StatusBadge status={stream.status} variant="compact" />
                       <PriorityBadge priority={stream.priority} variant="compact" />
                     </div>
                   </div>

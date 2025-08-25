@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { PriorityBadge } from '@/components/ui/priority-badge'
+import { StatusBadge } from '@/components/ui/status-badge'
 import {
   AccordionContent,
   AccordionItem,
@@ -194,10 +195,7 @@ export function Stream({ stream, currentUserId, onStreamUpdated }: StreamProps) 
             <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <h3 className="text-lg font-semibold">{stream.name}</h3>
               <div className="flex items-center gap-2">
-                <Badge variant={stream.status === 'active' ? 'default' : 'secondary'} className="flex items-center gap-1">
-                  {getStatusIcon(stream.status)}
-                  <span className="capitalize">{stream.status}</span>
-                </Badge>
+                <StatusBadge status={stream.status} variant="compact" />
                 <PriorityBadge priority={stream.priority} variant="compact" />
               </div>
               {isCurrentUserMember && (
