@@ -155,7 +155,7 @@ export async function getUserStreams(userId: string): Promise<StreamsData> {
   })) || [];
 
   // Get work items
-  const { data: workItems } = await supabase
+  const { data: workItems, error: workItemsError } = await supabase
     .from('work_items')
     .select(`
       id,
@@ -163,7 +163,6 @@ export async function getUserStreams(userId: string): Promise<StreamsData> {
       description,
       type,
       status,
-      url,
       tool,
       created_at,
       updated_at,
@@ -188,7 +187,7 @@ export async function getUserStreams(userId: string): Promise<StreamsData> {
   const streamsWithRelations = streams?.map(stream => ({
     ...stream,
     stream_members: streamMembersWithUsers.filter(m => m.stream_id === stream.id),
-    work_items: workItems?.filter(w => w.stream_id === stream.id) || [],
+    work_items: !workItemsError && workItems ? workItems.filter(w => w.stream_id === stream.id) : [],
     stream_tools: streamTools?.filter(t => t.stream_id === stream.id) || []
   })) || [];
 
@@ -273,7 +272,7 @@ export async function getStreamsData(): Promise<StreamsData> {
   })) || [];
 
   // Get work items for streams
-  const { data: workItems } = await supabase
+  const { data: workItems, error: workItemsError } = await supabase
     .from('work_items')
     .select(`
       id,
@@ -281,7 +280,6 @@ export async function getStreamsData(): Promise<StreamsData> {
       description,
       type,
       status,
-      url,
       tool,
       created_at,
       updated_at,
@@ -306,7 +304,7 @@ export async function getStreamsData(): Promise<StreamsData> {
   const streamsWithRelations = streams?.map(stream => ({
     ...stream,
     stream_members: streamMembersWithUsers.filter(m => m.stream_id === stream.id) || [],
-    work_items: workItems?.filter(w => w.stream_id === stream.id) || [],
+    work_items: !workItemsError && workItems ? workItems.filter(w => w.stream_id === stream.id) : [],
     stream_tools: streamTools?.filter(t => t.stream_id === stream.id) || []
   })) || [];
 
