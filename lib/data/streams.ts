@@ -36,6 +36,7 @@ export interface WorkItem {
   type: string;
   status: string;
   tool: string | null;
+  url?: string | null;
   created_at: string | null;
   updated_at: string | null;
   stream_id: string;
@@ -157,18 +158,7 @@ export async function getUserStreams(userId: string): Promise<StreamsData> {
   // Get work items
   const { data: workItems, error: workItemsError } = await supabase
     .from('work_items')
-    .select(`
-      id,
-      title,
-      description,
-      type,
-      status,
-      tool,
-      created_at,
-      updated_at,
-      stream_id,
-      created_by
-    `)
+    .select('*')
     .in('stream_id', streamIds);
 
   // Get stream tools
@@ -274,18 +264,7 @@ export async function getStreamsData(): Promise<StreamsData> {
   // Get work items for streams
   const { data: workItems, error: workItemsError } = await supabase
     .from('work_items')
-    .select(`
-      id,
-      title,
-      description,
-      type,
-      status,
-      tool,
-      created_at,
-      updated_at,
-      stream_id,
-      created_by
-    `)
+    .select('*')
     .in('stream_id', streamIds);
 
   // Get stream tools

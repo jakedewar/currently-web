@@ -12,9 +12,15 @@ import {
   Clock,
   MoreHorizontal,
   Archive,
-  Check
+  Check,
+  Link,
+  FileText,
+  Code,
+  Trello,
+  Calendar
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
+import { URLPreview } from '@/components/url-preview'
 import { useToast } from '@/hooks/use-toast'
 import {
   DropdownMenu,
@@ -44,6 +50,19 @@ export function WorkItemsList({ streamId, workItems, onWorkItemCreated }: WorkIt
         return <XCircle className="h-4 w-4 text-gray-500" />
       default:
         return <Clock className="h-4 w-4 text-blue-500" />
+    }
+  }
+
+  const getTypeIcon = (type: string) => {
+    switch (type.toLowerCase()) {
+      case 'document':
+        return <FileText className="h-3 w-3" />
+      case 'code':
+        return <Code className="h-3 w-3" />
+      case 'task':
+        return <Trello className="h-3 w-3" />
+      default:
+        return <Link className="h-3 w-3" />
     }
   }
 
@@ -88,38 +107,30 @@ export function WorkItemsList({ streamId, workItems, onWorkItemCreated }: WorkIt
         <h3 className="text-lg font-semibold">Work Items</h3>
         <CreateWorkItemDialog streamId={streamId} onWorkItemCreated={onWorkItemCreated} />
       </div>
-      <div className="grid gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {workItems.length === 0 ? (
-          <Card className="p-4">
+          <Card className="p-4 col-span-full">
             <p className="text-sm text-muted-foreground text-center">
               No work items yet. Add a URL to get started.
             </p>
           </Card>
         ) : (
           workItems.map((item) => (
-            <Card key={item.id} className="p-4 hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between">
-                <div className="space-y-2 flex-1">
-                  <div className="flex items-center gap-2">
-                    <h4 className="font-medium text-lg">{item.title}</h4>
-                    <Badge variant="secondary" className="flex items-center gap-1">
+            <Card key={item.id} className="hover:shadow-md transition-shadow group">
+              <div className="flex flex-col h-full min-h-[140px]">
+                {/* Header */}
+                <div className="p-4 pb-0">
+                  <div className="flex items-start justify-between gap-2 mb-3">
+                    <Badge 
+                      variant={item.status === 'completed' ? 'default' : item.status === 'archived' ? 'secondary' : 'outline'} 
+                      className="flex items-center gap-1"
+                    >
                       {getStatusIcon(item.status)}
-                      <span className="capitalize">{item.status}</span>
+                      <span className="capitalize text-xs">{item.status}</span>
                     </Badge>
-                  </div>
-                  {item.description && (
-                    <p className="text-sm text-muted-foreground">{item.description}</p>
-                  )}
-                  <div className="flex items-center gap-3">
-                    {item.tool && (
-                      <Badge variant="secondary" className="flex items-center gap-1">
-                        {item.tool}
-                      </Badge>
-                    )}
-
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 px-2">
+                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -151,10 +162,56 @@ export function WorkItemsList({ streamId, workItems, onWorkItemCreated }: WorkIt
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
+
+                  {/* Title */}
+                  <h4 className="font-medium text-sm mb-2">
+                    {item.url ? (
+                      <a 
+                        href={item.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="hover:underline text-blue-600 dark:text-blue-400 line-clamp-2"
+                      >
+                        {item.title}
+                      </a>
+                    ) : (
+                      <span className="line-clamp-2">{item.title}</span>
+                    )}
+                  </h4>
+
+                  {/* Description */}
+                  {item.description && (
+                    <p className="text-xs text-muted-foreground line-clamp-2 mb-4">{item.description}</p>
+                  )}
                 </div>
-              </div>
-              <div className="mt-3 text-xs text-muted-foreground border-t pt-3">
-                Added {formatDistanceToNow(new Date(item.created_at!), { addSuffix: true })}
+
+                {/* URL Preview */}
+                {item.url && (
+                  <div className="px-4 pb-4">
+                    <URLPreview url={item.url} />
+                  </div>
+                )}
+
+                {/* Metadata Footer */}
+                <div className="mt-auto px-4 py-3 border-t bg-muted/5 text-xs text-muted-foreground">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1">
+                        {getTypeIcon(item.type)}
+                        <span className="capitalize">{item.type}</span>
+                      </div>
+                      {item.tool && (
+                        <Badge variant="secondary" className="text-[10px]">
+                          {item.tool}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      <span>{formatDistanceToNow(new Date(item.created_at!), { addSuffix: true })}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </Card>
           ))

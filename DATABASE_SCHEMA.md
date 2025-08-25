@@ -93,6 +93,7 @@ Individual tasks/work items within streams.
 - `type` (TEXT, NOT NULL) - Work item type: 'task', 'project', 'document', 'design', 'development', 'research', 'strategy', 'content', 'testing', 'documentation'
 - `status` (TEXT, NOT NULL) - Work item status: 'todo', 'in-progress', 'completed', 'review', 'blocked'
 - `tool` (TEXT) - Associated tool (e.g., 'Figma', 'GitHub', 'Notion')
+- `url` (TEXT) - URL associated with the work item
 - `created_by` (UUID, Foreign Key) - References auth.users.id
 - `created_at` (TIMESTAMPTZ) - Creation timestamp
 - `updated_at` (TIMESTAMPTZ) - Last update timestamp
