@@ -10,7 +10,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Stream, StreamMember, StreamTool, WorkItem } from "@/lib/data/streams"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { MessageSquare, MoreVertical, UserMinus } from "lucide-react"
+import { MessageSquare, MoreVertical, UserMinus, UserPlus } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 interface StreamData {
   stream: Stream & {
@@ -38,6 +39,8 @@ export default function StreamPage() {
   const [data, setData] = useState<StreamData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isJoining, setIsJoining] = useState(false)
+  const { toast } = useToast()
 
   const fetchStream = useCallback(async () => {
     try {
@@ -57,6 +60,42 @@ export default function StreamPage() {
       setLoading(false)
     }
   }, [params.id])
+
+  const handleJoinStream = async () => {
+    setIsJoining(true)
+    try {
+      const response = await fetch(`/api/streams/${params.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'join',
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to join stream')
+      }
+
+      toast({
+        title: "Joined stream",
+        description: "You have successfully joined the stream",
+      })
+      
+      // Refresh the stream data
+      await fetchStream()
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: `Failed to join stream: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        variant: "destructive",
+      })
+    } finally {
+      setIsJoining(false)
+    }
+  }
 
   useEffect(() => {
     fetchStream()
@@ -137,6 +176,9 @@ export default function StreamPage() {
 
   if (!data) return null
 
+  const isMember = data.currentUser.role !== 'non_member'
+  const isOwner = data.currentUser.role === 'owner'
+
   return (
     <div className="space-y-6 lg:space-y-8">
       <StreamHeader
@@ -145,13 +187,38 @@ export default function StreamPage() {
         onStreamUpdated={fetchStream}
       />
 
+      {!isMember && (
+        <Card className="p-4">
+          <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <UserPlus className="h-5 w-5 text-blue-600" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                Join this stream to contribute
+              </p>
+              <p className="text-xs text-blue-700 dark:text-blue-200">
+                You can view all content, but join to add work items and participate
+              </p>
+            </div>
+            <Button 
+              onClick={handleJoinStream} 
+              disabled={isJoining}
+              size="sm"
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
+              {isJoining ? 'Joining...' : 'Join'}
+            </Button>
+          </div>
+        </Card>
+      )}
+
       <Tabs defaultValue="work-items" className="space-y-4">
         <TabsList className="w-full justify-start">
           <div className="flex space-x-2 p-1">
             <TabsTrigger value="overview" className="flex-shrink-0">Overview</TabsTrigger>
             <TabsTrigger value="work-items" className="flex-shrink-0">Work Items</TabsTrigger>
             <TabsTrigger value="team" className="flex-shrink-0">Team</TabsTrigger>
-            {data.currentUser.role === 'owner' && (
+            {isOwner && (
               <TabsTrigger value="settings" className="flex-shrink-0">Settings</TabsTrigger>
             )}
           </div>
@@ -178,6 +245,7 @@ export default function StreamPage() {
             streamId={data.stream.id}
             workItems={data.stream.work_items}
             onWorkItemCreated={fetchStream}
+            canAddItems={isMember}
           />
         </TabsContent>
 
@@ -219,7 +287,7 @@ export default function StreamPage() {
                             <MessageSquare className="h-4 w-4 mr-2" />
                             Message
                           </DropdownMenuItem>
-                          {data.currentUser.role === 'owner' && (
+                          {isOwner && (
                             <DropdownMenuItem className="text-destructive">
                               <UserMinus className="h-4 w-4 mr-2" />
                               Remove from team
@@ -235,7 +303,7 @@ export default function StreamPage() {
           </Card>
         </TabsContent>
 
-        {data.currentUser.role === 'owner' && (
+        {isOwner && (
           <TabsContent value="settings">
             <Card className="p-4 lg:p-6">
               <h2 className="text-lg font-semibold mb-4">Stream Settings</h2>

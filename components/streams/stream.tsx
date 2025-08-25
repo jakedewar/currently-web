@@ -23,11 +23,11 @@ import {
   Eye,
   User,
   Users,
-
   CheckCircle,
   XCircle,
   Clock,
-  Link as LinkIcon
+  Link as LinkIcon,
+  UserPlus
 } from 'lucide-react'
 import { formatDate, getPriorityColor } from '@/lib/utils/streams'
 import { WorkItemsList } from './work-items-list'
@@ -46,6 +46,7 @@ interface StreamProps {
 export function Stream({ stream, currentUserId, onStreamUpdated }: StreamProps) {
   const { toast } = useToast()
   const [isUpdating, setIsUpdating] = useState(false)
+  const [isJoining, setIsJoining] = useState(false)
 
   const handleWorkItemCreated = () => {
     onStreamUpdated()
@@ -76,6 +77,7 @@ export function Stream({ stream, currentUserId, onStreamUpdated }: StreamProps) 
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          action: 'update_status',
           status: 'archived',
         }),
       })
@@ -100,6 +102,74 @@ export function Stream({ stream, currentUserId, onStreamUpdated }: StreamProps) 
     }
   }
 
+  const handleUnarchiveStream = async () => {
+    setIsUpdating(true)
+    try {
+      const response = await fetch(`/api/streams/${stream.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'update_status',
+          status: 'active',
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to unarchive stream')
+      }
+
+      toast({
+        title: "Stream unarchived",
+        description: "The stream has been unarchived and is now active",
+      })
+      onStreamUpdated()
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: `Failed to unarchive stream: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        variant: "destructive",
+      })
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleJoinStream = async () => {
+    setIsJoining(true)
+    try {
+      const response = await fetch(`/api/streams/${stream.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'join',
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to join stream')
+      }
+
+      toast({
+        title: "Joined stream",
+        description: "You have successfully joined the stream",
+      })
+      onStreamUpdated()
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: `Failed to join stream: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        variant: "destructive",
+      })
+    } finally {
+      setIsJoining(false)
+    }
+  }
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
@@ -111,8 +181,11 @@ export function Stream({ stream, currentUserId, onStreamUpdated }: StreamProps) 
     }
   }
 
+  const isCurrentUserMember = stream.stream_members.some(member => member.user_id === currentUserId)
+  const isCurrentUserOwner = stream.created_by === currentUserId
+
   return (
-    <AccordionItem value={`stream-${stream.id}`} className="border rounded-lg">
+    <AccordionItem value={`stream-${stream.id}`} className={`border rounded-lg ${stream.status === 'archived' ? 'opacity-75 bg-muted/30' : ''}`}>
       <AccordionTrigger className="px-6 py-4 hover:no-underline group">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between w-full pr-4 gap-4 sm:gap-0">
           {/* Stream Header Info */}
@@ -126,16 +199,22 @@ export function Stream({ stream, currentUserId, onStreamUpdated }: StreamProps) 
                 </Badge>
                 <div className={`w-3 h-3 rounded-full ${getPriorityColor(stream.priority)}`} />
               </div>
-              {stream.stream_members.some(member => member.user_id === currentUserId) && (
+              {isCurrentUserMember && (
                 <Badge variant="outline" className="text-xs">
                   <User className="h-3 w-3 mr-1" />
                   Member
                 </Badge>
               )}
-              {stream.created_by === currentUserId && (
+              {isCurrentUserOwner && (
                 <Badge variant="outline" className="text-xs">
                   <Eye className="h-3 w-3 mr-1" />
                   Owner
+                </Badge>
+              )}
+              {!isCurrentUserMember && !isCurrentUserOwner && (
+                <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                  <UserPlus className="h-3 w-3 mr-1" />
+                  Join Available
                 </Badge>
               )}
             </div>
@@ -167,27 +246,47 @@ export function Stream({ stream, currentUserId, onStreamUpdated }: StreamProps) 
       <AccordionContent className="px-6 pb-6">
         <div className="space-y-6 pt-4">
           {/* Stream Actions */}
-          <div className="flex justify-end">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" disabled={isUpdating}>
-                  <MoreHorizontal className="h-4 w-4 mr-2" />
-                  Actions
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Stream Actions</DropdownMenuLabel>
-                <DropdownMenuItem onClick={handleCopyStreamLink} className="cursor-pointer">
-                  <LinkIcon className="h-4 w-4 mr-2" />
-                  Copy Link
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleArchiveStream} className="cursor-pointer text-destructive">
-                  <XCircle className="h-4 w-4 mr-2" />
-                  Archive Stream
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          <div className="flex justify-between items-center">
+            {!isCurrentUserMember && !isCurrentUserOwner && (
+              <Button 
+                onClick={handleJoinStream} 
+                disabled={isJoining}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <UserPlus className="h-4 w-4 mr-2" />
+                {isJoining ? 'Joining...' : 'Join Stream'}
+              </Button>
+            )}
+            
+            {(isCurrentUserMember || isCurrentUserOwner) && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" disabled={isUpdating}>
+                    <MoreHorizontal className="h-4 w-4 mr-2" />
+                    Actions
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Stream Actions</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={handleCopyStreamLink} className="cursor-pointer">
+                    <LinkIcon className="h-4 w-4 mr-2" />
+                    Copy Link
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  {stream.status === 'archived' ? (
+                    <DropdownMenuItem onClick={handleUnarchiveStream} className="cursor-pointer text-green-600">
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Unarchive Stream
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem onClick={handleArchiveStream} className="cursor-pointer text-destructive">
+                      <XCircle className="h-4 w-4 mr-2" />
+                      Archive Stream
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
 
           {/* Stream Description */}
@@ -219,12 +318,13 @@ export function Stream({ stream, currentUserId, onStreamUpdated }: StreamProps) 
             </div>
           </div>
 
-          {/* Work Items */}
+          {/* Work Items - Show to all, but disable adding for non-members */}
           <div>
             <WorkItemsList
               streamId={stream.id}
               workItems={stream.work_items}
               onWorkItemCreated={handleWorkItemCreated}
+              canAddItems={isCurrentUserMember || isCurrentUserOwner}
             />
           </div>
         </div>

@@ -97,6 +97,7 @@ export function StreamHeader({ stream, userRole, onStreamUpdated }: StreamHeader
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          action: 'update_status',
           status: newStatus,
         }),
       })
@@ -184,7 +185,16 @@ export function StreamHeader({ stream, userRole, onStreamUpdated }: StreamHeader
                     Mark as Completed
                   </DropdownMenuItem>
                 )}
-                {stream.status !== 'archived' && (
+                {stream.status === 'archived' ? (
+                  <DropdownMenuItem 
+                    onClick={() => handleUpdateStatus('active')}
+                    disabled={isUpdating}
+                    className="text-green-600"
+                  >
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Unarchive Stream
+                  </DropdownMenuItem>
+                ) : (
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem 

@@ -36,9 +36,10 @@ interface WorkItemsListProps {
   streamId: string
   workItems: WorkItem[]
   onWorkItemCreated: () => void
+  canAddItems?: boolean
 }
 
-export function WorkItemsList({ streamId, workItems, onWorkItemCreated }: WorkItemsListProps) {
+export function WorkItemsList({ streamId, workItems, onWorkItemCreated, canAddItems = true }: WorkItemsListProps) {
   const { toast } = useToast()
   const [updatingItemId, setUpdatingItemId] = useState<string | null>(null)
 
@@ -105,7 +106,7 @@ export function WorkItemsList({ streamId, workItems, onWorkItemCreated }: WorkIt
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <h3 className="text-lg font-semibold">Work Items</h3>
-        <CreateWorkItemDialog streamId={streamId} onWorkItemCreated={onWorkItemCreated} />
+        {canAddItems && <CreateWorkItemDialog streamId={streamId} onWorkItemCreated={onWorkItemCreated} />}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {workItems.length === 0 ? (

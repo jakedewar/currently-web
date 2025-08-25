@@ -40,21 +40,6 @@ export async function GET(
       )
     }
 
-    // Check if user has access to the stream
-    const { data: streamMember } = await supabase
-      .from('stream_members')
-      .select('role')
-      .eq('stream_id', streamId)
-      .eq('user_id', user.id)
-      .single()
-
-    if (!streamMember) {
-      return NextResponse.json(
-        { error: 'User does not have access to this stream' },
-        { status: 403 }
-      )
-    }
-
     // Get stream data with all related information
     const { data: stream } = await supabase
       .from('streams')
@@ -79,6 +64,29 @@ export async function GET(
       return NextResponse.json(
         { error: 'Stream not found' },
         { status: 404 }
+      )
+    }
+
+    // Check if user has access to the stream (either as member or through organization)
+    const { data: streamMember } = await supabase
+      .from('stream_members')
+      .select('role')
+      .eq('stream_id', streamId)
+      .eq('user_id', user.id)
+      .single()
+
+    // Check if user is member of the organization that owns this stream
+    const { data: orgMember } = await supabase
+      .from('organization_members')
+      .select('role')
+      .eq('organization_id', stream.organization_id)
+      .eq('user_id', user.id)
+      .single()
+
+    if (!orgMember) {
+      return NextResponse.json(
+        { error: 'User does not have access to this stream' },
+        { status: 403 }
       )
     }
 
@@ -132,8 +140,21 @@ export async function GET(
       }))
     }
 
-    // Get work items
-    const { data: workItems } = await supabase
+    // Get work items (show to all organization members)
+    let workItems: Array<{
+      id: string;
+      title: string;
+      description: string | null;
+      type: string;
+      status: string;
+      tool: string | null;
+      created_at: string | null;
+      updated_at: string | null;
+      stream_id: string;
+      created_by: string;
+    }> = []
+    
+    const { data: workItemsData } = await supabase
       .from('work_items')
       .select(`
         id,
@@ -141,7 +162,7 @@ export async function GET(
         description,
         type,
         status,
-        url,
+        tool,
         created_at,
         updated_at,
         stream_id,
@@ -149,9 +170,19 @@ export async function GET(
       `)
       .eq('stream_id', streamId)
       .order('created_at', { ascending: false })
+    
+    workItems = workItemsData || []
 
-    // Get stream tools
-    const { data: streamTools } = await supabase
+    // Get stream tools (show to all organization members)
+    let streamTools: Array<{
+      id: string;
+      tool_name: string;
+      tool_type: string | null;
+      connected_at: string | null;
+      stream_id: string;
+    }> = []
+    
+    const { data: streamToolsData } = await supabase
       .from('stream_tools')
       .select(`
         id,
@@ -161,6 +192,8 @@ export async function GET(
         stream_id
       `)
       .eq('stream_id', streamId)
+    
+    streamTools = streamToolsData || []
 
     // Get stream activity (we'll implement this later)
     const streamActivity: Array<never> = []
@@ -169,19 +202,170 @@ export async function GET(
       stream: {
         ...stream,
         stream_members: streamMembersWithUsers,
-        work_items: workItems || [],
-        stream_tools: streamTools || [],
+        work_items: workItems,
+        stream_tools: streamTools,
         activity: streamActivity,
       },
       currentUser: {
         id: user.id,
         full_name: user.user_metadata?.full_name || null,
         avatar_url: user.user_metadata?.avatar_url || null,
-        role: streamMember.role,
+        role: streamMember?.role || 'non_member',
       },
     })
   } catch (error) {
     console.error('Error in GET /api/streams/[id]:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function PATCH(
+  request: NextRequest,
+  ctx: RouteContext<'/api/streams/[id]'>
+): Promise<NextResponse> {
+  try {
+    const { id: streamId } = await ctx.params
+    const supabase = await createClient()
+
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    const body = await request.json()
+    const { action, status } = body
+
+    // Get stream details
+    const { data: stream, error: streamError } = await supabase
+      .from('streams')
+      .select(`
+        id,
+        organization_id,
+        created_by
+      `)
+      .eq('id', streamId)
+      .single()
+
+    if (streamError || !stream) {
+      return NextResponse.json(
+        { error: 'Stream not found' },
+        { status: 404 }
+      )
+    }
+
+    // Check if user is member of the organization
+    const { data: orgMember, error: orgError } = await supabase
+      .from('organization_members')
+      .select('role')
+      .eq('organization_id', stream.organization_id)
+      .eq('user_id', user.id)
+      .single()
+
+    if (orgError || !orgMember) {
+      return NextResponse.json(
+        { error: 'User is not a member of this organization' },
+        { status: 403 }
+      )
+    }
+
+    if (action === 'join') {
+      // Check if user is already a member of the stream
+      const { data: existingMember } = await supabase
+        .from('stream_members')
+        .select('id')
+        .eq('stream_id', streamId)
+        .eq('user_id', user.id)
+        .single()
+
+      if (existingMember) {
+        return NextResponse.json(
+          { error: 'User is already a member of this stream' },
+          { status: 400 }
+        )
+      }
+
+      // Add user to stream as member
+      const { data: newMember, error: joinError } = await supabase
+        .from('stream_members')
+        .insert({
+          stream_id: streamId,
+          user_id: user.id,
+          role: 'member',
+          joined_at: new Date().toISOString()
+        })
+        .select()
+        .single()
+
+      if (joinError) {
+        console.error('Error joining stream:', joinError)
+        return NextResponse.json(
+          { error: 'Failed to join stream' },
+          { status: 500 }
+        )
+      }
+
+      return NextResponse.json({
+        message: 'Successfully joined stream',
+        member: newMember
+      })
+    }
+
+    if (action === 'update_status' && status) {
+      // Only stream owner or organization admin can update status
+      const { data: streamMember } = await supabase
+        .from('stream_members')
+        .select('role')
+        .eq('stream_id', streamId)
+        .eq('user_id', user.id)
+        .single()
+
+      const canUpdate = stream.created_by === user.id || 
+                       orgMember.role === 'admin' || 
+                       orgMember.role === 'owner' ||
+                       streamMember?.role === 'admin'
+
+      if (!canUpdate) {
+        return NextResponse.json(
+          { error: 'Insufficient permissions to update stream status' },
+          { status: 403 }
+        )
+      }
+
+      // Update stream status
+      const { data: updatedStream, error: updateError } = await supabase
+        .from('streams')
+        .update({ status })
+        .eq('id', streamId)
+        .select()
+        .single()
+
+      if (updateError) {
+        console.error('Error updating stream:', updateError)
+        return NextResponse.json(
+          { error: 'Failed to update stream' },
+          { status: 500 }
+        )
+      }
+
+      return NextResponse.json({
+        message: 'Stream status updated successfully',
+        stream: updatedStream
+      })
+    }
+
+    return NextResponse.json(
+      { error: 'Invalid action' },
+      { status: 400 }
+    )
+  } catch (error) {
+    console.error('Error in PATCH /api/streams/[id]:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

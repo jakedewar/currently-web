@@ -44,7 +44,7 @@ export function filterStreams(
   streams: StreamsData['streams'],
   filters: {
     searchQuery: string;
-    statusFilter: "all" | "active" | "completed" | "paused";
+    statusFilter: "all" | "active" | "completed" | "paused" | "archived";
     priorityFilter: "all" | "high" | "medium" | "low";
     streamFilter: "all" | "my";
     sortBy: "progress" | "name" | "startDate" | "endDate";

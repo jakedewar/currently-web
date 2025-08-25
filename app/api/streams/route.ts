@@ -164,7 +164,7 @@ export async function GET(request: Request) {
       )
     }
 
-    // Get all streams for the organization
+    // Get all streams for the organization (not just streams the user is a member of)
     const { data: streams, error: streamsError } = await supabase
       .from('streams')
       .select(`

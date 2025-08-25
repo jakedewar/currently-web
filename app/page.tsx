@@ -101,10 +101,10 @@ export default function Home() {
         <div className="container mx-auto text-center max-w-4x">
           <Badge
             variant="secondary"
-            className="mb-6"
+            className="mb-6 text-primary"
           >
             <Sparkles className="h-3 w-3 mr-2" />
-            New • Smart Context for Teams
+            New • Start Building, Stop Searching
           </Badge>
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
             Stop losing work in the chaos
