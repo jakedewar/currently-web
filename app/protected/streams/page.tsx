@@ -47,14 +47,20 @@ export default function StreamsPage() {
 
   if (!currentOrganization) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-4 sm:space-y-6">
+        <div className="space-y-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Streams</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Streams</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
               Please select an organization to view streams
             </p>
           </div>
+          <div className="w-full sm:hidden">
+            <CreateStreamDialog onStreamCreated={fetchStreams} />
+          </div>
+        </div>
+        <div className="hidden sm:flex items-center justify-between">
+          <div></div>
           <CreateStreamDialog onStreamCreated={fetchStreams} />
         </div>
       </div>
@@ -63,17 +69,23 @@ export default function StreamsPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-4 sm:space-y-6">
+        <div className="space-y-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Streams</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Streams</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
               Loading streams...
             </p>
           </div>
+          <div className="w-full sm:hidden">
+            <CreateStreamDialog onStreamCreated={fetchStreams} />
+          </div>
+        </div>
+        <div className="hidden sm:flex items-center justify-between">
+          <div></div>
           <CreateStreamDialog onStreamCreated={fetchStreams} />
         </div>
-        <Accordion type="multiple" className="space-y-4">
+        <Accordion type="multiple" className="space-y-3 sm:space-y-4">
           {[...Array(3)].map((_, i) => (
             <LoadingStream key={i} />
           ))}
@@ -84,14 +96,20 @@ export default function StreamsPage() {
 
   if (error) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-4 sm:space-y-6">
+        <div className="space-y-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Streams</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Streams</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
               {error}
             </p>
           </div>
+          <div className="w-full sm:hidden">
+            <CreateStreamDialog onStreamCreated={fetchStreams} />
+          </div>
+        </div>
+        <div className="hidden sm:flex items-center justify-between">
+          <div></div>
           <CreateStreamDialog onStreamCreated={fetchStreams} />
         </div>
       </div>
@@ -99,14 +117,20 @@ export default function StreamsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="space-y-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Streams</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Streams</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Manage {currentOrganization.name}&apos;s work streams and track progress
           </p>
         </div>
+        <div className="w-full sm:hidden">
+          <CreateStreamDialog onStreamCreated={fetchStreams} />
+        </div>
+      </div>
+      <div className="hidden sm:flex items-center justify-between">
+        <div></div>
         <CreateStreamDialog onStreamCreated={fetchStreams} />
       </div>
 

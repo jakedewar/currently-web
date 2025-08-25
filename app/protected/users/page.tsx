@@ -63,20 +63,20 @@ export default function UsersPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Team</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Team</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Loading team members...
           </p>
         </div>
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="flex items-center space-x-4 p-4 border rounded-lg">
-              <div className="w-10 h-10 bg-muted rounded-full animate-pulse" />
-              <div className="flex-1 space-y-2">
-                <div className="h-4 bg-muted rounded w-1/4 animate-pulse" />
-                <div className="h-3 bg-muted rounded w-1/2 animate-pulse" />
+            <div key={i} className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 border rounded-lg">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-muted rounded-full animate-pulse flex-shrink-0" />
+              <div className="flex-1 space-y-2 min-w-0">
+                <div className="h-3 sm:h-4 bg-muted rounded w-1/3 sm:w-1/4 animate-pulse" />
+                <div className="h-2 sm:h-3 bg-muted rounded w-1/2 animate-pulse" />
               </div>
             </div>
           ))}
@@ -87,10 +87,10 @@ export default function UsersPage() {
 
   if (!currentOrganization) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Team</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Team</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Please select an organization to view team members.
           </p>
         </div>
@@ -99,20 +99,22 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Team</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Team</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
           See what your teammates in {currentOrganization.name} are currently working on and stay connected.
         </p>
       </div>
 
       {users.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">No team members found in this organization.</p>
+        <div className="text-center py-8 sm:py-12">
+          <p className="text-sm sm:text-base text-muted-foreground">No team members found in this organization.</p>
         </div>
       ) : (
-        <TeamTable users={users} />
+        <div className="overflow-x-auto">
+          <TeamTable users={users} />
+        </div>
       )}
     </div>
   )

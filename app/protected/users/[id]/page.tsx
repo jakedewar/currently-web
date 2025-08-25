@@ -67,11 +67,11 @@ function UserStreams({ userId }: { userId: string }) {
 
   if (loading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="p-4 border rounded-lg animate-pulse">
-            <div className="h-6 bg-muted rounded w-1/4 mb-2" />
-            <div className="h-4 bg-muted rounded w-1/2" />
+          <div key={i} className="p-3 sm:p-4 border rounded-lg animate-pulse">
+            <div className="h-5 sm:h-6 bg-muted rounded w-1/4 mb-2" />
+            <div className="h-3 sm:h-4 bg-muted rounded w-1/2" />
           </div>
         ))}
       </div>
@@ -80,16 +80,16 @@ function UserStreams({ userId }: { userId: string }) {
 
   if (error) {
     return (
-      <div className="text-center py-6">
-        <p className="text-muted-foreground">{error}</p>
+      <div className="text-center py-4 sm:py-6">
+        <p className="text-sm sm:text-base text-muted-foreground">{error}</p>
       </div>
     )
   }
 
   if (!streamsData || streamsData.streams.length === 0) {
     return (
-      <div className="text-center py-6">
-        <p className="text-muted-foreground">No streams found for this user.</p>
+      <div className="text-center py-4 sm:py-6">
+        <p className="text-sm sm:text-base text-muted-foreground">No streams found for this user.</p>
       </div>
     )
   }
@@ -135,17 +135,18 @@ export default function UserPage({ params }: { params: Promise<{ id: string }> }
 
   if (!currentOrganization) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div className="flex items-center gap-4">
           <Link href="/protected/users">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Team
+              <span className="hidden sm:inline">Back to Team</span>
+              <span className="sm:hidden">Back</span>
             </Button>
           </Link>
         </div>
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">
+        <div className="text-center py-8 sm:py-12">
+          <p className="text-sm sm:text-base text-muted-foreground">
             Please select an organization to view user details.
           </p>
         </div>
@@ -155,21 +156,22 @@ export default function UserPage({ params }: { params: Promise<{ id: string }> }
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div className="flex items-center gap-4">
           <Link href="/protected/users">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Team
+              <span className="hidden sm:inline">Back to Team</span>
+              <span className="sm:hidden">Back</span>
             </Button>
           </Link>
         </div>
         <div className="space-y-4">
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-muted rounded-full animate-pulse" />
-            <div className="space-y-2">
-              <div className="h-8 bg-muted rounded w-48 animate-pulse" />
-              <div className="h-4 bg-muted rounded w-32 animate-pulse" />
+          <div className="flex items-center space-x-3 sm:space-x-4">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 bg-muted rounded-full animate-pulse flex-shrink-0" />
+            <div className="space-y-2 min-w-0 flex-1">
+              <div className="h-6 sm:h-8 bg-muted rounded w-32 sm:w-48 animate-pulse" />
+              <div className="h-3 sm:h-4 bg-muted rounded w-24 sm:w-32 animate-pulse" />
             </div>
           </div>
         </div>
@@ -179,17 +181,18 @@ export default function UserPage({ params }: { params: Promise<{ id: string }> }
 
   if (error || !userProfile) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div className="flex items-center gap-4">
           <Link href="/protected/users">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Team
+              <span className="hidden sm:inline">Back to Team</span>
+              <span className="sm:hidden">Back</span>
             </Button>
           </Link>
         </div>
-        <div className="text-center py-12">
-          <p className="text-muted-foreground">
+        <div className="text-center py-8 sm:py-12">
+          <p className="text-sm sm:text-base text-muted-foreground">
             {error || "User not found"}
           </p>
         </div>
@@ -205,72 +208,76 @@ export default function UserPage({ params }: { params: Promise<{ id: string }> }
   const joinDate = userProfile.joined_at ? new Date(userProfile.joined_at).toLocaleDateString() : 'Unknown'
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Link href="/protected/users">
           <Button variant="ghost" size="sm">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Team
+            <span className="hidden sm:inline">Back to Team</span>
+            <span className="sm:hidden">Back</span>
           </Button>
         </Link>
       </div>
 
       {/* User Info */}
-      <div className="space-y-6">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="relative">
-              <Avatar className="h-16 w-16">
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div className="flex items-center space-x-3 sm:space-x-4">
+            <div className="relative flex-shrink-0">
+              <Avatar className="h-12 w-12 sm:h-16 sm:w-16">
                 <AvatarImage src={userProfile.avatar_url || undefined} alt={displayName} />
-                <AvatarFallback className="text-lg">
+                <AvatarFallback className="text-sm sm:text-lg">
                   {displayName.split(" ").map((n) => n[0]).join("")}
                 </AvatarFallback>
               </Avatar>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">{displayName}</h1>
-              <p className="text-muted-foreground mt-1">{displayRole} • {displayDepartment}</p>
-              <div className="flex items-center gap-4 mt-3">
-                <span className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <MapPin className="h-4 w-4" />
-                  {displayLocation}
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl sm:text-3xl font-bold tracking-tight truncate">{displayName}</h1>
+              <p className="text-sm sm:text-base text-muted-foreground mt-1">{displayRole} • {displayDepartment}</p>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2 sm:mt-3">
+                <span className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                  <MapPin className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                  <span className="truncate">{displayLocation}</span>
                 </span>
-                <span className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Clock className="h-4 w-4" />
-                  {displayTimezone}
+                <span className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                  <Clock className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                  <span className="truncate">{displayTimezone}</span>
                 </span>
-                <span className="flex items-center gap-2 text-sm text-muted-foreground">
-                  Joined: {joinDate}
+                <span className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                  <span className="hidden sm:inline">Joined:</span>
+                  <span className="sm:hidden">Joined</span> {joinDate}
                 </span>
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm">
-              <MessageSquare className="h-4 w-4 mr-2" />
-              Message
+          <div className="flex items-center gap-2 sm:flex-shrink-0">
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
+              <MessageSquare className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Message</span>
+              <span className="sm:hidden">Msg</span>
             </Button>
-            <Button variant="outline" size="sm">
-              <Video className="h-4 w-4 mr-2" />
-              Call
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
+              <Video className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Call</span>
+              <span className="sm:hidden">Call</span>
             </Button>
           </div>
         </div>
         
         <div className="flex items-center gap-2">
-          <Waves className="h-4 w-4 text-primary" />
-          <span className="text-sm text-muted-foreground">Currently:</span>
-          <span className="text-sm font-medium">Member of {currentOrganization.name}</span>
+          <Waves className="h-3 w-3 sm:h-4 sm:w-4 text-primary flex-shrink-0" />
+          <span className="text-xs sm:text-sm text-muted-foreground">Currently:</span>
+          <span className="text-xs sm:text-sm font-medium truncate">Member of {currentOrganization.name}</span>
         </div>
       </div>
 
       {/* Tabs */}
       <Tabs defaultValue="streams" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="streams">Streams</TabsTrigger>
-          <TabsTrigger value="tasks">Tasks</TabsTrigger>
-          <TabsTrigger value="activity">Recent Activity</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="streams" className="text-xs sm:text-sm">Streams</TabsTrigger>
+          <TabsTrigger value="tasks" className="text-xs sm:text-sm">Tasks</TabsTrigger>
+          <TabsTrigger value="activity" className="text-xs sm:text-sm">Activity</TabsTrigger>
         </TabsList>
 
         <TabsContent value="streams" className="space-y-4">
@@ -278,14 +285,14 @@ export default function UserPage({ params }: { params: Promise<{ id: string }> }
         </TabsContent>
 
         <TabsContent value="tasks" className="space-y-4">
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No tasks found for this user.</p>
+          <div className="text-center py-8 sm:py-12">
+            <p className="text-sm sm:text-base text-muted-foreground">No tasks found for this user.</p>
           </div>
         </TabsContent>
 
         <TabsContent value="activity" className="space-y-4">
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">No recent activity found for this user.</p>
+          <div className="text-center py-8 sm:py-12">
+            <p className="text-sm sm:text-base text-muted-foreground">No recent activity found for this user.</p>
           </div>
         </TabsContent>
       </Tabs>

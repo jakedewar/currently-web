@@ -52,18 +52,19 @@ export function TeamTable({ users }: TeamTableProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-4">
+      <div className="flex gap-3 sm:gap-4">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="search"
             placeholder="Search team members..."
-            className="pl-8"
+            className="pl-8 text-sm sm:text-base"
           />
         </div>
       </div>
 
-      <div className="rounded-md border">
+      {/* Desktop Table View */}
+      <div className="hidden lg:block rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
@@ -137,6 +138,57 @@ export function TeamTable({ users }: TeamTableProps) {
             ))}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="lg:hidden space-y-3">
+        {users.map((user) => (
+          <Link key={user.id} href={`/protected/users/${user.id}`} className="block">
+            <div className="p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+              <div className="flex items-start space-x-3">
+                <div className="relative flex-shrink-0">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={user.avatar || undefined} alt={user.name} />
+                    <AvatarFallback className="text-sm">
+                      {user.name.split(" ").map((n) => n[0]).join("")}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div
+                    className={`absolute -bottom-1 -right-1 h-2.5 w-2.5 rounded-full border-2 border-background ${getDepartmentColor(user.department)}`}
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-medium text-sm truncate">{user.name}</h3>
+                    <Badge variant="outline" className="text-xs flex-shrink-0">
+                      {user.department || 'Unknown'}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-2">{user.email}</p>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Activity className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                      <span className="text-xs text-muted-foreground truncate">{user.currentWork}</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                      <span className="text-xs text-muted-foreground">{user.lastActive}</span>
+                    </div>
+                    
+                    {user.location && (
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                        <span className="text-xs text-muted-foreground truncate">{user.location}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Link>
+        ))}
       </div>
     </div>
   );
