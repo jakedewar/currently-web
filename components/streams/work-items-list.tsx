@@ -132,34 +132,11 @@ export function WorkItemsList({ streamId, workItems, onWorkItemCreated }: WorkIt
                     <p className="text-sm text-muted-foreground">{item.description}</p>
                   )}
                   <div className="flex items-center gap-3">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <a
-                            href={item.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 px-3 py-1.5 bg-primary/5 hover:bg-primary/10 rounded-md text-sm transition-colors"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                            Open URL
-                          </a>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{item.url}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                    
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8"
-                      onClick={() => handleCopyUrl(item.url)}
-                    >
-                      <Copy className="h-4 w-4 mr-1" />
-                      Copy
-                    </Button>
+                    {item.tool && (
+                      <Badge variant="secondary" className="flex items-center gap-1">
+                        {item.tool}
+                      </Badge>
+                    )}
 
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
