@@ -185,46 +185,52 @@ export default function StreamPage() {
           <Card className="p-4 lg:p-6">
             <h2 className="text-lg font-semibold mb-4">Team Members</h2>
             <div className="space-y-4">
-              {data.stream.stream_members.map((member) => (
-                <div
-                  key={member.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-muted/50 rounded-lg gap-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                      <span className="text-sm font-medium text-primary">
-                        {member.users?.full_name?.split(' ').map(n => n[0]).join('') || 'U'}
-                      </span>
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="font-medium truncate">{member.users?.full_name || 'Unknown User'}</div>
-                      <div className="text-sm text-muted-foreground capitalize">{member.role}</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 sm:ml-0">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8">
-                          <MoreVertical className="h-4 w-4" />
-                          <span className="sr-only">Actions</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          <MessageSquare className="h-4 w-4 mr-2" />
-                          Message
-                        </DropdownMenuItem>
-                        {data.currentUser.role === 'owner' && (
-                          <DropdownMenuItem className="text-destructive">
-                            <UserMinus className="h-4 w-4 mr-2" />
-                            Remove from team
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+              {data.stream.stream_members.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground mb-4">No team members found for this stream.</p>
                 </div>
-              ))}
+              ) : (
+                data.stream.stream_members.map((member) => (
+                  <div
+                    key={member.id}
+                    className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-muted/50 rounded-lg gap-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                        <span className="text-sm font-medium text-primary">
+                          {member.users?.full_name?.split(' ').map(n => n[0]).join('') || 'U'}
+                        </span>
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium truncate">{member.users?.full_name || 'Unknown User'}</div>
+                        <div className="text-sm text-muted-foreground capitalize">{member.role}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 sm:ml-0">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8">
+                            <MoreVertical className="h-4 w-4" />
+                            <span className="sr-only">Actions</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>
+                            <MessageSquare className="h-4 w-4 mr-2" />
+                            Message
+                          </DropdownMenuItem>
+                          {data.currentUser.role === 'owner' && (
+                            <DropdownMenuItem className="text-destructive">
+                              <UserMinus className="h-4 w-4 mr-2" />
+                              Remove from team
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </Card>
         </TabsContent>

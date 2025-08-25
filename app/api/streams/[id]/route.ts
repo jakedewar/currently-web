@@ -82,22 +82,55 @@ export async function GET(
       )
     }
 
-    // Get stream members with user details
-    const { data: streamMembers } = await supabase
+    // Get stream members first
+    const { data: streamMembers, error: streamMembersError } = await supabase
       .from('stream_members')
       .select(`
         id,
         user_id,
         role,
         joined_at,
-        stream_id,
-        users (
-          id,
-          full_name,
-          avatar_url
-        )
+        stream_id
       `)
       .eq('stream_id', streamId)
+
+    if (streamMembersError) {
+      console.error('Error fetching stream members:', streamMembersError)
+    }
+
+    // Get user details for the members
+    let streamMembersWithUsers: Array<{
+      id: string;
+      user_id: string;
+      role: string;
+      joined_at: string | null;
+      stream_id: string;
+      users: {
+        id: string;
+        full_name: string | null;
+        avatar_url: string | null;
+      } | null;
+    }> = []
+    
+    if (streamMembers && streamMembers.length > 0) {
+      const userIds = streamMembers.map(member => member.user_id)
+      
+      // Get user profiles from the users table
+      const { data: userProfiles, error: userProfilesError } = await supabase
+        .from('users')
+        .select('id, full_name, avatar_url')
+        .in('id', userIds)
+
+      if (userProfilesError) {
+        console.error('Error fetching user profiles:', userProfilesError)
+      }
+
+      // Combine stream members with user data
+      streamMembersWithUsers = streamMembers.map(member => ({
+        ...member,
+        users: userProfiles?.find(user => user.id === member.user_id) || null
+      }))
+    }
 
     // Get work items
     const { data: workItems } = await supabase
@@ -135,7 +168,7 @@ export async function GET(
     return NextResponse.json({
       stream: {
         ...stream,
-        stream_members: streamMembers || [],
+        stream_members: streamMembersWithUsers,
         work_items: workItems || [],
         stream_tools: streamTools || [],
         activity: streamActivity,
