@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { DeviceLinkGenerator } from "@/components/device-link-generator";
 import { 
   Bell, 
   Shield, 
@@ -51,6 +52,9 @@ export default function SettingsPage() {
             <Button>Save Changes</Button>
           </CardContent>
         </Card>
+
+        {/* Chrome Extension Connection */}
+        <DeviceLinkGenerator />
 
         {/* Notification Settings */}
         <Card>

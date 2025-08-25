@@ -1,0 +1,18 @@
+# Deno
+.deno_dir/
+deno.lock
+
+# Build artifacts
+dist/
+build/
+
+# Environment files
+.env
+.env.local
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/

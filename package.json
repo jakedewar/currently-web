@@ -1,12 +1,19 @@
 {
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "npm run build:shared && next build",
+    "build:shared": "cd packages/shared && npm run build",
+    "dev:shared": "cd packages/shared && npm run dev",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "install:all": "npm install && cd packages/shared && npm install"
   },
   "dependencies": {
+    "@currently/shared": "file:packages/shared",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-checkbox": "^1.3.1",

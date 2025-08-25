@@ -1,0 +1,10 @@
+{
+  "typescript.validate.enable": true,
+  "typescript.preferences.includePackageJsonAutoImports": "on",
+  "typescript.suggest.autoImports": true,
+  "files.exclude": {
+    "**/supabase/functions/**/node_modules": true
+  },
+  "typescript.preferences.includeCompletionsForModuleExports": true,
+  "typescript.suggest.includeCompletionsForModuleExports": true
+}
