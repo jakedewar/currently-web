@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { WorkItemsList } from "@/components/streams/work-items-list"
 import { Card } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Stream, StreamMember, WorkItem } from "@/lib/data/streams"
+import { Stream, StreamMember, StreamTool, WorkItem } from "@/lib/data/streams"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { MessageSquare, MoreVertical, UserMinus } from "lucide-react"
@@ -16,8 +16,14 @@ interface StreamData {
   stream: Stream & {
     stream_members: StreamMember[];
     work_items: WorkItem[];
-    stream_tools: any[];
-    activity: any[];
+    stream_tools: StreamTool[];
+    activity: Array<{
+      id: string;
+      type: string;
+      created_at: string;
+      user_id: string;
+      metadata: Record<string, unknown>;
+    }>;
   };
   currentUser: {
     id: string;

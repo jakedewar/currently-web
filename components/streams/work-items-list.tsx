@@ -64,7 +64,7 @@ export function WorkItemsList({ streamId, workItems, onWorkItemCreated }: WorkIt
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to copy URL",
+        description: `Failed to copy URL: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       })
     }
@@ -95,7 +95,7 @@ export function WorkItemsList({ streamId, workItems, onWorkItemCreated }: WorkIt
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to update status",
+        description: `Failed to update status: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       })
     } finally {

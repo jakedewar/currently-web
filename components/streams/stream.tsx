@@ -1,6 +1,6 @@
 'use client'
 
-import { Stream, StreamMember, WorkItem } from '@/lib/data/streams'
+import type { Stream, StreamMember, WorkItem } from '@/lib/data/streams'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
@@ -23,8 +23,7 @@ import {
   Eye,
   User,
   Users,
-  ExternalLink,
-  Copy,
+
   CheckCircle,
   XCircle,
   Clock,
@@ -62,7 +61,7 @@ export function Stream({ stream, currentUserId, onStreamUpdated }: StreamProps) 
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to copy link",
+        description: `Failed to copy link: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       })
     }
@@ -93,7 +92,7 @@ export function Stream({ stream, currentUserId, onStreamUpdated }: StreamProps) 
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to archive stream",
+        description: `Failed to archive stream: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       })
     } finally {
@@ -171,7 +170,7 @@ export function Stream({ stream, currentUserId, onStreamUpdated }: StreamProps) 
           <div className="flex justify-end">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" disabled={isUpdating}>
                   <MoreHorizontal className="h-4 w-4 mr-2" />
                   Actions
                 </Button>
