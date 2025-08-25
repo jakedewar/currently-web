@@ -145,6 +145,18 @@ export async function getDashboardData(): Promise<DashboardData> {
     .order('created_at', { ascending: false })
     .limit(6);
 
+  // Get organization members
+  const { data: orgMembers } = await supabase
+    .from('organization_members')
+    .select(`
+      id,
+      role,
+      joined_at,
+      user_id,
+      organization_id
+    `)
+    .eq('organization_id', organizationId);
+
   // Get user details for team activity
   const userIds = teamActivity?.map(activity => activity.user_id).filter(Boolean) || [];
   const { data: activityUsers } = await supabase
@@ -155,19 +167,9 @@ export async function getDashboardData(): Promise<DashboardData> {
   // Create a map of user details
   const userMap = new Map(activityUsers?.map(user => [user.id, user]) || []);
 
-  // Get organization members
-  const { data: orgMembers } = await supabase
-    .from('organization_members')
-    .select(`
-      role,
-      joined_at,
-      users (
-        id,
-        full_name,
-        avatar_url
-      )
-    `)
-    .eq('organization_id', organizationId);
+
+
+
 
   // Calculate statistics
   const activeStreams = streams?.filter(s => s.status === 'active').length || 0;

@@ -166,45 +166,51 @@ export function StreamHeader({ stream, userRole, onStreamUpdated }: StreamHeader
                   <Share2 className="h-4 w-4 mr-2" />
                   Share
                 </DropdownMenuItem>
-                {userRole === 'owner' && (
-                  <DropdownMenuItem 
-                    onClick={() => router.push(`/protected/streams/${stream.id}/settings`)}
-                  >
-                    <Settings className="h-4 w-4 mr-2" />
-                    Settings
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
-                {stream.status !== 'completed' && (
-                  <DropdownMenuItem 
-                    onClick={() => handleUpdateStatus('completed')}
-                    disabled={isUpdating}
-                    className="text-green-600"
-                  >
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Mark as Completed
-                  </DropdownMenuItem>
-                )}
-                {stream.status === 'archived' ? (
-                  <DropdownMenuItem 
-                    onClick={() => handleUpdateStatus('active')}
-                    disabled={isUpdating}
-                    className="text-green-600"
-                  >
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Unarchive Stream
-                  </DropdownMenuItem>
-                ) : (
+                
+                {/* Only show management actions for members, admins, and owners */}
+                {(userRole === 'member' || userRole === 'admin' || userRole === 'owner') && (
                   <>
+                    {userRole === 'owner' && (
+                      <DropdownMenuItem 
+                        onClick={() => router.push(`/protected/streams/${stream.id}/settings`)}
+                      >
+                        <Settings className="h-4 w-4 mr-2" />
+                        Settings
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem 
-                      onClick={() => handleUpdateStatus('archived')}
-                      disabled={isUpdating}
-                      className="text-destructive"
-                    >
-                      <Archive className="h-4 w-4 mr-2" />
-                      Archive Stream
-                    </DropdownMenuItem>
+                    {stream.status !== 'completed' && (
+                      <DropdownMenuItem 
+                        onClick={() => handleUpdateStatus('completed')}
+                        disabled={isUpdating}
+                        className="text-green-600"
+                      >
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Mark as Completed
+                      </DropdownMenuItem>
+                    )}
+                    {stream.status === 'archived' ? (
+                      <DropdownMenuItem 
+                        onClick={() => handleUpdateStatus('active')}
+                        disabled={isUpdating}
+                        className="text-green-600"
+                      >
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Unarchive Stream
+                      </DropdownMenuItem>
+                    ) : (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          onClick={() => handleUpdateStatus('archived')}
+                          disabled={isUpdating}
+                          className="text-destructive"
+                        >
+                          <Archive className="h-4 w-4 mr-2" />
+                          Archive Stream
+                        </DropdownMenuItem>
+                      </>
+                    )}
                   </>
                 )}
               </DropdownMenuContent>
