@@ -1,6 +1,6 @@
 "use client"
 
-import { Home, Waves, Users, Settings, LogOut, Building2, Plus, Bug, Megaphone } from "lucide-react"
+import { Home, Waves, Users, Settings, LogOut, Building2, Plus, Bug, Megaphone, Menu } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { useEffect, useState } from "react"
@@ -16,6 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 
 import { useRouter } from "next/navigation"
 interface UserProfile {
@@ -36,6 +37,7 @@ export function AppSidebar() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [userOrganizations, setUserOrganizations] = useState<Organization[]>([])
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   // Fetch user data and organizations on component mount
   useEffect(() => {
@@ -152,8 +154,8 @@ export function AppSidebar() {
     return user?.email || user?.id || 'User'
   }
 
-  return (
-    <aside className="w-64 border-r bg-sidebar sticky top-0 h-screen overflow-y-auto flex flex-col">
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full">
       <div className="flex h-16 items-center border-b px-4">
         <div className="flex items-center gap-2">
           <Waves className="w-5 h-5 text-primary" />
@@ -172,6 +174,7 @@ export function AppSidebar() {
               <a
                 key={item.href}
                 href={item.href}
+                onClick={() => setIsMobileMenuOpen(false)}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
                   isActive && "bg-primary/10 text-primary"
@@ -194,6 +197,7 @@ export function AppSidebar() {
               <a
                 key={item.href}
                 href={item.href}
+                onClick={() => setIsMobileMenuOpen(false)}
                 className={cn(
                   "flex items-center gap-2 rounded-lg px-2 py-1.5 text-xs font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
                   isActive && "bg-primary/10 text-primary"
@@ -311,6 +315,34 @@ export function AppSidebar() {
           </div>
         )}
       </div>
-    </aside>
+    </div>
+  )
+
+  return (
+    <>
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:flex w-64 border-r bg-sidebar sticky top-0 h-screen overflow-y-auto flex-col">
+        <SidebarContent />
+      </aside>
+
+      {/* Mobile Sidebar */}
+      <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+        <SheetTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="lg:hidden fixed top-4 left-4 z-50 h-10 w-10 p-0"
+          >
+            <Menu className="h-5 w-5" />
+            <span className="sr-only">Open menu</span>
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="w-64 p-0">
+          <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+          <SheetDescription className="sr-only">Main navigation menu for the application</SheetDescription>
+          <SidebarContent />
+        </SheetContent>
+      </Sheet>
+    </>
   )
 }
