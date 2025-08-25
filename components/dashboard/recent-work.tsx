@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Clock, Waves, MessageSquare } from "lucide-react";
 import { getStatusColor, formatTimeAgo } from "@/lib/utils/dashboard";
+import Link from "next/link";
 
 interface WorkItem {
   id: string;
@@ -13,6 +14,7 @@ interface WorkItem {
   created_at: string | null;
   updated_at: string | null;
   streams: {
+    id: string;
     name: string | null;
   } | null;
 }
@@ -51,7 +53,11 @@ export function RecentWork({ workItems }: RecentWorkProps) {
         <div className="space-y-4">
           {workItems && workItems.length > 0 ? (
             workItems.map((work) => (
-              <div key={work.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
+              <Link 
+                key={work.id} 
+                href={`/protected/streams/${work.streams?.id}`}
+                className="flex items-start space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer"
+              >
                 <div className={`w-2 h-2 rounded-full mt-2 ${getStatusColor(work.status)}`}></div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
@@ -61,7 +67,7 @@ export function RecentWork({ workItems }: RecentWorkProps) {
                     </Badge>
                   </div>
                   <p className="text-xs text-muted-foreground mb-2">
-                    {work.description || `Work item in ${work.streams?.name}`}
+                    Added to {work.streams?.name}
                   </p>
                   <div className="flex items-center gap-2">
                     {work.tool && (
@@ -78,7 +84,7 @@ export function RecentWork({ workItems }: RecentWorkProps) {
                     </span>
                   </div>
                 </div>
-              </div>
+              </Link>
             ))
           ) : (
             <div className="text-center py-8 text-muted-foreground">

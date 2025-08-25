@@ -37,6 +37,7 @@ export interface DashboardData {
     created_at: string | null;
     updated_at: string | null;
     streams: {
+      id: string;
       name: string | null;
     } | null;
   }>;
@@ -48,6 +49,7 @@ export interface DashboardData {
     tool: string | null;
     created_at: string | null;
     streams: {
+      id: string;
       name: string | null;
     } | null;
     work_items: {
@@ -117,12 +119,13 @@ export async function getDashboardData(): Promise<DashboardData> {
       created_at,
       updated_at,
       streams (
+        id,
         name
       )
     `)
     .eq('streams.organization_id', organizationId)
     .order('updated_at', { ascending: false })
-    .limit(8);
+    .limit(5);
 
   // Get team activity
   const { data: teamActivity } = await supabase
@@ -135,6 +138,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       created_at,
       user_id,
       streams (
+        id,
         name
       ),
       work_items (

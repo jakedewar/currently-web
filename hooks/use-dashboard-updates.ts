@@ -34,11 +34,12 @@ export function useDashboardUpdates(initialData: Pick<DashboardData, 'workItems'
               created_at,
               updated_at,
               streams (
+                id,
                 name
               )
             `)
             .order('updated_at', { ascending: false })
-            .limit(8);
+            .limit(5);
 
           if (updatedWorkItems) {
             setWorkItems(updatedWorkItems);
@@ -69,6 +70,7 @@ export function useDashboardUpdates(initialData: Pick<DashboardData, 'workItems'
               created_at,
               user_id,
               streams (
+                id,
                 name
               ),
               work_items (
