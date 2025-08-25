@@ -23,5 +23,12 @@ export function useUser() {
     queryFn: fetchUser,
     staleTime: 10 * 60 * 1000, // 10 minutes - user data doesn't change often
     gcTime: 30 * 60 * 1000, // 30 minutes cache
+    retry: (failureCount, error) => {
+      // Don't retry on 401 errors (authentication issues)
+      if ((error as any)?.status === 401) {
+        return false
+      }
+      return failureCount < 1
+    },
   })
 }

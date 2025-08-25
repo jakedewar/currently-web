@@ -26,5 +26,12 @@ export function useOrganizations() {
     queryFn: fetchOrganizations,
     staleTime: 5 * 60 * 1000, // 5 minutes - organizations might change
     gcTime: 15 * 60 * 1000, // 15 minutes cache
+    retry: (failureCount, error) => {
+      // Don't retry on 401 errors (authentication issues)
+      if ((error as any)?.status === 401) {
+        return false
+      }
+      return failureCount < 1
+    },
   })
 }

@@ -68,8 +68,8 @@ export async function getDashboardData(): Promise<DashboardData> {
     redirect("/auth/login");
   }
 
-  // Get user's organization
-  const { data: userOrg } = await supabase
+  // Get user's organizations
+  const { data: userOrgs } = await supabase
     .from('organization_members')
     .select(`
       organization_id,
@@ -80,13 +80,14 @@ export async function getDashboardData(): Promise<DashboardData> {
         slug
       )
     `)
-    .eq('user_id', user.id)
-    .single();
+    .eq('user_id', user.id);
 
-  if (!userOrg) {
+  if (!userOrgs || userOrgs.length === 0) {
     redirect("/auth/login");
   }
 
+  // Use the first organization (you might want to implement organization switching later)
+  const userOrg = userOrgs[0];
   const organizationId = userOrg.organization_id;
 
   // Get streams for the organization

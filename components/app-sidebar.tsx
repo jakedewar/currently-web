@@ -31,6 +31,10 @@ export function AppSidebar() {
   const { data: userData, isLoading: userLoading, error: userError } = useUser()
   const { data: orgsData, isLoading: orgsLoading, error: orgsError } = useOrganizations()
 
+  // Don't show error states for 401 errors as they're expected when not authenticated
+  const shouldShowUserError = userError && (userError as { status?: number })?.status !== 401
+  const shouldShowOrgsError = orgsError && (orgsError as { status?: number })?.status !== 401
+
   // Handle organization selection
   useEffect(() => {
     if (orgsData?.organizations && orgsData.organizations.length > 0 && !currentOrganization) {
@@ -94,6 +98,7 @@ export function AppSidebar() {
   }
 
   const getCurrentOrganizationName = () => {
+    if (!userData) return ''
     if (currentOrganization?.name) {
       return currentOrganization.name
     }
@@ -192,6 +197,37 @@ export function AppSidebar() {
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
+              
+              {/* Organization Switcher */}
+              {orgsData?.organizations && orgsData.organizations.length > 0 && (
+                <>
+                  <DropdownMenuLabel className="text-xs font-normal text-muted-foreground px-2 py-1.5">
+                    Organizations
+                  </DropdownMenuLabel>
+                  {orgsData.organizations.map((org) => (
+                    <DropdownMenuItem
+                      key={org.id}
+                      onClick={() => {
+                        setCurrentOrganization(org)
+                        setIsMobileMenuOpen(false)
+                      }}
+                      className={cn(
+                        "cursor-pointer",
+                        currentOrganization?.id === org.id && "bg-accent"
+                      )}
+                    >
+                      <Building2 className="mr-2 h-4 w-4" />
+                      <span className={cn(
+                        currentOrganization?.id === org.id && "font-medium"
+                      )}>
+                        {org.name}
+                      </span>
+                    </DropdownMenuItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                </>
+              )}
+              
               <DropdownMenuItem asChild>
                 <a href="/protected/settings">
                   <Settings className="mr-2 h-4 w-4" />
@@ -243,8 +279,8 @@ export function AppSidebar() {
     )
   }
 
-  // Show error state if data fetching failed
-  if (userError || orgsError) {
+  // Show error state if data fetching failed (but not for 401 errors)
+  if (shouldShowUserError || shouldShowOrgsError) {
     return (
       <div className="flex h-screen w-64 flex-col border-r bg-background">
         <div className="flex h-14 items-center border-b px-4">
