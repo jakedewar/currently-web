@@ -103,7 +103,7 @@ export function WorkItemsList({ streamId, workItems, onWorkItemCreated }: WorkIt
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <h3 className="text-lg font-semibold">Work Items</h3>
         <CreateWorkItemDialog streamId={streamId} onWorkItemCreated={onWorkItemCreated} />
       </div>
@@ -194,7 +194,7 @@ export function WorkItemsList({ streamId, workItems, onWorkItemCreated }: WorkIt
 
                 {/* Metadata Footer */}
                 <div className="mt-auto px-4 py-3 border-t bg-muted/5 text-xs text-muted-foreground">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-1">
                         {getTypeIcon(item.type)}

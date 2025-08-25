@@ -64,7 +64,7 @@ export default function StreamPage() {
 
   if (loading) {
     return (
-      <div className="space-y-8">
+      <div className="space-y-6 lg:space-y-8">
         <div className="space-y-4 pb-4 border-b">
           {/* Back button skeleton */}
           <div className="flex items-center gap-2">
@@ -72,26 +72,26 @@ export default function StreamPage() {
           </div>
 
           {/* Header skeleton */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex flex-col gap-4">
             <div className="space-y-2">
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                <Skeleton className="h-7 sm:h-8 w-48" />
+              <div className="flex flex-wrap items-center gap-2">
+                <Skeleton className="h-7 lg:h-8 w-48" />
                 <div className="flex items-center gap-2">
                   <Skeleton className="h-6 w-24" />
                   <Skeleton className="h-3 w-3 rounded-full" />
                 </div>
               </div>
-              <Skeleton className="h-4 w-full sm:w-96" />
+              <Skeleton className="h-4 w-full lg:w-96" />
             </div>
-            <div className="flex items-center gap-2">
-              <Skeleton className="hidden sm:block h-9 w-24" />
-              <Skeleton className="hidden sm:block h-9 w-24" />
+            <div className="flex flex-wrap items-center gap-2">
+              <Skeleton className="h-9 w-24" />
+              <Skeleton className="h-9 w-24" />
               <Skeleton className="h-9 w-24" />
             </div>
           </div>
 
           {/* Metadata skeleton */}
-          <div className="flex flex-col sm:flex-row gap-4 pt-4 border-t">
+          <div className="flex flex-col lg:flex-row gap-4 pt-4 border-t">
             <Skeleton className="h-4 w-48" />
             <div className="flex items-center gap-3">
               <Skeleton className="h-4 w-24" />
@@ -102,12 +102,10 @@ export default function StreamPage() {
 
         {/* Tabs skeleton */}
         <div className="space-y-4">
-          <div className="w-full overflow-x-auto">
-            <div className="flex min-w-max space-x-2 p-1">
-              {[...Array(4)].map((_, i) => (
-                <Skeleton key={i} className="h-10 w-[100px]" />
-              ))}
-            </div>
+          <div className="flex space-x-2 p-1">
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-10 w-[100px] flex-shrink-0" />
+            ))}
           </div>
 
           {/* Content skeleton */}
@@ -140,7 +138,7 @@ export default function StreamPage() {
   if (!data) return null
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 lg:space-y-8">
       <StreamHeader
         stream={data.stream}
         userRole={data.currentUser.role}
@@ -148,26 +146,26 @@ export default function StreamPage() {
       />
 
       <Tabs defaultValue="work-items" className="space-y-4">
-        <TabsList className="w-full justify-start overflow-x-auto">
-          <div className="flex min-w-max space-x-2 p-1">
-            <TabsTrigger value="overview" className="sm:min-w-[100px]">Overview</TabsTrigger>
-            <TabsTrigger value="work-items" className="sm:min-w-[100px]">Work Items</TabsTrigger>
-            <TabsTrigger value="team" className="sm:min-w-[100px]">Team</TabsTrigger>
+        <TabsList className="w-full justify-start">
+          <div className="flex space-x-2 p-1">
+            <TabsTrigger value="overview" className="flex-shrink-0">Overview</TabsTrigger>
+            <TabsTrigger value="work-items" className="flex-shrink-0">Work Items</TabsTrigger>
+            <TabsTrigger value="team" className="flex-shrink-0">Team</TabsTrigger>
             {data.currentUser.role === 'owner' && (
-              <TabsTrigger value="settings" className="sm:min-w-[100px]">Settings</TabsTrigger>
+              <TabsTrigger value="settings" className="flex-shrink-0">Settings</TabsTrigger>
             )}
           </div>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
-          <Card className="p-6">
+          <Card className="p-4 lg:p-6">
             <h2 className="text-lg font-semibold mb-4">Stream Overview</h2>
             <p className="text-muted-foreground">
               {data.stream.description || "No description available"}
             </p>
           </Card>
           
-          <Card className="p-6">
+          <Card className="p-4 lg:p-6">
             <h2 className="text-lg font-semibold mb-4">Recent Activity</h2>
             <p className="text-muted-foreground">
               Activity feed coming soon...
@@ -184,7 +182,7 @@ export default function StreamPage() {
         </TabsContent>
 
         <TabsContent value="team" className="space-y-4">
-          <Card className="p-6">
+          <Card className="p-4 lg:p-6">
             <h2 className="text-lg font-semibold mb-4">Team Members</h2>
             <div className="space-y-4">
               {data.stream.stream_members.map((member) => (
@@ -198,12 +196,12 @@ export default function StreamPage() {
                         {member.users?.full_name?.split(' ').map(n => n[0]).join('') || 'U'}
                       </span>
                     </div>
-                    <div className="min-w-0">
+                    <div className="min-w-0 flex-1">
                       <div className="font-medium truncate">{member.users?.full_name || 'Unknown User'}</div>
                       <div className="text-sm text-muted-foreground capitalize">{member.role}</div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 ml-11 sm:ml-0">
+                  <div className="flex items-center gap-2 sm:ml-0">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="sm" className="h-8">
@@ -233,7 +231,7 @@ export default function StreamPage() {
 
         {data.currentUser.role === 'owner' && (
           <TabsContent value="settings">
-            <Card className="p-6">
+            <Card className="p-4 lg:p-6">
               <h2 className="text-lg font-semibold mb-4">Stream Settings</h2>
               <p className="text-muted-foreground">
                 Stream settings coming soon...
