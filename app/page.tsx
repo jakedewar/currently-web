@@ -112,7 +112,7 @@ export default function Home() {
             of 89 different tools
           </h1>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Currently organizes everything your team needs - from that crucial Slack thread to the final design file - so you can focus on building instead of hunting. Teams save 2.5 hours daily and ship 40% faster.
+            Currently organizes everything your team needs into a project-based Streams - from that crucial Slack thread to the final design file - so you can focus on building instead of hunting. Teams save 2.5 hours daily and ship 40% faster.
           </p>
 
           {/* Key Metrics */}

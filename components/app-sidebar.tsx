@@ -1,6 +1,6 @@
 "use client"
 
-import { Home, Waves, Users, LogOut, Building2, Bug, Megaphone, Menu } from "lucide-react"
+import { Home, Waves, Users, LogOut, Building2, Bug, Megaphone, Menu, Settings } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { useEffect, useState } from "react"
@@ -54,11 +54,6 @@ export function AppSidebar() {
       icon: Users,
       label: "Team",
     },
-    {
-      href: "/protected/organizations",
-      icon: Building2,
-      label: "Organizations",
-    },
   ]
 
   const footerNavItems = [
@@ -96,6 +91,13 @@ export function AppSidebar() {
       return userData.full_name
     }
     return userData?.id || 'User'
+  }
+
+  const getCurrentOrganizationName = () => {
+    if (currentOrganization?.name) {
+      return currentOrganization.name
+    }
+    return 'No organization selected'
   }
 
   const SidebarContent = () => (
@@ -182,13 +184,26 @@ export function AppSidebar() {
                 <div className="flex-1 text-left">
                   <div className="text-sm font-medium">{getUserDisplayName()}</div>
                   <div className="text-xs text-muted-foreground truncate">
-                    {userData.department || 'No department'}
+                    {getCurrentOrganizationName()}
                   </div>
                 </div>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <a href="/protected/settings">
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </a>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <a href="/protected/organizations">
+                  <Building2 className="mr-2 h-4 w-4" />
+                  <span>Manage Organizations</span>
+                </a>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
