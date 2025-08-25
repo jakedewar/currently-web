@@ -7,8 +7,6 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { CreateWorkItemDialog } from './create-work-item-dialog'
 import { 
-  ExternalLink, 
-  Copy, 
   CheckCircle, 
   XCircle, 
   Clock,
@@ -26,12 +24,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
+
 
 interface WorkItemsListProps {
   streamId: string
@@ -54,21 +47,7 @@ export function WorkItemsList({ streamId, workItems, onWorkItemCreated }: WorkIt
     }
   }
 
-  const handleCopyUrl = async (url: string) => {
-    try {
-      await navigator.clipboard.writeText(url)
-      toast({
-        title: "URL copied",
-        description: "URL copied to clipboard",
-      })
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: `Failed to copy URL: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        variant: "destructive",
-      })
-    }
-  }
+
 
   const handleUpdateStatus = async (itemId: string, newStatus: string) => {
     setUpdatingItemId(itemId)
