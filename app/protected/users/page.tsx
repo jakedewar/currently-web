@@ -1,9 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { TeamTable } from "@/components/team-table"
 import { useOrganization } from "@/components/organization-provider"
-import { type Database } from "@/lib/supabase/types"
+import { useUsers } from "@/hooks/use-users"
 
 interface TeamMember {
   id: string
@@ -18,50 +17,23 @@ interface TeamMember {
 }
 
 export default function UsersPage() {
-  const [users, setUsers] = useState<TeamMember[]>([])
-  const [loading, setLoading] = useState(true)
   const { currentOrganization } = useOrganization()
+  const { data: usersData, isLoading, error } = useUsers(currentOrganization?.id)
 
-  useEffect(() => {
-    const fetchTeamMembers = async () => {
-      if (!currentOrganization) {
-        setLoading(false)
-        return
-      }
+  // Transform the data to match the TeamMember interface
+  const users: TeamMember[] = usersData?.users.map((user) => ({
+    id: user.id,
+    name: user.full_name || 'Unknown User',
+    email: '-', // We don't have email in the users table
+    avatar: user.avatar_url || null,
+    department: user.department || '-',
+    currentWork: `Member since ${new Date(user.joined_at || '').toLocaleDateString()}`,
+    lastActive: 'Recently active',
+    location: user.location || '-',
+    timezone: user.timezone || '-',
+  })) || []
 
-      try {
-        const response = await fetch(`/api/users?organizationId=${currentOrganization.id}`);
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to fetch team members');
-        }
-
-        const teamMembers: TeamMember[] = data.users.map((user: Database['public']['Tables']['users']['Row']) => ({
-          id: user.id,
-          name: user.full_name || 'Unknown User',
-          email: '-', // We don't have email in the users table
-          avatar: user.avatar_url || null,
-          department: user.department || '-',
-          currentWork: `Member since ${new Date(user.created_at || '').toLocaleDateString()}`,
-          lastActive: 'Recently active',
-          location: user.location || '-',
-          timezone: user.timezone || '-',
-        }));
-
-        setUsers(teamMembers);
-      } catch (err) {
-        console.error('Error fetching team members:', err);
-        setUsers([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTeamMembers();
-  }, [currentOrganization])
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="space-y-4 sm:space-y-6">
         <div>
@@ -92,6 +64,19 @@ export default function UsersPage() {
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Team</h1>
           <p className="text-sm sm:text-base text-muted-foreground">
             Please select an organization to view team members.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-4 sm:space-y-6">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Team</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            Error loading team members. Please try again.
           </p>
         </div>
       </div>

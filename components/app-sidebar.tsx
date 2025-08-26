@@ -23,7 +23,7 @@ import { useOrganizations } from "@/hooks/use-organizations"
 
 export function AppSidebar() {
   const pathname = usePathname()
-  const { currentOrganization, setCurrentOrganization } = useOrganization()
+  const { currentOrganization, setCurrentOrganization, setOrganizations } = useOrganization()
   const router = useRouter()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
@@ -35,12 +35,54 @@ export function AppSidebar() {
   const shouldShowUserError = userError && (userError as { status?: number })?.status !== 401
   const shouldShowOrgsError = orgsError && (orgsError as { status?: number })?.status !== 401
 
-  // Handle organization selection
+  // Sync organizations with the context provider
   useEffect(() => {
-    if (orgsData?.organizations && orgsData.organizations.length > 0 && !currentOrganization) {
-      setCurrentOrganization(orgsData.organizations[0])
+    if (orgsData?.organizations) {
+      setOrganizations(orgsData.organizations)
     }
-  }, [orgsData?.organizations, currentOrganization, setCurrentOrganization])
+  }, [orgsData?.organizations, setOrganizations])
+
+  // Show organization selection prompt if no organization is selected
+  if (orgsData?.organizations && orgsData.organizations.length > 0 && !currentOrganization) {
+    return (
+      <div className="flex h-screen w-64 flex-col border-r bg-background">
+        <div className="flex h-16 items-center border-b px-4">
+          <div className="flex items-center gap-2">
+            <Waves className="w-5 h-5 text-primary" />
+            <div className="font-semibold">Currently</div>
+          </div>
+        </div>
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground mb-4">
+              Please select an organization to continue
+            </p>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  Select Organization
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Organizations</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {orgsData.organizations.map((org) => (
+                  <DropdownMenuItem
+                    key={org.id}
+                    onClick={() => setCurrentOrganization(org)}
+                    className="cursor-pointer"
+                  >
+                    <Building2 className="mr-2 h-4 w-4" />
+                    <span>{org.name}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   const navItems = [
     {

@@ -59,7 +59,7 @@ export interface DashboardData {
   activityUsers: Map<string, { id: string; full_name: string | null }>;
 }
 
-export async function getDashboardData(): Promise<DashboardData> {
+export async function getDashboardData(organizationId?: string): Promise<DashboardData> {
   const supabase = await createClient();
 
   // Get current user
@@ -68,27 +68,55 @@ export async function getDashboardData(): Promise<DashboardData> {
     redirect("/auth/login");
   }
 
-  // Get user's organizations
-  const { data: userOrgs } = await supabase
-    .from('organization_members')
-    .select(`
-      organization_id,
-      role,
-      organizations (
-        id,
-        name,
-        slug
-      )
-    `)
-    .eq('user_id', user.id);
+  // If no organizationId provided, get user's organizations and use the first one
+  let targetOrganizationId = organizationId;
+  let targetOrganization: { id: string; name: string; slug: string } | null = null;
 
-  if (!userOrgs || userOrgs.length === 0) {
-    redirect("/auth/login");
+  if (!targetOrganizationId) {
+    const { data: userOrgs } = await supabase
+      .from('organization_members')
+      .select(`
+        organization_id,
+        role,
+        organizations (
+          id,
+          name,
+          slug
+        )
+      `)
+      .eq('user_id', user.id);
+
+    if (!userOrgs || userOrgs.length === 0) {
+      redirect("/auth/login");
+    }
+
+    // Use the first organization
+    const userOrg = userOrgs[0];
+    targetOrganizationId = userOrg.organization_id;
+    targetOrganization = userOrg.organizations;
+  } else {
+    // Verify user has access to the specified organization
+    const { data: userOrg } = await supabase
+      .from('organization_members')
+      .select(`
+        organization_id,
+        role,
+        organizations (
+          id,
+          name,
+          slug
+        )
+      `)
+      .eq('user_id', user.id)
+      .eq('organization_id', targetOrganizationId)
+      .single();
+
+    if (!userOrg) {
+      redirect("/auth/login");
+    }
+
+    targetOrganization = userOrg.organizations;
   }
-
-  // Use the first organization (you might want to implement organization switching later)
-  const userOrg = userOrgs[0];
-  const organizationId = userOrg.organization_id;
 
   // Get streams for the organization
   const { data: streams } = await supabase
@@ -103,7 +131,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       created_at,
       updated_at
     `)
-    .eq('organization_id', organizationId)
+    .eq('organization_id', targetOrganizationId)
     .order('updated_at', { ascending: false })
     .limit(10);
 
@@ -124,7 +152,7 @@ export async function getDashboardData(): Promise<DashboardData> {
         name
       )
     `)
-    .eq('streams.organization_id', organizationId)
+    .eq('streams.organization_id', targetOrganizationId)
     .order('updated_at', { ascending: false })
     .limit(5);
 
@@ -146,7 +174,7 @@ export async function getDashboardData(): Promise<DashboardData> {
         title
       )
     `)
-    .eq('streams.organization_id', organizationId)
+    .eq('streams.organization_id', targetOrganizationId)
     .order('created_at', { ascending: false })
     .limit(6);
 
@@ -160,7 +188,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       user_id,
       organization_id
     `)
-    .eq('organization_id', organizationId);
+    .eq('organization_id', targetOrganizationId);
 
   // Get user details for team activity
   const userIds = teamActivity?.map(activity => activity.user_id).filter(Boolean) || [];
@@ -171,10 +199,6 @@ export async function getDashboardData(): Promise<DashboardData> {
 
   // Create a map of user details
   const userMap = new Map(activityUsers?.map(user => [user.id, user]) || []);
-
-
-
-
 
   // Calculate statistics
   const activeStreams = streams?.filter(s => s.status === 'active').length || 0;
@@ -193,9 +217,9 @@ export async function getDashboardData(): Promise<DashboardData> {
       full_name: user.user_metadata?.full_name || null,
     },
     organization: {
-      id: userOrg.organizations.id,
-      name: userOrg.organizations.name,
-      slug: userOrg.organizations.slug,
+      id: targetOrganization.id,
+      name: targetOrganization.name,
+      slug: targetOrganization.slug,
     },
     stats: {
       activeStreams,

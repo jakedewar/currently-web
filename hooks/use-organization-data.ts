@@ -1,5 +1,6 @@
 import { useOrganization } from "@/components/organization-provider"
 import { useEffect, useState } from "react"
+import { useQueryClient } from "@tanstack/react-query"
 
 // Example hook for fetching organization-specific data
 export function useOrganizationData<T>(fetcher: (orgId: string) => Promise<T>) {
@@ -32,6 +33,21 @@ export function useOrganizationData<T>(fetcher: (orgId: string) => Promise<T>) {
   }, [currentOrganization?.id, fetcher])
 
   return { data, loading, error, organization: currentOrganization }
+}
+
+// Hook to invalidate queries when organization changes
+export function useOrganizationQueryInvalidation() {
+  const { currentOrganization } = useOrganization()
+  const queryClient = useQueryClient()
+
+  useEffect(() => {
+    if (currentOrganization) {
+      // Invalidate all organization-specific queries
+      queryClient.invalidateQueries({ queryKey: ['streams'] })
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+    }
+  }, [currentOrganization?.id, queryClient])
 }
 
 // Example usage:

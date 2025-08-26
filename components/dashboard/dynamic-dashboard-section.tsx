@@ -2,7 +2,8 @@
 
 import { RecentWork } from "./recent-work";
 import { TeamActivity } from "./team-activity";
-import { useDashboardUpdates } from "@/hooks/use-dashboard-updates";
+import { useOrganization } from "@/components/organization-provider";
+import { useDashboardData } from "@/hooks/use-dashboard-updates";
 import { DashboardData } from "@/lib/data/dashboard";
 
 interface DynamicDashboardSectionProps {
@@ -16,11 +17,13 @@ export function DynamicDashboardSection({
   initialTeamActivity,
   initialActivityUsers,
 }: DynamicDashboardSectionProps) {
-  const { workItems, teamActivity, activityUsers } = useDashboardUpdates({
-    workItems: initialWorkItems,
-    teamActivity: initialTeamActivity,
-    activityUsers: initialActivityUsers,
-  });
+  const { currentOrganization } = useOrganization();
+  const { data: dashboardData } = useDashboardData(currentOrganization?.id);
+
+  // Use live data if available, otherwise fall back to initial data
+  const workItems = dashboardData?.workItems || initialWorkItems;
+  const teamActivity = dashboardData?.teamActivity || initialTeamActivity;
+  const activityUsers = dashboardData?.activityUsers || initialActivityUsers;
 
   return (
     <div className="grid gap-6 md:grid-cols-2">

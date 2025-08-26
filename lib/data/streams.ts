@@ -194,7 +194,7 @@ export async function getUserStreams(userId: string): Promise<StreamsData> {
   };
 }
 
-export async function getStreamsData(): Promise<StreamsData> {
+export async function getStreamsData(organizationId?: string): Promise<StreamsData> {
   const supabase = await createClient();
 
   // Get current user
@@ -203,26 +203,51 @@ export async function getStreamsData(): Promise<StreamsData> {
     redirect("/auth/login");
   }
 
-  // Get user's organization
-  const { data: userOrg } = await supabase
-    .from('organization_members')
-    .select(`
-      organization_id,
-      role,
-      organizations (
-        id,
-        name,
-        slug
-      )
-    `)
-    .eq('user_id', user.id)
-    .single();
+  // If no organizationId provided, get user's organizations and use the first one
+  let targetOrganizationId = organizationId;
 
-  if (!userOrg) {
-    redirect("/auth/login");
+  if (!targetOrganizationId) {
+    // Get user's organization
+    const { data: userOrg } = await supabase
+      .from('organization_members')
+      .select(`
+        organization_id,
+        role,
+        organizations (
+          id,
+          name,
+          slug
+        )
+      `)
+      .eq('user_id', user.id)
+      .single();
+
+    if (!userOrg) {
+      redirect("/auth/login");
+    }
+
+    targetOrganizationId = userOrg.organization_id;
+  } else {
+    // Verify user has access to the specified organization
+    const { data: userOrg } = await supabase
+      .from('organization_members')
+      .select(`
+        organization_id,
+        role,
+        organizations (
+          id,
+          name,
+          slug
+        )
+      `)
+      .eq('user_id', user.id)
+      .eq('organization_id', targetOrganizationId)
+      .single();
+
+    if (!userOrg) {
+      redirect("/auth/login");
+    }
   }
-
-  const organizationId = userOrg.organization_id;
 
   // Get all streams for the organization with related data
   const { data: streams } = await supabase
@@ -242,7 +267,7 @@ export async function getStreamsData(): Promise<StreamsData> {
       created_by,
       organization_id
     `)
-    .eq('organization_id', organizationId)
+    .eq('organization_id', targetOrganizationId)
     .order('updated_at', { ascending: false });
 
   // Get stream members and user details separately
