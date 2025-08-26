@@ -18,8 +18,8 @@ export async function GET(
       )
     }
 
-    // Get user's organization
-    const { data: userOrg } = await supabase
+    // Get user's organizations (allow multiple organizations)
+    const { data: userOrgs } = await supabase
       .from('organization_members')
       .select(`
         organization_id,
@@ -31,9 +31,8 @@ export async function GET(
         )
       `)
       .eq('user_id', user.id)
-      .single()
 
-    if (!userOrg) {
+    if (!userOrgs || userOrgs.length === 0) {
       return NextResponse.json(
         { error: 'User is not a member of any organization' },
         { status: 403 }
@@ -76,14 +75,9 @@ export async function GET(
       .single()
 
     // Check if user is member of the organization that owns this stream
-    const { data: orgMember } = await supabase
-      .from('organization_members')
-      .select('role')
-      .eq('organization_id', stream.organization_id)
-      .eq('user_id', user.id)
-      .single()
-
-    if (!orgMember) {
+    const userHasAccessToStreamOrg = userOrgs.some(org => org.organization_id === stream.organization_id)
+    
+    if (!userHasAccessToStreamOrg) {
       return NextResponse.json(
         { error: 'User does not have access to this stream' },
         { status: 403 }
@@ -261,19 +255,20 @@ export async function PATCH(
     }
 
     // Check if user is member of the organization
-    const { data: orgMember, error: orgError } = await supabase
+    const { data: userOrgs } = await supabase
       .from('organization_members')
       .select('role')
       .eq('organization_id', stream.organization_id)
       .eq('user_id', user.id)
-      .single()
 
-    if (orgError || !orgMember) {
+    if (!userOrgs || userOrgs.length === 0) {
       return NextResponse.json(
         { error: 'User is not a member of this organization' },
         { status: 403 }
       )
     }
+
+    const orgMember = userOrgs[0] // Use the first membership if multiple exist
 
     if (action === 'join') {
       // Check if user is already a member of the stream

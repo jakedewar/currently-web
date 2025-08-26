@@ -110,14 +110,13 @@ export async function POST(request: Request) {
     }
 
     // Check if user is member of the organization
-    const { data: orgMember, error: orgError } = await supabase
+    const { data: orgMembers } = await supabase
       .from('organization_members')
       .select('role')
       .eq('organization_id', organization_id)
       .eq('user_id', user.id)
-      .single()
 
-    if (orgError || !orgMember) {
+    if (!orgMembers || orgMembers.length === 0) {
       return NextResponse.json(
         { error: 'User is not a member of this organization' },
         { status: 403 }
@@ -201,14 +200,13 @@ export async function GET(request: Request) {
     }
 
     // Verify user has access to the requested organization
-    const { data: orgMembership, error: membershipError } = await supabase
+    const { data: orgMemberships } = await supabase
       .from('organization_members')
       .select('role')
       .eq('user_id', user.id)
       .eq('organization_id', organizationId)
-      .single()
 
-    if (membershipError || !orgMembership) {
+    if (!orgMemberships || orgMemberships.length === 0) {
       return NextResponse.json(
         { error: 'No access to this organization' },
         { status: 403 }

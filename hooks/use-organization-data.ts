@@ -30,7 +30,7 @@ export function useOrganizationData<T>(fetcher: (orgId: string) => Promise<T>) {
     }
 
     fetchData()
-  }, [currentOrganization?.id, fetcher])
+  }, [currentOrganization, fetcher])
 
   return { data, loading, error, organization: currentOrganization }
 }
@@ -47,7 +47,52 @@ export function useOrganizationQueryInvalidation() {
       queryClient.invalidateQueries({ queryKey: ['users'] })
       queryClient.invalidateQueries({ queryKey: ['dashboard'] })
     }
-  }, [currentOrganization?.id, queryClient])
+  }, [currentOrganization, queryClient])
+}
+
+// New hook for organization membership validation that can be shared
+export function useOrganizationMembership(organizationId: string | undefined) {
+  const { currentOrganization } = useOrganization()
+  
+  // If we're already in the context of an organization, use that
+  if (currentOrganization?.id === organizationId && currentOrganization) {
+    return {
+      data: { role: currentOrganization.role },
+      isLoading: false,
+      error: null
+    }
+  }
+  
+  // Otherwise, this would need to be implemented as a separate API call
+  // but we can optimize by checking if the user is already a member of any organization
+  return {
+    data: null,
+    isLoading: false,
+    error: new Error('Organization membership validation not implemented')
+  }
+}
+
+// Hook to prefetch organization data
+export function useOrganizationPrefetch() {
+  const { currentOrganization } = useOrganization()
+  const queryClient = useQueryClient()
+
+  useEffect(() => {
+    if (currentOrganization) {
+      // Prefetch common data when organization changes
+      queryClient.prefetchQuery({
+        queryKey: ['streams', currentOrganization.id],
+        queryFn: () => fetch(`/api/streams?organizationId=${currentOrganization.id}`).then(res => res.json()),
+        staleTime: 2 * 60 * 1000,
+      })
+      
+      queryClient.prefetchQuery({
+        queryKey: ['dashboard', currentOrganization.id],
+        queryFn: () => fetch(`/api/dashboard?organizationId=${currentOrganization.id}`).then(res => res.json()),
+        staleTime: 5 * 60 * 1000,
+      })
+    }
+  }, [currentOrganization, queryClient])
 }
 
 // Example usage:

@@ -30,14 +30,13 @@ export async function GET(
     }
 
     // Verify current user has access to the requested organization
-    const { data: currentUserAccess, error: accessError } = await supabase
+    const { data: currentUserAccesses } = await supabase
       .from('organization_members')
       .select('role')
       .eq('user_id', user.id)
       .eq('organization_id', organizationId)
-      .single()
 
-    if (accessError || !currentUserAccess) {
+    if (!currentUserAccesses || currentUserAccesses.length === 0) {
       return NextResponse.json(
         { error: 'No access to this organization' },
         { status: 403 }
