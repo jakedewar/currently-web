@@ -1,12 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import type { StreamsData } from '@/lib/data/streams'
+import { apiClient } from '@/lib/api-client'
 
 async function fetchStreams(organizationId: string): Promise<StreamsData> {
-  const response = await fetch(`/api/streams?organizationId=${organizationId}`)
-  if (!response.ok) {
-    throw new Error('Failed to fetch streams')
-  }
-  return response.json()
+  return apiClient.fetch('/api/streams', { 
+    params: { organizationId },
+    ttl: 2 * 60 * 1000 // 2 minutes TTL for API client cache
+  })
 }
 
 export function useStreams(organizationId: string | undefined) {

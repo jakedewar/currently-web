@@ -1,12 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import type { DashboardData } from '@/lib/data/dashboard'
+import { apiClient } from '@/lib/api-client'
 
 async function fetchDashboardData(organizationId: string): Promise<DashboardData> {
-  const response = await fetch(`/api/dashboard?organizationId=${organizationId}`)
-  if (!response.ok) {
-    throw new Error('Failed to fetch dashboard data')
-  }
-  return response.json()
+  return apiClient.fetch('/api/dashboard', { 
+    params: { organizationId },
+    ttl: 5 * 60 * 1000 // 5 minutes TTL for API client cache
+  })
 }
 
 export function useDashboardData(organizationId: string | undefined) {
@@ -17,7 +17,7 @@ export function useDashboardData(organizationId: string | undefined) {
     staleTime: 5 * 60 * 1000, // 5 minutes - dashboard data can be cached longer
     gcTime: 15 * 60 * 1000, // 15 minutes cache
     // Reduce refetch frequency for dashboard data
-    refetchInterval: 60 * 1000, // Refetch every minute instead of every 30 seconds
+    refetchInterval: 2 * 60 * 1000, // Refetch every 2 minutes instead of every minute
     refetchIntervalInBackground: false,
   })
 }

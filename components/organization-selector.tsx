@@ -102,7 +102,12 @@ export function OrganizationSelector({
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="flex items-center gap-3 px-3 py-2 cursor-pointer">
+        <DropdownMenuItem 
+          className="flex items-center gap-3 px-3 py-2 cursor-pointer"
+          onClick={() => {
+            window.location.href = '/protected/organizations'
+          }}
+        >
           <div className="flex h-6 w-6 items-center justify-center rounded-full bg-muted">
             <Plus className="h-3 w-3" />
           </div>

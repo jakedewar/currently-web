@@ -3,7 +3,7 @@
 import { Home, Waves, Users, LogOut, Building2, Bug, Megaphone, Menu, Settings } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useOrganization } from "@/components/organization-provider"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -20,12 +20,14 @@ import { ChromeExtensionPromo } from "@/components/chrome-extension-promo"
 import { useRouter } from "next/navigation"
 import { useUser } from "@/hooks/use-user"
 import { useOrganizations } from "@/hooks/use-organizations"
+import { useOrganizationSelection } from "@/hooks/use-organization-selection"
 
 export function AppSidebar() {
   const pathname = usePathname()
   const { currentOrganization, setCurrentOrganization, setOrganizations } = useOrganization()
   const router = useRouter()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const hasSyncedOrgs = useRef(false)
 
   // Use React Query hooks for data fetching
   const { data: userData, isLoading: userLoading, error: userError } = useUser()
@@ -35,54 +37,16 @@ export function AppSidebar() {
   const shouldShowUserError = userError && (userError as { status?: number })?.status !== 401
   const shouldShowOrgsError = orgsError && (orgsError as { status?: number })?.status !== 401
 
-  // Sync organizations with the context provider
+  // Sync organizations with the context provider - only once
   useEffect(() => {
-    if (orgsData?.organizations) {
+    if (orgsData?.organizations && !hasSyncedOrgs.current) {
       setOrganizations(orgsData.organizations)
+      hasSyncedOrgs.current = true
     }
   }, [orgsData?.organizations, setOrganizations])
 
-  // Show organization selection prompt if no organization is selected
-  if (orgsData?.organizations && orgsData.organizations.length > 0 && !currentOrganization) {
-    return (
-      <div className="flex h-screen w-64 flex-col border-r bg-background">
-        <div className="flex h-16 items-center border-b px-4">
-          <div className="flex items-center gap-2">
-            <Waves className="w-5 h-5 text-primary" />
-            <div className="font-semibold">Currently</div>
-          </div>
-        </div>
-        <div className="flex-1 flex items-center justify-center p-4">
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground mb-4">
-              Please select an organization to continue
-            </p>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  Select Organization
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>Organizations</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {orgsData.organizations.map((org) => (
-                  <DropdownMenuItem
-                    key={org.id}
-                    onClick={() => setCurrentOrganization(org)}
-                    className="cursor-pointer"
-                  >
-                    <Building2 className="mr-2 h-4 w-4" />
-                    <span>{org.name}</span>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  // Import the organization selection hook
+  const { openModal } = useOrganizationSelection()
 
   const navItems = [
     {
@@ -276,9 +240,16 @@ export function AppSidebar() {
                   <span>Settings</span>
                 </a>
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                openModal()
+                setIsMobileMenuOpen(false)
+              }}>
+                <Building2 className="mr-2 h-4 w-4" />
+                <span>Switch Organization</span>
+              </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <a href="/protected/organizations">
-                  <Building2 className="mr-2 h-4 w-4" />
+                  <Settings className="mr-2 h-4 w-4" />
                   <span>Manage Organizations</span>
                 </a>
               </DropdownMenuItem>

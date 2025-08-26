@@ -46,10 +46,17 @@ function UserStreams({ userId }: { userId: string }) {
 
       try {
         const response = await fetch(`/api/users/${userId}/streams?organizationId=${currentOrganization.id}`)
-        const data = await response.json()
-
+        
         if (!response.ok) {
-          throw new Error(data.error || 'Failed to fetch user streams')
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.error || `HTTP ${response.status}: Failed to fetch user streams`)
+        }
+
+        const data = await response.json()
+        
+        // Validate the data structure
+        if (!data || !Array.isArray(data.streams)) {
+          throw new Error('Invalid data structure received from server')
         }
 
         setStreamsData(data)
@@ -114,10 +121,17 @@ export default function UserPage({ params }: { params: Promise<{ id: string }> }
 
       try {
         const response = await fetch(`/api/users/${id}?organizationId=${currentOrganization.id}`)
-        const data = await response.json()
-
+        
         if (!response.ok) {
-          throw new Error(data.error || 'Failed to fetch user data')
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.error || `HTTP ${response.status}: Failed to fetch user data`)
+        }
+
+        const data = await response.json()
+        
+        // Validate the data structure
+        if (!data || typeof data.id !== 'string') {
+          throw new Error('Invalid user data received from server')
         }
 
         setUserProfile(data)

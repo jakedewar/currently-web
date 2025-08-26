@@ -1,13 +1,24 @@
 "use client"
 
-import { createContext, useContext, useState, ReactNode, useEffect } from "react"
+import { createContext, useContext, useState, ReactNode, useEffect, useRef } from "react"
 import { Organization } from "./organization-selector"
+
+// API organization data structure
+interface ApiOrganization {
+  id: string
+  name: string
+  slug: string
+  avatar_url?: string
+  avatar?: string
+  role: "owner" | "admin" | "member"
+}
 
 interface OrganizationContextType {
   currentOrganization: Organization | null
   organizations: Organization[]
   setCurrentOrganization: (org: Organization) => void
-  setOrganizations: (orgs: Organization[]) => void
+  setOrganizations: (orgs: ApiOrganization[]) => void
+  clearCurrentOrganization: () => void
   isLoading: boolean
 }
 
@@ -29,37 +40,61 @@ export function OrganizationProvider({
     initialCurrentOrganization
   )
   const [isLoading, setIsLoading] = useState(true)
-  const [hasInitialized, setHasInitialized] = useState(false)
+  const previousOrgId = useRef<string | null>(null)
 
-  // Load saved organization from localStorage and handle initial organization selection
+  // Transform API organization data to match the Organization interface
+  const transformOrganizations = (apiOrgs: ApiOrganization[]): Organization[] => {
+    return apiOrgs.map(org => ({
+      id: org.id,
+      name: org.name,
+      slug: org.slug,
+      avatar: org.avatar_url || org.avatar, // Handle both avatar_url and avatar
+      role: org.role
+    }))
+  }
+
+  // Handle setting organizations with data transformation
+  const handleSetOrganizations = (apiOrgs: ApiOrganization[]) => {
+    const transformedOrgs = transformOrganizations(apiOrgs)
+    setOrganizations(transformedOrgs)
+  }
+
+  // Load saved organization from localStorage whenever organizations change
   useEffect(() => {
-    if (typeof window !== 'undefined' && organizations.length > 0 && !hasInitialized) {
+    if (typeof window !== 'undefined' && organizations.length > 0) {
       const savedOrgId = localStorage.getItem('selectedOrganizationId')
       
       if (savedOrgId) {
         // Try to find the saved organization
         const savedOrg = organizations.find(org => org.id === savedOrgId)
-        if (savedOrg) {
+        if (savedOrg && previousOrgId.current !== savedOrg.id) {
           setCurrentOrganization(savedOrg)
-        } else {
-          // Saved organization not found, fall back to first organization
-          setCurrentOrganization(organizations[0])
+          previousOrgId.current = savedOrg.id
         }
-      } else {
-        // No saved organization, use first organization
-        setCurrentOrganization(organizations[0])
       }
       
-      setHasInitialized(true)
+      // Set loading to false once we have organizations
+      setIsLoading(false)
+    } else if (typeof window !== 'undefined' && organizations.length === 0) {
+      // Set loading to false if we have no organizations
       setIsLoading(false)
     }
-  }, [organizations, hasInitialized])
+  }, [organizations])
 
   // Save organization selection to localStorage
   const handleSetCurrentOrganization = (org: Organization) => {
     setCurrentOrganization(org)
+    previousOrgId.current = org.id
     if (typeof window !== 'undefined') {
       localStorage.setItem('selectedOrganizationId', org.id)
+    }
+  }
+
+  const clearCurrentOrganization = () => {
+    setCurrentOrganization(null)
+    previousOrgId.current = null
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('selectedOrganizationId')
     }
   }
 
@@ -67,7 +102,8 @@ export function OrganizationProvider({
     currentOrganization,
     organizations,
     setCurrentOrganization: handleSetCurrentOrganization,
-    setOrganizations,
+    setOrganizations: handleSetOrganizations,
+    clearCurrentOrganization,
     isLoading,
   }
 

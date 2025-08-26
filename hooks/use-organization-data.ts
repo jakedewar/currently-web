@@ -1,6 +1,7 @@
 import { useOrganization } from "@/components/organization-provider"
 import { useEffect, useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
+import { apiClient } from "@/lib/api-client"
 
 // Example hook for fetching organization-specific data
 export function useOrganizationData<T>(fetcher: (orgId: string) => Promise<T>) {
@@ -12,6 +13,8 @@ export function useOrganizationData<T>(fetcher: (orgId: string) => Promise<T>) {
   useEffect(() => {
     if (!currentOrganization) {
       setData(null)
+      setLoading(false)
+      setError(null)
       return
     }
 
@@ -72,27 +75,34 @@ export function useOrganizationMembership(organizationId: string | undefined) {
   }
 }
 
-// Hook to prefetch organization data
+// Hook to prefetch common data when organization changes
 export function useOrganizationPrefetch() {
   const { currentOrganization } = useOrganization()
   const queryClient = useQueryClient()
-
+  
   useEffect(() => {
-    if (currentOrganization) {
-      // Prefetch common data when organization changes
+    if (currentOrganization?.id) {
+      // Use React Query's prefetch instead of direct API calls
+      // This ensures proper caching and prevents duplicate requests
       queryClient.prefetchQuery({
         queryKey: ['streams', currentOrganization.id],
-        queryFn: () => fetch(`/api/streams?organizationId=${currentOrganization.id}`).then(res => res.json()),
-        staleTime: 2 * 60 * 1000,
+        queryFn: () => apiClient.fetch('/api/streams', { params: { organizationId: currentOrganization.id } }),
+        staleTime: 5 * 60 * 1000, // 5 minutes
       })
       
       queryClient.prefetchQuery({
         queryKey: ['dashboard', currentOrganization.id],
-        queryFn: () => fetch(`/api/dashboard?organizationId=${currentOrganization.id}`).then(res => res.json()),
-        staleTime: 5 * 60 * 1000,
+        queryFn: () => apiClient.fetch('/api/dashboard', { params: { organizationId: currentOrganization.id } }),
+        staleTime: 5 * 60 * 1000, // 5 minutes
+      })
+      
+      queryClient.prefetchQuery({
+        queryKey: ['users', currentOrganization.id, 1, 10],
+        queryFn: () => apiClient.fetch('/api/users', { params: { organizationId: currentOrganization.id, page: 1, limit: 10 } }),
+        staleTime: 5 * 60 * 1000, // 5 minutes
       })
     }
-  }, [currentOrganization, queryClient])
+  }, [currentOrganization?.id, queryClient])
 }
 
 // Example usage:

@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { apiClient } from '@/lib/api-client'
 
 interface StreamData {
   stream: {
@@ -56,11 +57,9 @@ interface StreamData {
 }
 
 async function fetchStream(streamId: string): Promise<StreamData> {
-  const response = await fetch(`/api/streams/${streamId}`)
-  if (!response.ok) {
-    throw new Error('Failed to fetch stream')
-  }
-  return response.json()
+  return apiClient.fetch(`/api/streams/${streamId}`, {
+    ttl: 1 * 60 * 1000 // 1 minute TTL for API client cache
+  })
 }
 
 export function useStream(streamId: string | undefined) {

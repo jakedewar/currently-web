@@ -34,8 +34,16 @@ export async function GET(
       );
     }
 
-    const streamsData = await getUserStreams(id);
-    return NextResponse.json(streamsData);
+    try {
+      const streamsData = await getUserStreams(id, organizationId);
+      return NextResponse.json(streamsData);
+    } catch (streamsError) {
+      console.error("Error fetching user streams:", streamsError);
+      return NextResponse.json(
+        { error: streamsError instanceof Error ? streamsError.message : "Failed to fetch user streams" },
+        { status: 500 }
+      );
+    }
   } catch (error) {
     console.error("Error in user streams route:", error);
     return NextResponse.json(

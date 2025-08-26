@@ -78,31 +78,13 @@ export interface StreamsData {
   };
 }
 
-export async function getUserStreams(userId: string): Promise<StreamsData> {
+export async function getUserStreams(userId: string, organizationId: string): Promise<StreamsData> {
   const supabase = await createClient();
 
   // Get current user for comparison
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
-    redirect("/auth/login");
-  }
-
-  // Get user's organization
-  const { data: userOrg } = await supabase
-    .from('organization_members')
-    .select(`
-      organization_id,
-      organizations (
-        id,
-        name,
-        slug
-      )
-    `)
-    .eq('user_id', user.id)
-    .single();
-
-  if (!userOrg) {
-    redirect("/auth/login");
+    throw new Error("Unauthorized");
   }
 
   // Get all streams where the user is a member
@@ -132,7 +114,7 @@ export async function getUserStreams(userId: string): Promise<StreamsData> {
       organization_id
     `)
     .in('id', streamIds)
-    .eq('organization_id', userOrg.organization_id)
+    .eq('organization_id', organizationId)
     .order('updated_at', { ascending: false });
 
   // Get stream members

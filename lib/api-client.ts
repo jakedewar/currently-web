@@ -3,7 +3,17 @@ class ApiClient {
   private cache = new Map<string, { data: unknown; timestamp: number; ttl: number }>()
 
   private getCacheKey(endpoint: string, params?: Record<string, unknown>): string {
-    const paramString = params ? JSON.stringify(params) : ''
+    if (!params || Object.keys(params).length === 0) {
+      return endpoint
+    }
+    
+    // Sort parameters to ensure consistent cache keys regardless of order
+    const sortedParams = Object.keys(params).sort().reduce((acc, key) => {
+      acc[key] = params[key]
+      return acc
+    }, {} as Record<string, unknown>)
+    
+    const paramString = JSON.stringify(sortedParams)
     return `${endpoint}${paramString}`
   }
 

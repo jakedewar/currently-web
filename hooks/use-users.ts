@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { apiClient } from '@/lib/api-client'
 
 interface User {
   id: string
@@ -19,11 +20,10 @@ interface UsersData {
 }
 
 async function fetchUsers(organizationId: string, page: number = 1, limit: number = 10): Promise<UsersData> {
-  const response = await fetch(`/api/users?organizationId=${organizationId}&page=${page}&limit=${limit}`)
-  if (!response.ok) {
-    throw new Error('Failed to fetch users')
-  }
-  return response.json()
+  return apiClient.fetch('/api/users', { 
+    params: { organizationId, page, limit },
+    ttl: 5 * 60 * 1000 // 5 minutes TTL for API client cache
+  })
 }
 
 export function useUsers(organizationId: string | undefined, page: number = 1, limit: number = 10) {
@@ -41,11 +41,10 @@ export function useUserById(userId: string | undefined, organizationId: string |
   return useQuery({
     queryKey: ['user', userId, organizationId],
     queryFn: async () => {
-      const response = await fetch(`/api/users/${userId}?organizationId=${organizationId}`)
-      if (!response.ok) {
-        throw new Error('Failed to fetch user')
-      }
-      return response.json()
+      return apiClient.fetch(`/api/users/${userId}`, { 
+        params: { organizationId },
+        ttl: 10 * 60 * 1000 // 10 minutes TTL for API client cache
+      })
     },
     enabled: !!userId && !!organizationId,
     staleTime: 10 * 60 * 1000, // 10 minutes - user profiles change less frequently
