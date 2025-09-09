@@ -7,8 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Building2, CheckCircle, XCircle } from "lucide-react"
+import { Building2, CheckCircle, XCircle, LogIn, UserPlus, AlertCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { useUser } from "@/hooks/use-user"
+import Link from "next/link"
 
 interface InvitationDetails {
   organization: {
@@ -30,6 +32,10 @@ function JoinOrganizationContent() {
   const [loading, setLoading] = useState(false)
   const [joining, setJoining] = useState(false)
   const { toast } = useToast()
+  
+  // Check authentication status
+  const { data: user, isLoading: userLoading, error: userError } = useUser()
+  const isAuthenticated = !!user && !userError
 
   const validateInvitation = useCallback(async (code: string) => {
     setLoading(true)
@@ -83,6 +89,16 @@ function JoinOrganizationContent() {
       return
     }
 
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      toast({
+        title: "Authentication Required",
+        description: "You must be logged in to accept an invitation. Please sign in or create an account first.",
+        variant: "destructive",
+      })
+      return
+    }
+
     setJoining(true)
     try {
       const response = await fetch('/api/invitations/accept', {
@@ -130,6 +146,22 @@ function JoinOrganizationContent() {
     return new Date() > new Date(expiresAt)
   }
 
+  // Show loading state while checking authentication
+  if (userLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <span className="ml-3">Checking authentication...</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
@@ -139,11 +171,59 @@ function JoinOrganizationContent() {
           </div>
           <CardTitle className="text-2xl">Join Organization</CardTitle>
           <CardDescription>
-            Enter your invitation code to join an organization
+            {isAuthenticated 
+              ? `Welcome back, ${user?.full_name || user?.email}! Enter your invitation code to join an organization.`
+              : "Enter your invitation code to join an organization"
+            }
           </CardDescription>
         </CardHeader>
         
         <CardContent className="space-y-6">
+          {/* Authentication Status Alert */}
+          {!isAuthenticated ? (
+            <div className="p-4 border border-amber-200 rounded-lg bg-amber-50 dark:bg-amber-950/20">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+                <div className="space-y-2">
+                  <h4 className="font-medium text-amber-800 dark:text-amber-200">
+                    Authentication Required
+                  </h4>
+                  <p className="text-sm text-amber-700 dark:text-amber-300">
+                    You need to be logged in to accept an invitation. Please sign in or create an account first.
+                  </p>
+                  <div className="flex gap-2 pt-2">
+                    <Button asChild size="sm" variant="outline">
+                      <Link href={`/auth/login?redirect=${encodeURIComponent(window.location.href)}`}>
+                        <LogIn className="h-4 w-4 mr-2" />
+                        Sign In
+                      </Link>
+                    </Button>
+                    <Button asChild size="sm">
+                      <Link href={`/auth/sign-up?redirect=${encodeURIComponent(window.location.href)}`}>
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        Sign Up
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="p-4 border border-green-200 rounded-lg bg-green-50 dark:bg-green-950/20">
+              <div className="flex items-start gap-3">
+                <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+                <div className="space-y-1">
+                  <h4 className="font-medium text-green-800 dark:text-green-200">
+                    Ready to Join!
+                  </h4>
+                  <p className="text-sm text-green-700 dark:text-green-300">
+                    You&apos;re signed in and ready to accept the invitation.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {!invitationDetails ? (
             <div className="space-y-4">
               <div className="space-y-2">
@@ -212,9 +292,9 @@ function JoinOrganizationContent() {
                   <Button 
                     onClick={handleJoinOrganization} 
                     className="w-full"
-                    disabled={joining}
+                    disabled={joining || !isAuthenticated}
                   >
-                    {joining ? "Joining..." : "Join Organization"}
+                    {joining ? "Joining..." : !isAuthenticated ? "Sign In Required" : "Join Organization"}
                   </Button>
                 </div>
               )}
