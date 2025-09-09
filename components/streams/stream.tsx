@@ -32,6 +32,7 @@ import {
 } from 'lucide-react'
 import { formatDate } from '@/lib/utils/streams'
 import { WorkItemsList } from './work-items-list'
+import { TasksList } from './tasks-list'
 import { useToast } from '@/hooks/use-toast'
 import { useState } from 'react'
 
@@ -308,13 +309,26 @@ export function Stream({ stream, currentUserId, onStreamUpdated }: StreamProps) 
           </div>
 
           {/* Work Items - Show to all, but disable adding for non-members */}
-          <div>
-            <WorkItemsList
-              streamId={stream.id}
-              workItems={stream.work_items}
-              onWorkItemCreated={handleWorkItemCreated}
-              canAddItems={isCurrentUserMember || isCurrentUserOwner}
-            />
+          <div className="space-y-4">
+            <div>
+              <h4 className="text-sm font-medium mb-3">Resources</h4>
+              <WorkItemsList
+                streamId={stream.id}
+                workItems={stream.work_items.filter(item => item.type === 'url')}
+                onWorkItemCreated={handleWorkItemCreated}
+                canAddItems={isCurrentUserMember || isCurrentUserOwner}
+                type="resources"
+              />
+            </div>
+            <div>
+              <h4 className="text-sm font-medium mb-3">Tasks</h4>
+              <TasksList
+                streamId={stream.id}
+                workItems={stream.work_items.filter(item => item.type === 'note')}
+                onWorkItemCreated={handleWorkItemCreated}
+                canAddItems={isCurrentUserMember || isCurrentUserOwner}
+              />
+            </div>
           </div>
         </div>
       </AccordionContent>

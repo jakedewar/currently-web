@@ -317,6 +317,221 @@ export type Database = {
           },
         ]
       }
+      subtasks: {
+        Row: {
+          actual_hours: number | null
+          assignee_id: string | null
+          created_at: string | null
+          created_by: string
+          description: string | null
+          due_date: string | null
+          estimated_hours: number | null
+          id: string
+          order_index: number | null
+          priority: string | null
+          status: string
+          title: string
+          updated_at: string | null
+          work_item_id: string
+        }
+        Insert: {
+          actual_hours?: number | null
+          assignee_id?: string | null
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          due_date?: string | null
+          estimated_hours?: number | null
+          id?: string
+          order_index?: number | null
+          priority?: string | null
+          status?: string
+          title: string
+          updated_at?: string | null
+          work_item_id: string
+        }
+        Update: {
+          actual_hours?: number | null
+          assignee_id?: string | null
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          due_date?: string | null
+          estimated_hours?: number | null
+          id?: string
+          order_index?: number | null
+          priority?: string | null
+          status?: string
+          title?: string
+          updated_at?: string | null
+          work_item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subtasks_work_item_id_fkey"
+            columns: ["work_item_id"]
+            isOneToOne: false
+            referencedRelation: "work_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_comments: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+          work_item_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+          work_item_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+          work_item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_comments_work_item_id_fkey"
+            columns: ["work_item_id"]
+            isOneToOne: false
+            referencedRelation: "work_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_dependencies: {
+        Row: {
+          created_at: string | null
+          dependency_type: string | null
+          dependent_task_id: string
+          id: string
+          prerequisite_task_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          dependency_type?: string | null
+          dependent_task_id: string
+          id?: string
+          prerequisite_task_id: string
+        }
+        Update: {
+          created_at?: string | null
+          dependency_type?: string | null
+          dependent_task_id?: string
+          id?: string
+          prerequisite_task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_dependencies_dependent_task_id_fkey"
+            columns: ["dependent_task_id"]
+            isOneToOne: false
+            referencedRelation: "work_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_dependencies_prerequisite_task_id_fkey"
+            columns: ["prerequisite_task_id"]
+            isOneToOne: false
+            referencedRelation: "work_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_templates: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          description: string | null
+          id: string
+          name: string
+          organization_id: string
+          template_data: Json
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          id?: string
+          name: string
+          organization_id: string
+          template_data: Json
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          id?: string
+          name?: string
+          organization_id?: string
+          template_data?: Json
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_time_entries: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          duration_minutes: number | null
+          end_time: string | null
+          id: string
+          start_time: string
+          user_id: string
+          work_item_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          end_time?: string | null
+          id?: string
+          start_time: string
+          user_id: string
+          work_item_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          end_time?: string | null
+          id?: string
+          start_time?: string
+          user_id?: string
+          work_item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_time_entries_work_item_id_fkey"
+            columns: ["work_item_id"]
+            isOneToOne: false
+            referencedRelation: "work_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_activity: {
         Row: {
           activity_type: string
@@ -400,10 +615,17 @@ export type Database = {
       }
       work_items: {
         Row: {
+          actual_hours: number | null
+          assignee_id: string | null
           created_at: string | null
           created_by: string
           description: string | null
+          due_date: string | null
+          estimated_hours: number | null
           id: string
+          order_index: number | null
+          parent_task_id: string | null
+          priority: string | null
           status: string
           stream_id: string
           title: string
@@ -413,10 +635,17 @@ export type Database = {
           url: string | null
         }
         Insert: {
+          actual_hours?: number | null
+          assignee_id?: string | null
           created_at?: string | null
           created_by: string
           description?: string | null
+          due_date?: string | null
+          estimated_hours?: number | null
           id?: string
+          order_index?: number | null
+          parent_task_id?: string | null
+          priority?: string | null
           status?: string
           stream_id: string
           title: string
@@ -426,10 +655,17 @@ export type Database = {
           url?: string | null
         }
         Update: {
+          actual_hours?: number | null
+          assignee_id?: string | null
           created_at?: string | null
           created_by?: string
           description?: string | null
+          due_date?: string | null
+          estimated_hours?: number | null
           id?: string
+          order_index?: number | null
+          parent_task_id?: string | null
+          priority?: string | null
           status?: string
           stream_id?: string
           title?: string
@@ -439,6 +675,13 @@ export type Database = {
           url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "work_items_parent_task_id_fkey"
+            columns: ["parent_task_id"]
+            isOneToOne: false
+            referencedRelation: "work_items"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "work_items_stream_id_fkey"
             columns: ["stream_id"]
@@ -459,6 +702,10 @@ export type Database = {
       }
       calculate_stream_progress: {
         Args: { stream_uuid: string }
+        Returns: number
+      }
+      calculate_task_progress: {
+        Args: { task_uuid: string }
         Returns: number
       }
       cleanup_expired_invitations: {

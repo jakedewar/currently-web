@@ -27,9 +27,10 @@ import { useToast } from "@/hooks/use-toast"
 interface CreateWorkItemDialogProps {
   streamId: string;
   onWorkItemCreated: () => void;
+  defaultType?: 'url' | 'note';
 }
 
-export function CreateWorkItemDialog({ streamId, onWorkItemCreated }: CreateWorkItemDialogProps) {
+export function CreateWorkItemDialog({ streamId, onWorkItemCreated, defaultType = 'url' }: CreateWorkItemDialogProps) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
@@ -39,7 +40,7 @@ export function CreateWorkItemDialog({ streamId, onWorkItemCreated }: CreateWork
     description: '',
     url: '',
     status: 'active',
-    type: 'url' as const,
+    type: defaultType,
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -91,7 +92,7 @@ export function CreateWorkItemDialog({ streamId, onWorkItemCreated }: CreateWork
         description: '',
         url: '',
         status: 'active',
-        type: 'url',
+        type: defaultType,
       })
     } catch (error) {
       console.error('Error creating work item:', error)
@@ -110,15 +111,20 @@ export function CreateWorkItemDialog({ streamId, onWorkItemCreated }: CreateWork
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <Plus className="h-4 w-4 mr-2" />
-          Add URL
+          {defaultType === 'url' ? 'Add Resource' : 'Add Task'}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Add URL to Stream</DialogTitle>
+            <DialogTitle>
+              {defaultType === 'url' ? 'Add Resource to Stream' : 'Add Task to Stream'}
+            </DialogTitle>
             <DialogDescription>
-              Add a URL to your stream. This could be a document, article, or any web resource you want to track.
+              {defaultType === 'url' 
+                ? 'Add a URL to your stream. This could be a document, article, or any web resource you want to track.'
+                : 'Create a new task for your stream. Tasks help you organize and track work items.'
+              }
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -128,28 +134,30 @@ export function CreateWorkItemDialog({ streamId, onWorkItemCreated }: CreateWork
                 id="title"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                placeholder="Enter a title for this URL"
+                placeholder={defaultType === 'url' ? "Enter a title for this URL" : "Enter a title for this task"}
                 required
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="url">URL</Label>
-              <Input
-                id="url"
-                type="url"
-                value={formData.url}
-                onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-                placeholder="https://example.com"
-                required
-              />
-            </div>
+            {defaultType === 'url' && (
+              <div className="grid gap-2">
+                <Label htmlFor="url">URL</Label>
+                <Input
+                  id="url"
+                  type="url"
+                  value={formData.url}
+                  onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                  placeholder="https://example.com"
+                  required
+                />
+              </div>
+            )}
             <div className="grid gap-2">
               <Label htmlFor="description">Description (Optional)</Label>
               <Textarea
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Add any notes or context about this URL"
+                placeholder={defaultType === 'url' ? "Add any notes or context about this URL" : "Add any notes or context about this task"}
               />
             </div>
             <div className="grid gap-2">
@@ -172,9 +180,9 @@ export function CreateWorkItemDialog({ streamId, onWorkItemCreated }: CreateWork
           <DialogFooter>
             <Button
               type="submit"
-              disabled={loading || !formData.title.trim() || !formData.url.trim()}
+              disabled={loading || !formData.title.trim() || (defaultType === 'url' && !formData.url.trim())}
             >
-              {loading ? 'Adding...' : 'Add URL'}
+              {loading ? 'Adding...' : defaultType === 'url' ? 'Add Resource' : 'Add Task'}
             </Button>
           </DialogFooter>
         </form>

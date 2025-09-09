@@ -5,6 +5,7 @@ import { useParams } from "next/navigation"
 import { StreamHeader } from "@/components/streams/stream-header"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { WorkItemsList } from "@/components/streams/work-items-list"
+import { TasksList } from "@/components/streams/tasks-list"
 import { Card } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Stream, StreamMember, StreamTool, WorkItem } from "@/lib/data/streams"
@@ -60,6 +61,23 @@ export default function StreamPage() {
       setLoading(false)
     }
   }, [params.id]) // ✅ Only depend on the stream ID
+
+  // More efficient update function for work items
+  const updateWorkItem = useCallback((updatedItem: WorkItem) => {
+    setData(prevData => {
+      if (!prevData) return prevData
+      
+      return {
+        ...prevData,
+        stream: {
+          ...prevData.stream,
+          work_items: prevData.stream.work_items.map(item => 
+            item.id === updatedItem.id ? updatedItem : item
+          )
+        }
+      }
+    })
+  }, [])
 
   const handleJoinStream = async () => {
     setIsJoining(true)
@@ -214,11 +232,12 @@ export default function StreamPage() {
         </Card>
       )}
 
-      <Tabs defaultValue="work-items" className="space-y-4">
+      <Tabs defaultValue="resources" className="space-y-4">
         <TabsList className="w-full justify-start">
           <div className="flex space-x-2 p-1">
             <TabsTrigger value="overview" className="flex-shrink-0">Overview</TabsTrigger>
-            <TabsTrigger value="work-items" className="flex-shrink-0">Work Items</TabsTrigger>
+            <TabsTrigger value="resources" className="flex-shrink-0">Resources</TabsTrigger>
+            <TabsTrigger value="tasks" className="flex-shrink-0">Tasks</TabsTrigger>
             <TabsTrigger value="team" className="flex-shrink-0">Team</TabsTrigger>
             {isOwner && (
               <TabsTrigger value="settings" className="flex-shrink-0">Settings</TabsTrigger>
@@ -242,11 +261,22 @@ export default function StreamPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="work-items">
+        <TabsContent value="resources">
           <WorkItemsList
             streamId={data.stream.id}
-            workItems={data.stream.work_items}
+            workItems={data.stream.work_items.filter(item => item.type === 'url')}
             onWorkItemCreated={fetchStream}
+            canAddItems={isMember}
+            type="resources"
+          />
+        </TabsContent>
+
+        <TabsContent value="tasks">
+          <TasksList
+            streamId={data.stream.id}
+            workItems={data.stream.work_items.filter(item => item.type === 'note')}
+            onWorkItemCreated={fetchStream}
+            onWorkItemUpdated={updateWorkItem}
             canAddItems={isMember}
           />
         </TabsContent>

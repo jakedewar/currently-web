@@ -38,6 +38,13 @@ export interface WorkItem {
   status: string;
   tool: string | null;
   url?: string | null;
+  priority?: string | null;
+  assignee_id?: string | null;
+  due_date?: string | null;
+  estimated_hours?: number | null;
+  actual_hours?: number | null;
+  parent_task_id?: string | null;
+  order_index?: number | null;
   created_at: string | null;
   updated_at: string | null;
   stream_id: string;

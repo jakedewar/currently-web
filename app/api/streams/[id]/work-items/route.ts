@@ -42,7 +42,20 @@ export async function POST(
       )
     }
 
-    const { title, description, type, status, url, stream_id } = result.data
+    const { 
+      title, 
+      description, 
+      type, 
+      status, 
+      url, 
+      priority,
+      assignee_id,
+      due_date,
+      estimated_hours,
+      parent_task_id,
+      order_index,
+      stream_id 
+    } = result.data
 
     // Check rate limit if Redis is configured
     if (redis) {
@@ -89,6 +102,12 @@ export async function POST(
           type,
           status,
           url,
+          priority,
+          assignee_id,
+          due_date,
+          estimated_hours,
+          parent_task_id,
+          order_index,
           stream_id,
           created_by: user.id,
         })
@@ -162,6 +181,13 @@ export async function GET(
         type,
         status,
         url,
+        priority,
+        assignee_id,
+        due_date,
+        estimated_hours,
+        actual_hours,
+        parent_task_id,
+        order_index,
         created_at,
         updated_at,
         stream_id,

@@ -142,6 +142,14 @@ export async function GET(
       type: string;
       status: string;
       tool: string | null;
+      url: string | null;
+      assignee_id: string | null;
+      due_date: string | null;
+      priority: string | null;
+      estimated_hours: number | null;
+      actual_hours: number | null;
+      parent_task_id: string | null;
+      order_index: number | null;
       created_at: string | null;
       updated_at: string | null;
       stream_id: string;
@@ -157,6 +165,14 @@ export async function GET(
         type,
         status,
         tool,
+        url,
+        assignee_id,
+        due_date,
+        priority,
+        estimated_hours,
+        actual_hours,
+        parent_task_id,
+        order_index,
         created_at,
         updated_at,
         stream_id,

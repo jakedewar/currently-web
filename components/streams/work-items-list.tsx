@@ -37,9 +37,10 @@ interface WorkItemsListProps {
   workItems: WorkItem[]
   onWorkItemCreated: () => void
   canAddItems?: boolean
+  type?: 'resources' | 'tasks'
 }
 
-export function WorkItemsList({ streamId, workItems, onWorkItemCreated, canAddItems = true }: WorkItemsListProps) {
+export function WorkItemsList({ streamId, workItems, onWorkItemCreated, canAddItems = true, type = 'resources' }: WorkItemsListProps) {
   const { toast } = useToast()
   const [updatingItemId, setUpdatingItemId] = useState<string | null>(null)
 
@@ -105,14 +106,25 @@ export function WorkItemsList({ streamId, workItems, onWorkItemCreated, canAddIt
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-        <h3 className="text-lg font-semibold">Work Items</h3>
-        {canAddItems && <CreateWorkItemDialog streamId={streamId} onWorkItemCreated={onWorkItemCreated} />}
+        <h3 className="text-lg font-semibold">
+          {type === 'resources' ? 'Resources' : 'Tasks'}
+        </h3>
+        {canAddItems && (
+          <CreateWorkItemDialog 
+            streamId={streamId} 
+            onWorkItemCreated={onWorkItemCreated}
+            defaultType={type === 'resources' ? 'url' : 'note'}
+          />
+        )}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {workItems.length === 0 ? (
           <Card className="p-4 col-span-full">
             <p className="text-sm text-muted-foreground text-center">
-              No work items yet. Add a URL to get started.
+              {type === 'resources' 
+                ? 'No resources yet. Add a URL to get started.' 
+                : 'No tasks yet. Create your first task to get started.'
+              }
             </p>
           </Card>
         ) : (

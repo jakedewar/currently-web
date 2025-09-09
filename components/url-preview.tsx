@@ -1,9 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, memo } from 'react'
 
 import { Skeleton } from '@/components/ui/skeleton'
 import Image from 'next/image'
+
+// Simple in-memory cache for URL metadata
+const metadataCache = new Map<string, { data: URLMetadata; timestamp: number }>()
+const CACHE_DURATION = 5 * 60 * 1000 // 5 minutes
 
 interface URLPreviewProps {
   url: string
@@ -17,7 +21,7 @@ interface URLMetadata {
   favicon: string
 }
 
-export function URLPreview({ url }: URLPreviewProps) {
+export const URLPreview = memo(function URLPreview({ url }: URLPreviewProps) {
   const [metadata, setMetadata] = useState<URLMetadata | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -25,6 +29,22 @@ export function URLPreview({ url }: URLPreviewProps) {
   useEffect(() => {
     const fetchMetadata = async () => {
       try {
+        // Validate URL before making request
+        try {
+          new URL(url)
+        } catch {
+          throw new Error('Invalid URL format')
+        }
+
+        // Check cache first
+        const cached = metadataCache.get(url)
+        if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+          setMetadata(cached.data)
+          setError(null)
+          setLoading(false)
+          return
+        }
+
         const response = await fetch(`/api/url-preview?url=${encodeURIComponent(url)}`)
         const data = await response.json()
 
@@ -32,17 +52,28 @@ export function URLPreview({ url }: URLPreviewProps) {
           throw new Error(data.error || 'Failed to fetch URL preview')
         }
 
+        // Cache the successful result
+        metadataCache.set(url, { data: data.metadata, timestamp: Date.now() })
+        
         setMetadata(data.metadata)
         setError(null)
       } catch (err) {
         console.error('Error fetching URL preview:', err)
         setError(err instanceof Error ? err.message : 'Failed to load preview')
+        // Don't show error to user, just fail silently
+        setMetadata(null)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchMetadata()
+    // Only fetch if URL is valid and not empty
+    if (url && url.trim()) {
+      fetchMetadata()
+    } else {
+      setLoading(false)
+      setError('No URL provided')
+    }
   }, [url])
 
   if (loading) {
@@ -130,4 +161,4 @@ export function URLPreview({ url }: URLPreviewProps) {
       </div>
     </div>
   )
-}
+})
