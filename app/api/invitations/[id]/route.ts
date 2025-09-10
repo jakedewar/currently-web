@@ -21,13 +21,24 @@ export async function GET(
         )
       `)
       .eq('id', id)
-      .eq('status', 'active')
       .single()
 
+    console.log('Invitation lookup:', { id, invitation, error: invitationError })
+
     if (invitationError || !invitation) {
+      console.log('Invitation not found or error:', invitationError)
       return NextResponse.json(
         { error: 'Invalid or expired invitation' },
         { status: 404 }
+      )
+    }
+
+    // Check if invitation is active
+    if (invitation.status !== 'active') {
+      console.log('Invitation not active:', invitation.status)
+      return NextResponse.json(
+        { error: 'Invitation is no longer active' },
+        { status: 410 }
       )
     }
 
