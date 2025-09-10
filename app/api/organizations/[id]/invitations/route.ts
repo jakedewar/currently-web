@@ -159,7 +159,7 @@ export async function POST(
     }
 
     // Send invitation email
-    const invitationLink = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/join?code=${invitationCode}`
+    const invitationLink = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://currently.team'}/auth/join?code=${invitationCode}`
     
     const emailResult = await sendInvitationEmail({
       to: email,
