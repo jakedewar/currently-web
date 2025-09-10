@@ -42,8 +42,16 @@ export function LoginForm({
       
       // Check if there's a redirect URL (for invitations)
       const redirectUrl = searchParams.get('redirect');
+      const invitationId = searchParams.get('invitation');
+      
       if (redirectUrl) {
-        router.push(redirectUrl);
+        // If we have an invitation ID, append it to the redirect URL
+        if (invitationId) {
+          const separator = redirectUrl.includes('?') ? '&' : '?';
+          router.push(`${redirectUrl}${separator}invitation=${invitationId}`);
+        } else {
+          router.push(redirectUrl);
+        }
       } else {
         router.push("/protected");
       }

@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'
 export async function POST(request: Request) {
   try {
     const supabase = await createClient()
-    const { invitationId } = await request.json()
+    const { invitationId, invitationCode } = await request.json()
 
     // Get current user from session
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -16,15 +16,15 @@ export async function POST(request: Request) {
     }
 
     // Validate input
-    if (!invitationId) {
+    if (!invitationId && !invitationCode) {
       return NextResponse.json(
-        { error: 'Invitation ID is required' },
+        { error: 'Invitation ID or invitation code is required' },
         { status: 400 }
       )
     }
 
-    // Find the invitation
-    const { data: invitation, error: invitationError } = await supabase
+    // Find the invitation by ID or code
+    let query = supabase
       .from('organization_invitations')
       .select(`
         *,
@@ -34,9 +34,15 @@ export async function POST(request: Request) {
           slug
         )
       `)
-      .eq('id', invitationId)
       .eq('status', 'active')
-      .single()
+
+    if (invitationId) {
+      query = query.eq('id', invitationId)
+    } else if (invitationCode) {
+      query = query.eq('invitation_code', invitationCode)
+    }
+
+    const { data: invitation, error: invitationError } = await query.single()
 
     if (invitationError || !invitation) {
       return NextResponse.json(
