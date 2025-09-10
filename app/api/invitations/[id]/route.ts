@@ -7,9 +7,10 @@ export async function GET(
 ) {
   try {
     const { id } = await params
+    console.log('Received invitation ID:', id)
     const supabase = await createClient()
 
-    // Find the invitation by ID
+    // Find the invitation by ID with organization details
     const { data: invitation, error: invitationError } = await supabase
       .from('organization_invitations')
       .select(`
@@ -23,7 +24,14 @@ export async function GET(
       .eq('id', id)
       .single()
 
-    console.log('Invitation lookup:', { id, invitation, error: invitationError })
+    console.log('Invitation lookup:', { 
+      id, 
+      invitation, 
+      error: invitationError,
+      errorCode: invitationError?.code,
+      errorMessage: invitationError?.message,
+      errorDetails: invitationError?.details
+    })
 
     if (invitationError || !invitation) {
       console.log('Invitation not found or error:', invitationError)
