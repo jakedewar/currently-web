@@ -7,10 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
-import { Building2, CheckCircle, XCircle, LogIn, UserPlus, AlertCircle } from "lucide-react"
+import { Building2, XCircle, Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useUser } from "@/hooks/use-user"
-import Link from "next/link"
+import { createClient } from "@/lib/supabase/client"
 
 interface InvitationDetails {
   organization: {
@@ -31,6 +31,10 @@ function JoinOrganizationContent() {
   const [invitationDetails, setInvitationDetails] = useState<InvitationDetails | null>(null)
   const [loading, setLoading] = useState(false)
   const [joining, setJoining] = useState(false)
+  const [isSigningUp, setIsSigningUp] = useState(false)
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [fullName, setFullName] = useState("")
   const { toast } = useToast()
   
   // Check authentication status
@@ -52,6 +56,7 @@ function JoinOrganizationContent() {
 
       if (response.ok) {
         setInvitationDetails(data.invitation)
+        setEmail(data.invitation.email) // Pre-fill email from invitation
       } else {
         toast({
           title: "Invalid Invitation",
@@ -79,37 +84,91 @@ function JoinOrganizationContent() {
     }
   }, [searchParams, validateInvitation])
 
-  const handleJoinOrganization = async () => {
-    if (!invitationCode.trim()) {
+  const handleSignUp = async () => {
+    if (!email || !password || !fullName) {
       toast({
         title: "Error",
-        description: "Please enter an invitation code.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    // Check if user is authenticated
-    if (!isAuthenticated) {
-      toast({
-        title: "Authentication Required",
-        description: "You must be logged in to accept an invitation. Please sign in or create an account first.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    // Check if user's email matches the invitation email
-    if (invitationDetails && user?.email !== invitationDetails.email) {
-      toast({
-        title: "Email Mismatch",
-        description: `This invitation was sent to ${invitationDetails.email}, but you're signed in as ${user?.email}. Please sign in with the correct email address.`,
+        description: "Please fill in all fields.",
         variant: "destructive",
       })
       return
     }
 
     setJoining(true)
+    try {
+      const supabase = createClient()
+      
+      // Sign up the user
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          }
+        }
+      })
+
+      if (authError) throw authError
+
+      if (authData.user) {
+        // User created successfully, now join the organization
+        await joinOrganization()
+      } else {
+        toast({
+          title: "Check your email",
+          description: "We've sent you a confirmation link. Please check your email and click the link to complete your account setup.",
+        })
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to create account.",
+        variant: "destructive",
+      })
+    } finally {
+      setJoining(false)
+    }
+  }
+
+  const handleSignIn = async () => {
+    if (!email || !password) {
+      toast({
+        title: "Error",
+        description: "Please enter your email and password.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setJoining(true)
+    try {
+      const supabase = createClient()
+      
+      // Sign in the user
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (authError) throw authError
+
+      if (authData.user) {
+        // User signed in successfully, now join the organization
+        await joinOrganization()
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to sign in.",
+        variant: "destructive",
+      })
+    } finally {
+      setJoining(false)
+    }
+  }
+
+  const joinOrganization = async () => {
     try {
       const response = await fetch('/api/invitations/accept', {
         method: 'POST',
@@ -137,20 +196,9 @@ function JoinOrganizationContent() {
         description: error instanceof Error ? error.message : "Failed to join organization.",
         variant: "destructive",
       })
-    } finally {
-      setJoining(false)
     }
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-  }
 
   const isExpired = (expiresAt: string) => {
     return new Date() > new Date(expiresAt)
@@ -181,60 +229,16 @@ function JoinOrganizationContent() {
           </div>
           <CardTitle className="text-2xl">Join Organization</CardTitle>
           <CardDescription>
-            {isAuthenticated 
-              ? `Welcome back, ${user?.full_name || user?.email}! Enter your invitation code to join an organization.`
-              : "Enter your invitation code to join an organization. You'll be able to create an account if you don't have one yet."
+            {invitationDetails 
+              ? `You've been invited to join ${invitationDetails.organization.name}`
+              : "Enter your invitation code to join an organization"
             }
           </CardDescription>
         </CardHeader>
         
         <CardContent className="space-y-6">
-          {/* Authentication Status Alert */}
-          {!isAuthenticated ? (
-            <div className="p-4 border border-amber-200 rounded-lg bg-amber-50 dark:bg-amber-950/20">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
-                <div className="space-y-2">
-                  <h4 className="font-medium text-amber-800 dark:text-amber-200">
-                    Authentication Required
-                  </h4>
-                  <p className="text-sm text-amber-700 dark:text-amber-300">
-                    You need to be logged in to accept an invitation. Please sign in or create an account first.
-                  </p>
-                  <div className="flex gap-2 pt-2">
-                    <Button asChild size="sm" variant="outline">
-                      <Link href={`/auth/login?redirect=${encodeURIComponent(window.location.href)}`}>
-                        <LogIn className="h-4 w-4 mr-2" />
-                        Sign In
-                      </Link>
-                    </Button>
-                    <Button asChild size="sm">
-                      <Link href={`/auth/sign-up?redirect=${encodeURIComponent(window.location.href)}`}>
-                        <UserPlus className="h-4 w-4 mr-2" />
-                        Sign Up
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="p-4 border border-green-200 rounded-lg bg-green-50 dark:bg-green-950/20">
-              <div className="flex items-start gap-3">
-                <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
-                <div className="space-y-1">
-                  <h4 className="font-medium text-green-800 dark:text-green-200">
-                    Ready to Join!
-                  </h4>
-                  <p className="text-sm text-green-700 dark:text-green-300">
-                    You&apos;re signed in and ready to accept the invitation.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
           {!invitationDetails ? (
+            // Step 1: Enter invitation code
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="invitation-code">Invitation Code</Label>
@@ -252,12 +256,64 @@ function JoinOrganizationContent() {
                 className="w-full"
                 disabled={loading || !invitationCode.trim()}
               >
-                {loading ? "Validating..." : "Validate Invitation"}
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Validating...
+                  </>
+                ) : (
+                  "Continue"
+                )}
+              </Button>
+            </div>
+          ) : isExpired(invitationDetails.expires_at) ? (
+            // Expired invitation
+            <div className="flex items-center gap-2 p-3 border border-red-200 rounded-lg bg-red-50 dark:bg-red-950/20">
+              <XCircle className="h-5 w-5 text-red-600" />
+              <span className="text-red-800 dark:text-red-200">This invitation has expired</span>
+            </div>
+          ) : isAuthenticated ? (
+            // Step 3: User is authenticated, join organization
+            <div className="space-y-4">
+              <div className="p-4 border rounded-lg bg-muted/50">
+                <div className="flex items-center gap-3 mb-3">
+                  <Building2 className="h-5 w-5 text-primary" />
+                  <h3 className="font-semibold">{invitationDetails.organization.name}</h3>
+                </div>
+                
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Role:</span>
+                    <Badge variant="secondary" className="capitalize">
+                      {invitationDetails.role}
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Your Email:</span>
+                    <span className="font-medium">{user?.email}</span>
+                  </div>
+                </div>
+              </div>
+
+              <Button 
+                onClick={joinOrganization} 
+                className="w-full"
+                disabled={joining}
+              >
+                {joining ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Joining...
+                  </>
+                ) : (
+                  "Join Organization"
+                )}
               </Button>
             </div>
           ) : (
+            // Step 2: Authentication form
             <div className="space-y-4">
-              {/* Organization Details */}
               <div className="p-4 border rounded-lg bg-muted/50">
                 <div className="flex items-center gap-3 mb-3">
                   <Building2 className="h-5 w-5 text-primary" />
@@ -276,75 +332,98 @@ function JoinOrganizationContent() {
                     <span className="text-muted-foreground">Invited Email:</span>
                     <span className="font-medium">{invitationDetails.email}</span>
                   </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Expires:</span>
-                    <span className={isExpired(invitationDetails.expires_at) ? "text-red-600" : ""}>
-                      {formatDate(invitationDetails.expires_at)}
-                    </span>
-                  </div>
                 </div>
               </div>
 
-              {/* Email Mismatch Warning */}
-              {isAuthenticated && user?.email !== invitationDetails.email && (
-                <div className="flex items-center gap-2 p-3 border border-amber-200 rounded-lg bg-amber-50 dark:bg-amber-950/20">
-                  <AlertCircle className="h-5 w-5 text-amber-600" />
-                  <div className="text-amber-800 dark:text-amber-200">
-                    <p className="font-medium">Email Mismatch</p>
-                    <p className="text-sm">This invitation was sent to {invitationDetails.email}, but you&apos;re signed in as {user?.email}.</p>
-                  </div>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    disabled={joining}
+                  />
                 </div>
-              )}
 
-              {/* Status and Action */}
-              {isExpired(invitationDetails.expires_at) ? (
-                <div className="flex items-center gap-2 p-3 border border-red-200 rounded-lg bg-red-50 dark:bg-red-950/20">
-                  <XCircle className="h-5 w-5 text-red-600" />
-                  <span className="text-red-800 dark:text-red-200">This invitation has expired</span>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    disabled={joining}
+                  />
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 p-3 border border-green-200 rounded-lg bg-green-50 dark:bg-green-950/20">
-                    <CheckCircle className="h-5 w-5 text-green-600" />
-                    <span className="text-green-800 dark:text-green-200">Invitation is valid</span>
+
+                {isSigningUp && (
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName">Full Name</Label>
+                    <Input
+                      id="fullName"
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="Enter your full name"
+                      disabled={joining}
+                    />
                   </div>
-                  
+                )}
+
+                <div className="flex gap-2">
                   <Button 
-                    onClick={handleJoinOrganization} 
-                    className="w-full"
-                    disabled={joining || !isAuthenticated || (isAuthenticated && user?.email !== invitationDetails.email)}
+                    onClick={isSigningUp ? handleSignUp : handleSignIn} 
+                    className="flex-1"
+                    disabled={joining || !email || !password || (isSigningUp && !fullName)}
                   >
-                    {joining ? "Joining..." : 
-                     !isAuthenticated ? "Sign In Required" : 
-                     user?.email !== invitationDetails.email ? "Email Mismatch" :
-                     "Join Organization"}
+                    {joining ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        {isSigningUp ? "Creating Account..." : "Signing In..."}
+                      </>
+                    ) : (
+                      isSigningUp ? "Create Account & Join" : "Sign In & Join"
+                    )}
                   </Button>
                 </div>
-              )}
-              
+
+                <div className="text-center">
+                  <Button 
+                    variant="link" 
+                    onClick={() => setIsSigningUp(!isSigningUp)}
+                    className="text-sm"
+                    disabled={joining}
+                  >
+                    {isSigningUp ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {invitationDetails && (
+            <div className="text-center">
               <Button 
-                variant="outline" 
+                variant="link" 
                 onClick={() => {
                   setInvitationDetails(null)
                   setInvitationCode("")
+                  setEmail("")
+                  setPassword("")
+                  setFullName("")
+                  setIsSigningUp(false)
                 }}
-                className="w-full"
+                className="text-sm"
+                disabled={joining}
               >
                 Try Different Code
               </Button>
             </div>
           )}
-          
-          <div className="text-center">
-            <Button 
-              variant="link" 
-              onClick={() => router.push('/auth/login')}
-              className="text-sm"
-            >
-              Back to Login
-            </Button>
-          </div>
         </CardContent>
       </Card>
     </div>

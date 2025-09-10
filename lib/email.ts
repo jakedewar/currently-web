@@ -350,7 +350,7 @@ export async function sendInvitationEmail(data: InvitationEmailData) {
               
               <div class="footer">
                 <p class="footer-text">
-                  This invitation was sent by <a href="https://currently.team" class="footer-link">Currently</a>.
+                  This invitation was sent by <a href="https://currently.team" class="footer-link">Currently</a>
                 </p>
                 <p class="footer-text">
                   Questions? Contact your organization administrator or reply to this email.
