@@ -1,5 +1,6 @@
 import { Waves } from "lucide-react"
 import Link from "next/link"
+import { Suspense } from "react"
 import { SignUpForm } from "@/components/sign-up-form"
 
 export default function SignUpPage() {
@@ -22,7 +23,9 @@ export default function SignUpPage() {
                 Join thousands of teams using Currently
               </p>
             </div>
-            <SignUpForm />
+            <Suspense fallback={<div>Loading...</div>}>
+              <SignUpForm />
+            </Suspense>
           </div>
         </div>
       </div>

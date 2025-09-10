@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { CreateWorkItemDialog } from './create-work-item-dialog'
+import { CreateSubtaskDialog } from './create-subtask-dialog'
 import { 
   CheckCircle, 
   XCircle, 
@@ -16,7 +17,6 @@ import {
   FileText,
   Calendar,
   User,
-  Plus,
   Circle
 } from 'lucide-react'
 import { UrlLink } from '@/components/ui/url-link'
@@ -134,38 +134,6 @@ export function TasksList({ streamId, workItems, onWorkItemCreated, onWorkItemUp
     }
   }
 
-  const handleCreateSubtask = async (taskId: string, title: string, description?: string) => {
-    try {
-      const response = await fetch(`/api/streams/${streamId}/work-items/${taskId}/subtasks`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title,
-          description,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to create subtask')
-      }
-
-      toast({
-        title: "Subtask created",
-        description: "The subtask has been added successfully",
-      })
-      
-      // Refresh the work items to show the new subtask
-      onWorkItemCreated()
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: `Failed to create subtask: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        variant: "destructive",
-      })
-    }
-  }
 
   const handleUpdateSubtaskStatus = async (subtaskId: string, newStatus: string) => {
     setUpdatingSubtaskId(subtaskId)
@@ -465,21 +433,11 @@ export function TasksList({ streamId, workItems, onWorkItemCreated, onWorkItemUp
                   {/* Add Subtask Button */}
                   {canAddItems && (
                     <div className="mt-3 pt-3 border-t">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          const title = prompt('Enter subtask title:')
-                          if (title) {
-                            const description = prompt('Enter description (optional):')
-                            handleCreateSubtask(task.id, title, description || undefined)
-                          }
-                        }}
-                        className="ml-4"
-                      >
-                        <Plus className="h-3 w-3 mr-1" />
-                        Add Subtask
-                      </Button>
+                      <CreateSubtaskDialog
+                        taskId={task.id}
+                        streamId={streamId}
+                        onSubtaskCreated={onWorkItemCreated}
+                      />
                     </div>
                   )}
                 </div>

@@ -99,6 +99,16 @@ function JoinOrganizationContent() {
       return
     }
 
+    // Check if user's email matches the invitation email
+    if (invitationDetails && user?.email !== invitationDetails.email) {
+      toast({
+        title: "Email Mismatch",
+        description: `This invitation was sent to ${invitationDetails.email}, but you're signed in as ${user?.email}. Please sign in with the correct email address.`,
+        variant: "destructive",
+      })
+      return
+    }
+
     setJoining(true)
     try {
       const response = await fetch('/api/invitations/accept', {
@@ -173,7 +183,7 @@ function JoinOrganizationContent() {
           <CardDescription>
             {isAuthenticated 
               ? `Welcome back, ${user?.full_name || user?.email}! Enter your invitation code to join an organization.`
-              : "Enter your invitation code to join an organization"
+              : "Enter your invitation code to join an organization. You'll be able to create an account if you don't have one yet."
             }
           </CardDescription>
         </CardHeader>
@@ -276,6 +286,17 @@ function JoinOrganizationContent() {
                 </div>
               </div>
 
+              {/* Email Mismatch Warning */}
+              {isAuthenticated && user?.email !== invitationDetails.email && (
+                <div className="flex items-center gap-2 p-3 border border-amber-200 rounded-lg bg-amber-50 dark:bg-amber-950/20">
+                  <AlertCircle className="h-5 w-5 text-amber-600" />
+                  <div className="text-amber-800 dark:text-amber-200">
+                    <p className="font-medium">Email Mismatch</p>
+                    <p className="text-sm">This invitation was sent to {invitationDetails.email}, but you&apos;re signed in as {user?.email}.</p>
+                  </div>
+                </div>
+              )}
+
               {/* Status and Action */}
               {isExpired(invitationDetails.expires_at) ? (
                 <div className="flex items-center gap-2 p-3 border border-red-200 rounded-lg bg-red-50 dark:bg-red-950/20">
@@ -292,9 +313,12 @@ function JoinOrganizationContent() {
                   <Button 
                     onClick={handleJoinOrganization} 
                     className="w-full"
-                    disabled={joining || !isAuthenticated}
+                    disabled={joining || !isAuthenticated || (isAuthenticated && user?.email !== invitationDetails.email)}
                   >
-                    {joining ? "Joining..." : !isAuthenticated ? "Sign In Required" : "Join Organization"}
+                    {joining ? "Joining..." : 
+                     !isAuthenticated ? "Sign In Required" : 
+                     user?.email !== invitationDetails.email ? "Email Mismatch" :
+                     "Join Organization"}
                   </Button>
                 </div>
               )}

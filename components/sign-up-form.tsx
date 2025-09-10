@@ -17,7 +17,8 @@ import { Progress } from "@/components/ui/progress";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
 export function SignUpForm({
   className,
@@ -35,8 +36,37 @@ export function SignUpForm({
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const totalSteps = 2;
+
+  // Check for invitation context
+  useEffect(() => {
+    const inviteCode = searchParams.get('code');
+    
+    if (inviteCode) {
+      setOrganizationType('join');
+      setInviteCode(inviteCode);
+      
+      // Try to get invitation details to pre-fill email
+      fetch('/api/invitations/validate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ invitationCode: inviteCode }),
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.invitation) {
+          setEmail(data.invitation.email);
+        }
+      })
+      .catch(error => {
+        console.error('Failed to validate invitation:', error);
+      });
+    }
+  }, [searchParams]);
 
   // Generate slug from organization name
   const generateSlug = (name: string) => {
@@ -200,8 +230,13 @@ export function SignUpForm({
           console.log('Successfully joined organization:', data.organization.name);
         }
 
-        // Success - redirect to success page
-        router.push("/auth/sign-up-success");
+        // Success - redirect to success page or back to invitation
+        const redirectUrl = searchParams.get('redirect');
+        if (redirectUrl) {
+          router.push(redirectUrl);
+        } else {
+          router.push("/auth/sign-up-success");
+        }
       } catch (orgError) {
         console.error('Organization setup failed:', orgError);
         // Even if organization setup fails, the user account was created
@@ -349,7 +384,8 @@ export function SignUpForm({
         <CardHeader>
           <CardTitle className="text-2xl">Sign up</CardTitle>
           <CardDescription>
-            {currentStep === 1 ? "Step 1: Personal Information" : "Step 2: Organization Setup"}
+            {currentStep === 1 ? "Step 1: Personal Information" : 
+             organizationType === 'join' ? "Step 2: Join Organization" : "Step 2: Organization Setup"}
           </CardDescription>
           
           {/* Progress Bar */}

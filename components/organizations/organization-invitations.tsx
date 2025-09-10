@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Copy, Mail, Plus, Clock, CheckCircle, XCircle } from "lucide-react"
+import { Copy, Mail, Plus, Clock, CheckCircle, XCircle, Send, AlertTriangle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 interface Invitation {
@@ -24,6 +24,10 @@ interface Invitation {
   expires_at: string
   status: "active" | "accepted" | "expired"
   created_at: string
+  email_sent?: boolean
+  email_sent_at?: string
+  email_sent_status?: "pending" | "sent" | "failed"
+  email_error?: string
 }
 
 interface OrganizationInvitationsProps {
@@ -100,9 +104,10 @@ export function OrganizationInvitations({ organizationId }: OrganizationInvitati
       const data = await response.json()
 
       if (response.ok) {
+        const emailStatus = data.invitation.email_sent ? "and email sent" : "but email failed to send"
         toast({
           title: "Success",
-          description: "Invitation created successfully!",
+          description: `Invitation created successfully ${emailStatus}!`,
         })
         setEmail("")
         setRole("member")
@@ -141,6 +146,32 @@ export function OrganizationInvitations({ organizationId }: OrganizationInvitati
     }
   }
 
+  const resendInvitationEmail = async (invitationId: string) => {
+    try {
+      const response = await fetch(`/api/organizations/${organizationId}/invitations/${invitationId}/resend`, {
+        method: 'POST',
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        toast({
+          title: "Email Sent",
+          description: "Invitation email has been resent successfully.",
+        })
+        fetchInvitations() // Refresh the invitations list
+      } else {
+        throw new Error(data.error)
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to resend email.",
+        variant: "destructive",
+      })
+    }
+  }
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -174,6 +205,32 @@ export function OrganizationInvitations({ organizationId }: OrganizationInvitati
         return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
       default:
         return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
+    }
+  }
+
+  const getEmailStatusIcon = (emailStatus?: string) => {
+    switch (emailStatus) {
+      case 'sent':
+        return <CheckCircle className="h-4 w-4 text-green-500" />
+      case 'failed':
+        return <AlertTriangle className="h-4 w-4 text-red-500" />
+      case 'pending':
+        return <Clock className="h-4 w-4 text-yellow-500" />
+      default:
+        return <Mail className="h-4 w-4 text-gray-500" />
+    }
+  }
+
+  const getEmailStatusText = (emailStatus?: string) => {
+    switch (emailStatus) {
+      case 'sent':
+        return 'Email sent'
+      case 'failed':
+        return 'Email failed'
+      case 'pending':
+        return 'Email pending'
+      default:
+        return 'No email'
     }
   }
 
@@ -312,6 +369,25 @@ export function OrganizationInvitations({ organizationId }: OrganizationInvitati
                     <span>Expires: {formatDate(invitation.expires_at)}</span>
                   </div>
                   
+                  {/* Email Status */}
+                  <div className="flex items-center gap-2 mt-2">
+                    {getEmailStatusIcon(invitation.email_sent_status)}
+                    <span className="text-sm text-muted-foreground">
+                      {getEmailStatusText(invitation.email_sent_status)}
+                    </span>
+                    {invitation.email_sent_at && (
+                      <span className="text-xs text-muted-foreground">
+                        ({formatDate(invitation.email_sent_at)})
+                      </span>
+                    )}
+                  </div>
+                  
+                  {invitation.email_error && (
+                    <div className="text-xs text-red-600 mt-1">
+                      Error: {invitation.email_error}
+                    </div>
+                  )}
+                  
                   {invitation.status === 'active' && !isExpired(invitation.expires_at) && (
                     <div className="mt-3 p-2 bg-muted rounded text-sm font-mono">
                       {invitation.invitation_code}
@@ -326,15 +402,29 @@ export function OrganizationInvitations({ organizationId }: OrganizationInvitati
                   </Badge>
                   
                   {invitation.status === 'active' && !isExpired(invitation.expires_at) && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => copyInvitationLink(invitation.invitation_code)}
-                      className="flex items-center gap-1"
-                    >
-                      <Copy className="h-3 w-3" />
-                      Copy
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => copyInvitationLink(invitation.invitation_code)}
+                        className="flex items-center gap-1"
+                      >
+                        <Copy className="h-3 w-3" />
+                        Copy
+                      </Button>
+                      
+                      {(invitation.email_sent_status === 'failed' || invitation.email_sent_status === 'pending') && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => resendInvitationEmail(invitation.id)}
+                          className="flex items-center gap-1"
+                        >
+                          <Send className="h-3 w-3" />
+                          Resend
+                        </Button>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
