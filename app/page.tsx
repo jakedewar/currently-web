@@ -11,7 +11,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
-import { Waves, Zap, Brain, Chrome, Clock, Sparkles, Sailboat } from "lucide-react"
+import { Waves, Zap, Brain, Clock, Sparkles, Sailboat } from "lucide-react"
+import Image from "next/image"
 import { FloatingElement } from "@/components/floating-element"
 import { ProductDemo } from "@/components/product-demo"
 import { Toaster } from "@/components/ui/toaster"
@@ -21,28 +22,21 @@ import { ThemeToggle } from "@/components/theme-toggle"
 export default function Home() {
   const { toast } = useToast()
 
-  const handleDiscountClick = () => {
+  const handleBoatClick = () => {
     toast({
-      title: "🎉 Special Discount Unlocked!",
-      description: "You found our hidden treasure! Use code SAILBOAT10 for 10% off your first year of Currently Pro.",
-      className: "bg-gradient-to-r from-green-500 to-emerald-500 text-white border-green-400",
-      action: (
-        <Button
-          variant="outline"
-          size="sm"
-          className="bg-white/20 hover:bg-white/30 text-white border-white/30 hover:border-white/50"
-          onClick={() => {
-            navigator.clipboard.writeText("SAILBOAT10")
-            toast({
-              title: "Code Copied!",
-              description: "SAILBOAT10 has been copied to your clipboard.",
-              className: "bg-blue-500 text-white border-blue-400",
-            })
-          }}
-        >
-          Copy Code
-        </Button>
+      title: "",
+      description: (
+        <div className="flex justify-center">
+          <Image
+            src="/broplease.jpg"
+            alt="Bro please use Currently"
+            width={350}
+            height={250}
+            className="rounded-xl shadow-lg border-2 border-white/20"
+          />
+        </div>
       ),
+      className: "bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950 dark:to-indigo-900 border-blue-200 dark:border-blue-800 max-w-sm p-4",
     })
   }
 
@@ -104,30 +98,30 @@ export default function Home() {
             className="mb-6 text-primary"
           >
             <Sparkles className="h-3 w-3 mr-2" />
-            New • Stop Searching, Start Building
+            New • Team Collaboration & Project Organization
           </Badge>
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
-            Stop losing work in the chaos
+            Stop losing important work
             <br />
-            of 89 different tools
+            in scattered tools and conversations
           </h1>
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Currently organizes everything your team needs into a project-based Streams - from that crucial Slack thread to the final design file - so you can focus on building instead of hunting. Teams save 2.5 hours daily and ship 40% faster.
+            Currently keeps everything your team needs for each project in one place. No more hunting through Slack threads, lost Google Docs, or forgotten tasks. Just organized Streams with all your resources, tasks, and progress in one workspace.
           </p>
 
           {/* Key Metrics */}
           <div className="flex justify-center gap-8 mb-8 text-sm">
             <div className="text-center">
-              <div className="font-semibold text-primary">100+</div>
-              <div className="text-muted-foreground">Active Streams</div>
+              <div className="font-semibold text-primary">One Place</div>
+              <div className="text-muted-foreground">All Project Resources</div>
             </div>
             <div className="text-center">
-              <div className="font-semibold text-primary">4</div>
-              <div className="text-muted-foreground">Tool Integrations</div>
+              <div className="font-semibold text-primary">No More</div>
+              <div className="text-muted-foreground">Lost Information</div>
             </div>
             <div className="text-center">
-              <div className="font-semibold text-primary">40%</div>
-              <div className="text-muted-foreground">Less Context Switching</div>
+              <div className="font-semibold text-primary">Team</div>
+              <div className="text-muted-foreground">Always in Sync</div>
             </div>
           </div>
 
@@ -149,7 +143,7 @@ export default function Home() {
             </Button>
           </div>
           <p className="text-xs text-muted-foreground mt-3">
-            Trusted by teams at Klaviyo
+            Built for modern teams
           </p>
         </div>
       </section>
@@ -196,7 +190,7 @@ export default function Home() {
           animationDuration="180s"
           delay="0s"
           className="top-6"
-          onDiscountClick={handleDiscountClick}
+          onBoatClick={handleBoatClick}
         >
           <Sailboat className="w-3 h-3 text-primary/80" />
         </FloatingElement>
@@ -206,55 +200,34 @@ export default function Home() {
       <section id="problem" className="py-16 px-4 bg-muted/50">
         <div className="container mx-auto max-w-5xl">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-foreground mb-4">The hidden cost of tool overload</h2>
+            <h2 className="text-3xl font-bold text-foreground mb-4">Every team knows this frustration</h2>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-              Every time you switch between Slack, Notion, Figma, and Jira, you lose focus. Every time you can&apos;t find that important conversation or design file, you waste time. This isn&apos;t just annoying - it&apos;s costing your team hours of productive work every day.
+              &quot;Where did we discuss that feature?&quot; &quot;What was that important link?&quot; &quot;Who was working on that task?&quot; Important work gets buried in Slack threads, lost in email chains, and scattered across dozens of tools. Teams waste hours every week just trying to find what they need.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6">
             <Card className="text-center p-6">
-              <div className="text-3xl font-bold text-primary mb-2">89</div>
-              <div className="font-medium text-foreground mb-2">Average apps per organization</div>
+              <div className="text-3xl font-bold text-primary mb-2">2.5 hrs</div>
+              <div className="font-medium text-foreground mb-2">Lost Per Day</div>
               <div className="text-sm text-muted-foreground">
-                <a
-                  href="https://www.okta.com/businesses-at-work/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-primary underline transition-colors"
-                >
-                  Okta Businesses @ Work Report 2024
-                </a>
+                Teams spend hours searching for information that should be easy to find
               </div>
             </Card>
             <Card className="text-center p-6">
-              <div className="text-3xl font-bold text-primary mb-2">40%</div>
+              <div className="text-3xl font-bold text-primary mb-2">89</div>
               <div className="font-medium text-foreground mb-2">
-                Productivity loss from context switching
+                Apps Per Team
               </div>
               <div className="text-sm text-muted-foreground">
-                <a
-                  href="https://www.researchgate.net/publication/318570356_The_Cost_of_Interrupted_Work_More_Speed_and_Stress"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-primary underline transition-colors"
-                >
-                  University of California Study
-                </a>
+                Information scattered across dozens of tools makes collaboration chaotic
               </div>
             </Card>
             <Card className="text-center p-6">
               <div className="text-3xl font-bold text-primary mb-2">60%</div>
-              <div className="font-medium text-foreground mb-2">Of workers struggle to find information</div>
+              <div className="font-medium text-foreground mb-2">Can&apos;t Find Info</div>
               <div className="text-sm text-muted-foreground">
-                <a
-                  href="https://www.mckinsey.com/mgi/our-research/productivity"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-primary underline transition-colors"
-                >
-                  McKinsey Global Institute
-                </a>
+                Most workers struggle to locate the information they need to do their job
               </div>
             </Card>
           </div>
@@ -316,10 +289,10 @@ export default function Home() {
 
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-foreground mb-4">
-              Everything you need, exactly when you need it
+              Everything your team needs, organized in Streams
             </h2>
             <p className="text-lg text-muted-foreground">
-              Currently works in the background, automatically organizing your team&apos;s work so you can find anything instantly. No more digging through Slack history or hunting for the right Google Doc. Just focus on building great products.
+              Stop the chaos. Currently organizes every project into a Stream with all related resources, tasks, and conversations in one place. No more hunting through tools or asking &quot;where did we put that?&quot;
             </p>
           </div>
 
@@ -330,12 +303,12 @@ export default function Home() {
                   <Brain className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground">Never lose track of important work</h3>
-                  <p className="text-sm text-muted-foreground">Automatic project organization</p>
+                  <h3 className="font-semibold text-foreground">Never lose important work again</h3>
+                  <p className="text-sm text-muted-foreground">Everything in one Stream</p>
                 </div>
               </div>
               <p className="text-muted-foreground text-sm">
-                Currently groups everything related to your project - design files, conversations, documents, and tickets - so you can see the full picture at a glance. No more wondering &quot;where did we discuss that feature?&quot;
+                Every project gets its own Stream with all related resources, tasks, and progress. No more &quot;where did we put that document?&quot; or &quot;what was that important link?&quot; Everything is organized and easy to find.
               </p>
             </Card>
 
@@ -345,12 +318,12 @@ export default function Home() {
                   <Zap className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground">Find anything in seconds</h3>
-                  <p className="text-sm text-muted-foreground">Instant search across all tools</p>
+                  <h3 className="font-semibold text-foreground">Save 2.5 hours every day</h3>
+                  <p className="text-sm text-muted-foreground">Stop searching, start building</p>
                 </div>
               </div>
               <p className="text-muted-foreground text-sm">
-                Search across Slack, Notion, Figma, and 50+ other tools from one place. Find that crucial conversation, design file, or document without opening 10 different tabs.
+                No more hunting through Slack threads or digging through Google Drive. Add URLs, documents, and tasks to your Streams. Everything you need is organized and searchable in one place.
               </p>
             </Card>
 
@@ -360,12 +333,12 @@ export default function Home() {
                   <Clock className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground">Pick up where you left off</h3>
-                  <p className="text-sm text-muted-foreground">Smart activity tracking</p>
+                  <h3 className="font-semibold text-foreground">Keep your team in sync</h3>
+                  <p className="text-sm text-muted-foreground">Everyone knows what&apos;s happening</p>
                 </div>
               </div>
               <p className="text-muted-foreground text-sm">
-                Instantly return to any work you&apos;ve touched - whether it was yesterday or last week. Currently remembers what you were working on and gets you back to it in one click.
+                Invite team members to Streams and work together seamlessly. Everyone can see progress, access resources, and stay updated. No more &quot;did you see that message?&quot; or &quot;where are we on this?&quot;
               </p>
             </Card>
 
@@ -375,18 +348,18 @@ export default function Home() {
                   <Sparkles className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground">AI that actually helps you work</h3>
-                  <p className="text-sm text-muted-foreground">Predictive workflow optimization</p>
+                  <h3 className="font-semibold text-foreground">Works everywhere you do</h3>
+                  <p className="text-sm text-muted-foreground">Chrome extension included</p>
                 </div>
                 <Badge
                   variant="secondary"
                   className="text-xs"
                 >
-                  Coming Soon
+                  Available
                 </Badge>
               </div>
               <p className="text-muted-foreground text-sm">
-                AI that predicts what you need next, identifies blockers before they happen, and automatically prioritizes your work based on deadlines and team velocity.
+                Access your Streams directly from your browser. Found an important link? Add it to your Stream instantly. No context switching, no lost information. Work flows naturally.
               </p>
             </Card>
           </div>
@@ -444,19 +417,19 @@ export default function Home() {
             <Accordion type="single" collapsible className="space-y-4">
               <AccordionItem value="item-1" className="border rounded-lg">
                 <AccordionTrigger className="px-6 py-4 text-left hover:no-underline">
-                  How does Currently save me time?
+                  How does Currently help my team?
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pb-4 text-muted-foreground">
-                  Currently eliminates the daily hunt for information by automatically organizing everything your team needs. Instead of searching through Slack history, digging through Google Drive, or asking teammates &quot;where did we discuss that feature?&quot;, everything is organized and searchable in one place. Teams typically save 2.5 hours daily.
+                  Currently helps teams organize their work into Streams, manage resources and tasks, and collaborate more effectively. By providing a structured way to organize projects and share resources, teams can stay organized and work together more efficiently.
                 </AccordionContent>
               </AccordionItem>
 
               <AccordionItem value="item-2" className="border rounded-lg">
                 <AccordionTrigger className="px-6 py-4 text-left hover:no-underline">
-                  What tools does Currently work with?
+                  What features does Currently offer?
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pb-4 text-muted-foreground">
-                  Currently works with the tools you already use: Google Docs, Notion, Figma, Slack, Jira, Linear, and 50+ other popular tools. It automatically detects when you&apos;re working in these tools and organizes the content so you can find anything instantly.
+                  Currently offers Stream-based project organization, resource and task management, team collaboration tools, organization management, and a Chrome extension for browser-based access. It&apos;s designed to help teams organize projects and collaborate effectively.
                 </AccordionContent>
               </AccordionItem>
 
@@ -465,7 +438,7 @@ export default function Home() {
                   Is my data secure?
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pb-4 text-muted-foreground">
-                  Yes, your data security is our top priority. Currently processes data locally in your browser and only syncs encrypted metadata to our servers. We never store the actual content of your documents or conversations - just enough information to help you find what you need.
+                  Yes, your data security is our top priority. Currently uses industry-standard encryption and security practices. Your data is stored securely with Supabase, and we follow GDPR compliance standards. Your project and collaboration data belongs to you.
                 </AccordionContent>
               </AccordionItem>
 
@@ -474,16 +447,16 @@ export default function Home() {
                   How much does Currently cost?
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pb-4 text-muted-foreground">
-                  Start free with up to 5 users - no credit card required. Pro plans start at $12/month per user for unlimited projects and advanced features. Enterprise plans are available for larger teams with custom pricing and dedicated support.
+                  Currently is currently in development and available for free. We&apos;re building the platform and gathering feedback from early users. Pricing plans will be announced as we approach our official launch.
                 </AccordionContent>
               </AccordionItem>
 
               <AccordionItem value="item-5" className="border rounded-lg">
                 <AccordionTrigger className="px-6 py-4 text-left hover:no-underline">
-                  Can I try Currently before buying?
+                  How do I get started with Currently?
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pb-4 text-muted-foreground">
-                  Absolutely! You can start using Currently for free with up to 5 users. No credit card required. The free plan includes core features like automatic project organization and search across all your tools. You can upgrade to Pro anytime to unlock advanced features.
+                  Getting started is easy! Sign up for a free account, create your first organization, and start creating Streams to organize your team&apos;s work. You can also install the Chrome extension for browser-based access to your streams. No credit card required.
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
@@ -494,9 +467,9 @@ export default function Home() {
       {/* CTA Section */}
       <section className="py-16 px-4 bg-[#1a1a1d] text-primary-foreground">
         <div className="container mx-auto max-w-4xl text-center">
-          <h2 className="text-3xl font-bold mb-4">Stop losing 2.5 hours every day to tool chaos</h2>
+          <h2 className="text-3xl font-bold mb-4">Stop losing important work. Start using Streams.</h2>
           <p className="text-lg text-primary-foreground/80 mb-8">
-            Join 2,400+ teams who&apos;ve eliminated the daily hunt for information and can finally focus on building great products.
+            Join teams who have eliminated the daily hunt for information and can finally focus on building great products.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
@@ -505,8 +478,8 @@ export default function Home() {
               asChild
             >
               <Link href="/auth/sign-up">
-                <Chrome className="h-4 w-4 mr-2" />
-                Start Free Trial
+                <Waves className="h-4 w-4 mr-2" />
+                Get Started Free
               </Link>
             </Button>
             <Button
@@ -514,10 +487,10 @@ export default function Home() {
               size="lg"
               className="border-primary-foreground/20 bg-inherit text-white hover:bg-white hover:text-primary"
             >
-              Schedule Demo
+              Learn More
             </Button>
           </div>
-          <p className="text-sm text-primary-foreground/70 mt-4">No credit card required • 14-day free trial</p>
+          <p className="text-sm text-primary-foreground/70 mt-4">No credit card required • Free to use</p>
         </div>
       </section>
 

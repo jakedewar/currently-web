@@ -8,7 +8,7 @@ interface FloatingElementProps {
   className?: string
   animationDuration?: string
   delay?: string
-  onDiscountClick?: () => void
+  onBoatClick?: () => void
   animationType?: "float" | "sail"
 }
 
@@ -17,7 +17,7 @@ export function FloatingElement({
   className,
   animationDuration = "180s",
   delay = "0s",
-  onDiscountClick,
+  onBoatClick,
   animationType = "sail"
 }: FloatingElementProps) {
   const animationClass = animationType === "sail" ? "animate-sail" : "animate-float"
@@ -33,7 +33,7 @@ export function FloatingElement({
         animationDuration,
         animationDelay: delay,
       }}
-      onClick={onDiscountClick}
+      onClick={onBoatClick}
     >
       {children}
     </div>
