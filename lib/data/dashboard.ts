@@ -13,8 +13,8 @@ export interface DashboardData {
   };
   stats: {
     activeStreams: number;
-    timeSaved: number;
-    contextSwitchesReduction: number;
+    totalUrlItems: number;
+    totalNoteItems: number;
     teamSize: number;
   };
   streams: Array<{
@@ -135,8 +135,20 @@ export async function getDashboardData(organizationId?: string): Promise<Dashboa
     .order('updated_at', { ascending: false })
     .limit(10);
 
-  // Get recent work items
-  const { data: workItems } = await supabase
+  // Get all work items for the organization (for counting)
+  const { data: allWorkItems } = await supabase
+    .from('work_items')
+    .select(`
+      id,
+      type,
+      streams!inner (
+        organization_id
+      )
+    `)
+    .eq('streams.organization_id', targetOrganizationId);
+
+  // Get recent work items for display
+  const { data: recentWorkItems } = await supabase
     .from('work_items')
     .select(`
       id,
@@ -147,9 +159,10 @@ export async function getDashboardData(organizationId?: string): Promise<Dashboa
       tool,
       created_at,
       updated_at,
-      streams (
+      streams!inner (
         id,
-        name
+        name,
+        organization_id
       )
     `)
     .eq('streams.organization_id', targetOrganizationId)
@@ -202,14 +215,9 @@ export async function getDashboardData(organizationId?: string): Promise<Dashboa
 
   // Calculate statistics
   const activeStreams = streams?.filter(s => s.status === 'active').length || 0;
-  const completedWorkItems = workItems?.filter(w => w.status === 'completed').length || 0;
+  const totalUrlItems = allWorkItems?.filter(w => w.type === 'url').length || 0;
+  const totalNoteItems = allWorkItems?.filter(w => w.type === 'note').length || 0;
   const teamSize = orgMembers?.length || 0;
-
-  // Calculate time saved (mock calculation based on completed items)
-  const timeSaved = completedWorkItems * 0.5; // 30 minutes per completed item
-
-  // Calculate context switches reduction (mock calculation)
-  const contextSwitchesReduction = Math.max(0, 67 - (activeStreams * 3));
 
   return {
     user: {
@@ -223,12 +231,12 @@ export async function getDashboardData(organizationId?: string): Promise<Dashboa
     },
     stats: {
       activeStreams,
-      timeSaved,
-      contextSwitchesReduction,
+      totalUrlItems,
+      totalNoteItems,
       teamSize,
     },
     streams: streams || [],
-    workItems: workItems || [],
+    workItems: recentWorkItems || [],
     teamActivity: teamActivity || [],
     activityUsers: userMap,
   };

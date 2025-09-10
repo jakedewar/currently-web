@@ -1,4 +1,4 @@
-import { Clock, Waves, TrendingUp, Users } from "lucide-react";
+import { CheckSquare, FileText, Waves, Users } from "lucide-react";
 
 export function getStatusColor(status: string): string {
   switch (status) {
@@ -61,41 +61,47 @@ export function getActivityDescription(activity: {
 
 export function getDashboardStats(stats: {
   activeStreams: number;
-  timeSaved: number;
-  contextSwitchesReduction: number;
+  totalUrlItems?: number;
+  totalNoteItems?: number;
+  totalTasks?: number; // Legacy support
+  totalResources?: number; // Legacy support
   teamSize: number;
 }) {
+  // Handle both new and legacy property names
+  const urlItems = stats.totalUrlItems ?? stats.totalTasks ?? 0;
+  const noteItems = stats.totalNoteItems ?? stats.totalResources ?? 0;
+  
   return [
     {
       title: "Active Streams",
-      value: stats.activeStreams.toString(),
+      value: (stats.activeStreams || 0).toString(),
       description: "Streams you're working on",
       icon: Waves,
-      trend: stats.activeStreams > 0 ? `+${stats.activeStreams} active` : "No active streams",
+      trend: (stats.activeStreams || 0) > 0 ? `+${stats.activeStreams || 0} active` : "No active streams",
       color: "text-primary",
     },
     {
-      title: "Time Saved",
-      value: `${stats.timeSaved.toFixed(1)}h`,
-      description: "Estimated time saved",
-      icon: Clock,
-      trend: stats.timeSaved > 0 ? `+${(stats.timeSaved * 2).toFixed(0)} items completed` : "No items completed",
+      title: "URL Items",
+      value: urlItems.toString(),
+      description: "URL work items across all streams",
+      icon: CheckSquare,
+      trend: urlItems > 0 ? `${urlItems} URLs` : "No URL items yet",
       color: "text-primary",
     },
     {
-      title: "Context Switches",
-      value: stats.contextSwitchesReduction.toString(),
-      description: "Reduced from 67",
-      icon: TrendingUp,
-      trend: stats.contextSwitchesReduction > 0 ? `-${Math.round((stats.contextSwitchesReduction / 67) * 100)}%` : "No reduction",
+      title: "Note Items",
+      value: noteItems.toString(),
+      description: "Note work items available",
+      icon: FileText,
+      trend: noteItems > 0 ? `${noteItems} notes` : "No notes yet",
       color: "text-primary",
     },
     {
       title: "Team Members",
-      value: stats.teamSize.toString(),
+      value: (stats.teamSize || 0).toString(),
       description: "Active collaborators",
       icon: Users,
-      trend: stats.teamSize > 1 ? `${stats.teamSize} members` : "Just you",
+      trend: (stats.teamSize || 0) > 1 ? `${stats.teamSize || 0} members` : "Just you",
       color: "text-primary",
     },
   ];

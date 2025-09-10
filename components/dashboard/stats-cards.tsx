@@ -5,8 +5,10 @@ import { getDashboardStats } from "@/lib/utils/dashboard";
 interface StatsCardsProps {
   stats: {
     activeStreams: number;
-    timeSaved: number;
-    contextSwitchesReduction: number;
+    totalUrlItems?: number;
+    totalNoteItems?: number;
+    totalTasks?: number; // Legacy support
+    totalResources?: number; // Legacy support
     teamSize: number;
   };
 }
