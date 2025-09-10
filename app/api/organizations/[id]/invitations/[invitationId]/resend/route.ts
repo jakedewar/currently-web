@@ -81,7 +81,7 @@ export async function POST(
     const inviterName = inviterProfile?.full_name || user.email || 'Someone'
 
     // Send invitation email
-    const invitationLink = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://currently.team'}/auth/join?code=${invitation.invitation_code}`
+    const invitationLink = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://currently.team'}/auth/login?invitation=${invitation.id}&redirect=${encodeURIComponent('/auth/accept-invitation')}`
     
     const emailResult = await sendInvitationEmail({
       to: invitation.email,

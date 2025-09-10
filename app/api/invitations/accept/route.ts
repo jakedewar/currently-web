@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'
 export async function POST(request: Request) {
   try {
     const supabase = await createClient()
-    const { invitationCode } = await request.json()
+    const { invitationId } = await request.json()
 
     // Get current user from session
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -16,9 +16,9 @@ export async function POST(request: Request) {
     }
 
     // Validate input
-    if (!invitationCode) {
+    if (!invitationId) {
       return NextResponse.json(
-        { error: 'Invitation code is required' },
+        { error: 'Invitation ID is required' },
         { status: 400 }
       )
     }
@@ -34,13 +34,13 @@ export async function POST(request: Request) {
           slug
         )
       `)
-      .eq('invitation_code', invitationCode)
+      .eq('id', invitationId)
       .eq('status', 'active')
       .single()
 
     if (invitationError || !invitation) {
       return NextResponse.json(
-        { error: 'Invalid or expired invitation code' },
+        { error: 'Invalid or expired invitation' },
         { status: 404 }
       )
     }
