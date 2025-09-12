@@ -1,23 +1,20 @@
 'use client'
-
-import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { WorkItem } from '@/lib/data/streams'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { PriorityIndicator } from '@/components/ui/priority-indicator'
 import { CreateWorkItemDialog } from './create-work-item-dialog'
 import { CreateSubtaskDialog } from './create-subtask-dialog'
 import { 
-  CheckCircle, 
-  XCircle, 
+  CheckCircle,
   Clock,
   MoreHorizontal,
   Archive,
   Check,
   FileText,
-  Calendar,
-  User,
-  Circle
+  Calendar
 } from 'lucide-react'
 import { UrlLink } from '@/components/ui/url-link'
 import { formatDistanceToNow } from 'date-fns'
@@ -40,55 +37,54 @@ interface TasksListProps {
 }
 
 
-export function TasksList({ streamId, workItems, onWorkItemCreated, onWorkItemUpdated, canAddItems = true }: TasksListProps) {
+// Kanban column types
+type KanbanColumn = {
+  id: string
+  title: string
+  status: string
+  color: string
+  icon: React.ReactNode
+}
+
+const KANBAN_COLUMNS: KanbanColumn[] = [
+  {
+    id: 'active',
+    title: 'Active',
+    status: 'active',
+    color: 'bg-blue-50 border-blue-200',
+    icon: <Clock className="h-4 w-4 text-blue-500" />
+  },
+  {
+    id: 'completed',
+    title: 'Completed',
+    status: 'completed',
+    color: 'bg-green-50 border-green-200',
+    icon: <CheckCircle className="h-4 w-4 text-green-500" />
+  },
+  {
+    id: 'archived',
+    title: 'Archived',
+    status: 'archived',
+    color: 'bg-gray-50 border-gray-200',
+    icon: <Archive className="h-4 w-4 text-gray-500" />
+  }
+]
+
+// Simple Task Card Component
+function TaskCard({ task, streamId, onWorkItemUpdated, onWorkItemCreated, canAddItems, allSubtasks }: {
+  task: WorkItem
+  streamId: string
+  onWorkItemUpdated?: (updatedItem: WorkItem) => void
+  onWorkItemCreated: () => void
+  canAddItems: boolean
+  allSubtasks: WorkItem[]
+}) {
   const { toast } = useToast()
-  const [updatingItemId, setUpdatingItemId] = useState<string | null>(null)
-  const [updatingSubtaskId, setUpdatingSubtaskId] = useState<string | null>(null)
-  
-  // Separate parent tasks from subtasks
-  const parentTasks = workItems.filter(item => !item.parent_task_id)
-  const allSubtasks = workItems.filter(item => item.parent_task_id)
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <CheckCircle className="h-4 w-4 text-green-500" />
-      case 'archived':
-        return <XCircle className="h-4 w-4 text-gray-500" />
-      default:
-        return <Clock className="h-4 w-4 text-blue-500" />
-    }
-  }
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent':
-        return 'bg-red-100 text-red-800 border-red-200'
-      case 'high':
-        return 'bg-orange-100 text-orange-800 border-orange-200'
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-      case 'low':
-        return 'bg-green-100 text-green-800 border-green-200'
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200'
-    }
-  }
-
+  const router = useRouter()
+  const taskSubtasks = allSubtasks.filter(subtask => subtask.parent_task_id === task.id)
 
   const handleUpdateStatus = async (itemId: string, newStatus: string) => {
-    setUpdatingItemId(itemId)
     try {
-      // Find the task
-      const task = workItems.find(item => item.id === itemId)
-      if (!task) return
-
-      // Optimistic update - update UI immediately
-      const updatedTask = { ...task, status: newStatus }
-      if (onWorkItemUpdated) {
-        onWorkItemUpdated(updatedTask)
-      }
-
       const response = await fetch(`/api/streams/${streamId}/work-items/${itemId}`, {
         method: 'PATCH',
         headers: {
@@ -103,10 +99,8 @@ export function TasksList({ streamId, workItems, onWorkItemCreated, onWorkItemUp
         throw new Error('Failed to update task')
       }
 
-      // Get the updated data from the response
       const updatedData = await response.json()
       
-      // Update with the actual server response
       if (onWorkItemUpdated) {
         onWorkItemUpdated(updatedData)
       }
@@ -116,113 +110,204 @@ export function TasksList({ streamId, workItems, onWorkItemCreated, onWorkItemUp
         description: `Task marked as ${newStatus}`,
       })
     } catch (error) {
-      // Revert optimistic update on error
-      if (onWorkItemUpdated) {
-        const originalTask = workItems.find(item => item.id === itemId)
-        if (originalTask) {
-          onWorkItemUpdated(originalTask)
-        }
-      }
-      
       toast({
         title: "Error",
         description: `Failed to update status: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       })
-    } finally {
-      setUpdatingItemId(null)
     }
   }
 
-
-  const handleUpdateSubtaskStatus = async (subtaskId: string, newStatus: string) => {
-    setUpdatingSubtaskId(subtaskId)
-    
-    try {
-      // Find the subtask
-      const subtask = allSubtasks.find(s => s.id === subtaskId)
-      if (!subtask) return
-
-      // Optimistic update - update UI immediately
-      const updatedSubtask = { ...subtask, status: newStatus }
-      if (onWorkItemUpdated) {
-        onWorkItemUpdated(updatedSubtask)
-      }
-
-      // Make the API call
-      const response = await fetch(`/api/streams/${streamId}/work-items/${subtask.parent_task_id}/subtasks/${subtaskId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          status: newStatus,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to update subtask')
-      }
-
-      // Get the updated data from the response
-      const updatedData = await response.json()
-      
-      // Update with the actual server response
-      if (onWorkItemUpdated) {
-        onWorkItemUpdated(updatedData)
-      }
-      
-      toast({
-        title: "Subtask updated",
-        description: `Subtask marked as ${newStatus}`,
-      })
-    } catch (error) {
-      // Revert optimistic update on error
-      if (onWorkItemUpdated) {
-        const originalSubtask = allSubtasks.find(s => s.id === subtaskId)
-        if (originalSubtask) {
-          onWorkItemUpdated(originalSubtask)
-        }
-      }
-      
-      toast({
-        title: "Error",
-        description: `Failed to update subtask: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        variant: "destructive",
-      })
-    } finally {
-      setUpdatingSubtaskId(null)
-    }
+  const handleCardClick = () => {
+    router.push(`/protected/streams/${streamId}/tasks/${task.id}`)
   }
 
-  const handleDeleteSubtask = async (subtaskId: string) => {
-    try {
-      // Find the parent task ID for this subtask
-      const subtask = allSubtasks.find(s => s.id === subtaskId)
-      if (!subtask) return
+  return (
+    <Card 
+      className="hover:shadow-md transition-shadow mb-3 p-4 cursor-pointer"
+      onClick={handleCardClick}
+    >
+      <div className="space-y-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-2">
+              {task.priority && (
+                <PriorityIndicator priority={task.priority} />
+              )}
+              {taskSubtasks.length > 0 && (
+                <Badge variant="outline" className="text-xs">
+                  {taskSubtasks.filter(st => st.status === 'completed').length}/{taskSubtasks.length}
+                </Badge>
+              )}
+            </div>
+            
+            <h4 className="font-medium text-sm mb-2 line-clamp-2 hover:text-primary">
+              {task.title}
+            </h4>
+            
+            {task.description && (
+              <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                {task.description}
+              </p>
+            )}
+            
+            {task.url && (
+              <div className="mb-2">
+                <UrlLink url={task.url} maxLength={30} />
+              </div>
+            )}
+          </div>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-6 w-6 p-0"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <MoreHorizontal className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Task Actions</DropdownMenuLabel>
+              <DropdownMenuItem 
+                onClick={(e) => {
+                  e.stopPropagation()
+                  router.push(`/protected/streams/${streamId}/tasks/${task.id}`)
+                }}
+                className="text-blue-600"
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                View Details
+              </DropdownMenuItem>
+              {task.status !== 'completed' && (
+                <DropdownMenuItem 
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleUpdateStatus(task.id, 'completed')
+                  }}
+                  className="text-green-600"
+                >
+                  <Check className="h-4 w-4 mr-2" />
+                  Mark as Completed
+                </DropdownMenuItem>
+              )}
+              {task.status !== 'archived' && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem 
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleUpdateStatus(task.id, 'archived')
+                    }}
+                    className="text-destructive"
+                  >
+                    <Archive className="h-4 w-4 mr-2" />
+                    Archive
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <div className="flex items-center gap-1">
+            <Calendar className="h-3 w-3" />
+            <span>{formatDistanceToNow(new Date(task.created_at!), { addSuffix: true })}</span>
+          </div>
+          {canAddItems && (
+            <div onClick={(e) => e.stopPropagation()}>
+              <CreateSubtaskDialog
+                taskId={task.id}
+                streamId={streamId}
+                onSubtaskCreated={onWorkItemCreated}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+    </Card>
+  )
+}
 
-      const response = await fetch(`/api/streams/${streamId}/work-items/${subtask.parent_task_id}/subtasks/${subtaskId}`, {
-        method: 'DELETE',
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to delete subtask')
-      }
-
-      toast({
-        title: "Subtask deleted",
-        description: "The subtask has been removed successfully",
-      })
+// Simple Column Component
+function TaskColumn({ column, tasks, streamId, onWorkItemUpdated, onWorkItemCreated, canAddItems, allSubtasks }: {
+  column: KanbanColumn
+  tasks: WorkItem[]
+  streamId: string
+  onWorkItemUpdated?: (updatedItem: WorkItem) => void
+  onWorkItemCreated: () => void
+  canAddItems: boolean
+  allSubtasks: WorkItem[]
+}) {
+  return (
+    <div className="space-y-4">
+      {/* Column Header */}
+      <div className={`p-4 rounded-lg border-2 ${column.color} transition-colors`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {column.icon}
+            <h4 className="font-semibold text-sm">{column.title}</h4>
+            <Badge variant="secondary" className="text-xs font-medium">
+              {tasks.length}
+            </Badge>
+          </div>
+        </div>
+      </div>
       
-      // Refresh the work items
-      onWorkItemCreated()
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: `Failed to delete subtask: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        variant: "destructive",
-      })
-    }
+      {/* Column Content */}
+      <div className="min-h-[200px] p-2 rounded-lg">
+        <div className="space-y-3">
+          {tasks.map((task) => (
+            <TaskCard
+              key={task.id}
+              task={task}
+              streamId={streamId}
+              onWorkItemUpdated={onWorkItemUpdated}
+              onWorkItemCreated={onWorkItemCreated}
+              canAddItems={canAddItems}
+              allSubtasks={allSubtasks}
+            />
+          ))}
+        </div>
+        
+        {/* Empty state for column */}
+        {tasks.length === 0 && (
+          <div className="flex items-center justify-center h-32 border-2 border-dashed border-muted-foreground/25 rounded-lg">
+            <div className="text-center">
+              <div className="text-muted-foreground/50 mb-2">
+                {column.icon}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                No {column.title.toLowerCase()} tasks
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export function TasksList({ streamId, workItems, onWorkItemCreated, onWorkItemUpdated, canAddItems = true }: TasksListProps) {
+  // Separate parent tasks from subtasks
+  const parentTasks = workItems.filter(item => !item.parent_task_id)
+  const allSubtasks = workItems.filter(item => item.parent_task_id)
+
+  // Group tasks by status
+  const tasksByStatus = KANBAN_COLUMNS.reduce((acc, column) => {
+    acc[column.status] = parentTasks.filter(task => task.status === column.status)
+    return acc
+  }, {} as Record<string, WorkItem[]>)
+
+  // Handle tasks with unknown statuses by putting them in the active column
+  const unknownStatusTasks = parentTasks.filter(task => 
+    !KANBAN_COLUMNS.some(column => column.status === task.status)
+  )
+  if (unknownStatusTasks.length > 0) {
+    tasksByStatus['active'] = [...(tasksByStatus['active'] || []), ...unknownStatusTasks]
   }
 
   return (
@@ -238,214 +323,35 @@ export function TasksList({ streamId, workItems, onWorkItemCreated, onWorkItemUp
         )}
       </div>
       
-      <div className="space-y-3">
-        {parentTasks.length === 0 ? (
-          <Card className="p-6">
-            <div className="text-center">
-              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-sm text-muted-foreground">
-                No tasks yet. Create your first task to get started.
-              </p>
-            </div>
-          </Card>
-        ) : (
-          parentTasks.map((task) => {
-            const taskSubtasks = allSubtasks.filter(subtask => subtask.parent_task_id === task.id)
+      {parentTasks.length === 0 ? (
+        <Card className="p-6">
+          <div className="text-center">
+            <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-sm text-muted-foreground">
+              No tasks yet. Create your first task to get started.
+            </p>
+          </div>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+          {KANBAN_COLUMNS.map((column) => {
+            const columnTasks = tasksByStatus[column.status] || []
+            
             return (
-              <Card key={task.id} className="hover:shadow-md transition-shadow">
-                <div className="p-4">
-                  {/* Parent Task Header */}
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge 
-                          variant={task.status === 'completed' ? 'default' : task.status === 'archived' ? 'secondary' : 'outline'} 
-                          className="flex items-center gap-1"
-                        >
-                          {getStatusIcon(task.status)}
-                          <span className="capitalize text-xs">{task.status}</span>
-                        </Badge>
-                        {task.priority && (
-                          <Badge variant="outline" className={`text-xs ${getPriorityColor(task.priority)}`}>
-                            {task.priority}
-                          </Badge>
-                        )}
-                        {taskSubtasks.length > 0 && (
-                          <Badge variant="outline" className="text-xs">
-                            {taskSubtasks.filter(st => st.status === 'completed').length}/{taskSubtasks.length} subtasks
-                          </Badge>
-                        )}
-                      </div>
-                      
-                      <h4 className="font-medium text-sm mb-2 line-clamp-2">
-                        {task.title}
-                      </h4>
-                      
-                      {task.description && (
-                        <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
-                          {task.description}
-                        </p>
-                      )}
-                      
-                      {task.url && (
-                        <div className="mb-3">
-                          <UrlLink url={task.url} maxLength={40} />
-                        </div>
-                      )}
-                      
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          <span>{formatDistanceToNow(new Date(task.created_at!), { addSuffix: true })}</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Task Actions</DropdownMenuLabel>
-                          {task.status !== 'completed' && (
-                            <DropdownMenuItem 
-                              onClick={() => handleUpdateStatus(task.id, 'completed')}
-                              disabled={updatingItemId === task.id}
-                              className="text-green-600"
-                            >
-                              <Check className="h-4 w-4 mr-2" />
-                              Mark as Completed
-                            </DropdownMenuItem>
-                          )}
-                          {task.status !== 'archived' && (
-                            <>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem 
-                                onClick={() => handleUpdateStatus(task.id, 'archived')}
-                                disabled={updatingItemId === task.id}
-                                className="text-destructive"
-                              >
-                                <Archive className="h-4 w-4 mr-2" />
-                                Archive
-                              </DropdownMenuItem>
-                            </>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                  
-                  {/* Subtasks Section */}
-                  {taskSubtasks.length > 0 && (
-                    <div className="mt-4 pt-4 border-t">
-                      <div className="space-y-2">
-                        {taskSubtasks.map((subtask) => (
-                          <div key={subtask.id} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg ml-4 border-l-2 border-muted">
-                            {/* Checkbox */}
-                            <button
-                              onClick={() => {
-                                const newStatus = subtask.status === 'completed' ? 'active' : 'completed'
-                                handleUpdateSubtaskStatus(subtask.id, newStatus)
-                              }}
-                              disabled={updatingSubtaskId === subtask.id}
-                              className="flex-shrink-0 p-1 hover:bg-muted/50 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              {updatingSubtaskId === subtask.id ? (
-                                <div className="h-4 w-4 border-2 border-muted-foreground border-t-transparent rounded-full animate-spin" />
-                              ) : subtask.status === 'completed' ? (
-                                <CheckCircle className="h-4 w-4 text-green-500" />
-                              ) : (
-                                <Circle className="h-4 w-4 text-muted-foreground hover:text-foreground" />
-                              )}
-                            </button>
-                            
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className={`text-sm font-medium ${subtask.status === 'completed' ? 'line-through text-muted-foreground' : ''}`}>
-                                  {subtask.title}
-                                </span>
-                                {subtask.priority && subtask.status !== 'completed' && (
-                                  <Badge variant="outline" className={`text-xs ${getPriorityColor(subtask.priority)}`}>
-                                    {subtask.priority}
-                                  </Badge>
-                                )}
-                              </div>
-                              {subtask.url && (
-                                <div className="mb-1">
-                                  <UrlLink url={subtask.url} maxLength={35} />
-                                </div>
-                              )}
-                            </div>
-                            
-                            <div className="flex items-center gap-2">
-                              {subtask.assignee_id && (
-                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                                  <User className="h-3 w-3" />
-                                  <span>Assigned</span>
-                                </div>
-                              )}
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                                    <MoreHorizontal className="h-3 w-3" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuLabel>Subtask Actions</DropdownMenuLabel>
-                                  {subtask.status !== 'completed' && (
-                                    <DropdownMenuItem 
-                                      onClick={() => handleUpdateSubtaskStatus(subtask.id, 'completed')}
-                                      className="text-green-600"
-                                    >
-                                      <Check className="h-4 w-4 mr-2" />
-                                      Mark as Completed
-                                    </DropdownMenuItem>
-                                  )}
-                                  {subtask.status === 'completed' && (
-                                    <DropdownMenuItem 
-                                      onClick={() => handleUpdateSubtaskStatus(subtask.id, 'active')}
-                                      className="text-blue-600"
-                                    >
-                                      <Circle className="h-4 w-4 mr-2" />
-                                      Mark as Active
-                                    </DropdownMenuItem>
-                                  )}
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem 
-                                    onClick={() => handleDeleteSubtask(subtask.id)}
-                                    className="text-destructive"
-                                  >
-                                    <Archive className="h-4 w-4 mr-2" />
-                                    Delete
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Add Subtask Button */}
-                  {canAddItems && (
-                    <div className="mt-3 pt-3 border-t">
-                      <CreateSubtaskDialog
-                        taskId={task.id}
-                        streamId={streamId}
-                        onSubtaskCreated={onWorkItemCreated}
-                      />
-                    </div>
-                  )}
-                </div>
-              </Card>
+              <TaskColumn
+                key={column.id}
+                column={column}
+                tasks={columnTasks}
+                streamId={streamId}
+                onWorkItemUpdated={onWorkItemUpdated}
+                onWorkItemCreated={onWorkItemCreated}
+                canAddItems={canAddItems}
+                allSubtasks={allSubtasks}
+              />
             )
-          })
-        )}
-      </div>
+          })}
+        </div>
+      )}
     </div>
   )
 }

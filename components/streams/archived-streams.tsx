@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { PriorityBadge } from '@/components/ui/priority-badge'
+import { PriorityIndicator } from '@/components/ui/priority-indicator'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { 
   Archive, 
@@ -102,7 +102,7 @@ export function ArchivedStreams({ streams, onStreamUpdated }: ArchivedStreamsPro
                     </div>
                     <div className="flex items-center gap-2">
                       <StatusBadge status={stream.status} variant="compact" />
-                      <PriorityBadge priority={stream.priority} variant="compact" />
+                      <PriorityIndicator priority={stream.priority} />
                     </div>
                   </div>
                 </div>

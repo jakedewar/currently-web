@@ -7,7 +7,7 @@ interface ExtendedStream extends Stream {
 }
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { PriorityBadge } from '@/components/ui/priority-badge'
+import { PriorityIndicator } from '@/components/ui/priority-indicator'
 import { StatusBadge } from '@/components/ui/status-badge'
 import {
   DropdownMenu,
@@ -138,7 +138,7 @@ export function StreamHeader({ stream, userRole, onStreamUpdated }: StreamHeader
               </div>
               <div className="flex items-center gap-2 flex-wrap">
                 <StatusBadge status={stream.status} variant="compact" />
-                <PriorityBadge priority={stream.priority} variant="compact" />
+                <PriorityIndicator priority={stream.priority} />
               </div>
             </div>
             <p className="text-sm sm:text-base text-muted-foreground">{stream.description || "No description available"}</p>

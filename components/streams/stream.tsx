@@ -4,7 +4,7 @@ import type { Stream, StreamMember, WorkItem } from '@/lib/data/streams'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { PriorityBadge } from '@/components/ui/priority-badge'
+import { PriorityIndicator } from '@/components/ui/priority-indicator'
 import { StatusBadge } from '@/components/ui/status-badge'
 import {
   AccordionContent,
@@ -187,7 +187,7 @@ export function Stream({ stream, currentUserId, onStreamUpdated }: StreamProps) 
               <h3 className="text-lg font-semibold">{stream.name}</h3>
               <div className="flex items-center gap-2">
                 <StatusBadge status={stream.status} variant="compact" />
-                <PriorityBadge priority={stream.priority} variant="compact" />
+                <PriorityIndicator priority={stream.priority} />
               </div>
               {isCurrentUserMember && (
                 <Badge variant="outline" className="text-xs">

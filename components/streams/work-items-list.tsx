@@ -129,100 +129,113 @@ export function WorkItemsList({ streamId, workItems, onWorkItemCreated, canAddIt
           </Card>
         ) : (
           workItems.map((item) => (
-            <Card key={item.id} className="hover:shadow-md transition-shadow group">
-              <div className="flex flex-col h-full min-h-[140px]">
-                {/* Header */}
-                <div className="p-4 pb-0">
-                  <div className="flex items-start justify-between gap-2 mb-3">
-                    <Badge 
-                      variant={item.status === 'completed' ? 'default' : item.status === 'archived' ? 'secondary' : 'outline'} 
-                      className="flex items-center gap-1"
-                    >
-                      {getStatusIcon(item.status)}
-                      <span className="capitalize text-xs">{item.status}</span>
-                    </Badge>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        {item.status !== 'completed' && (
-                          <DropdownMenuItem 
-                            onClick={() => handleUpdateStatus(item.id, 'completed')}
-                            disabled={updatingItemId === item.id}
-                            className="text-green-600"
-                          >
-                            <Check className="h-4 w-4 mr-2" />
-                            Mark as Completed
-                          </DropdownMenuItem>
-                        )}
-                        {item.status !== 'archived' && (
-                          <>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem 
-                              onClick={() => handleUpdateStatus(item.id, 'archived')}
-                              disabled={updatingItemId === item.id}
-                              className="text-destructive"
-                            >
-                              <Archive className="h-4 w-4 mr-2" />
-                              Archive
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-
-                  {/* Title */}
-                  <h4 className="font-medium text-sm mb-2">
-                    {item.url ? (
-                      <a 
-                        href={item.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="hover:underline text-blue-600 dark:text-blue-400 line-clamp-2"
-                      >
-                        {item.title}
-                      </a>
-                    ) : (
-                      <span className="line-clamp-2">{item.title}</span>
-                    )}
-                  </h4>
-
-                  {/* Description */}
-                  {item.description && (
-                    <p className="text-xs text-muted-foreground line-clamp-2 mb-4">{item.description}</p>
-                  )}
-                </div>
-
-                {/* URL Preview */}
-                {item.url && (
-                  <div className="px-4 pb-4">
-                    <URLPreview url={item.url} />
-                  </div>
-                )}
-
-                {/* Metadata Footer */}
-                <div className="mt-auto px-4 py-3 border-t bg-muted/5 text-xs text-muted-foreground">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-1">
-                        {getTypeIcon(item.type)}
-                        <span className="capitalize">{item.type}</span>
-                      </div>
+            <Card key={item.id} className="hover:shadow-md transition-shadow mb-3 p-4">
+              <div className="space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-2">
+                      {item.status !== 'active' && (
+                        <Badge 
+                          variant={item.status === 'completed' ? 'default' : item.status === 'archived' ? 'secondary' : 'outline'} 
+                          className="flex items-center gap-1 text-xs"
+                        >
+                          {getStatusIcon(item.status)}
+                          <span className="capitalize">{item.status}</span>
+                        </Badge>
+                      )}
                       {item.tool && (
-                        <Badge variant="secondary" className="text-[10px]">
+                        <Badge variant="secondary" className="text-xs">
                           {item.tool}
                         </Badge>
                       )}
                     </div>
+                    
+                    <h4 className="font-medium text-sm mb-2 line-clamp-2">
+                      {item.url ? (
+                        <a 
+                          href={item.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="hover:underline text-blue-600 dark:text-blue-400"
+                        >
+                          {item.title}
+                        </a>
+                      ) : (
+                        <span>{item.title}</span>
+                      )}
+                    </h4>
+                    
+                    {item.description && (
+                      <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+                        {item.description}
+                      </p>
+                    )}
+                    
+                    {item.url && (
+                      <div className="mb-2">
+                        <URLPreview url={item.url} />
+                      </div>
+                    )}
+                  </div>
+                  
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-6 w-6 p-0"
+                      >
+                        <MoreHorizontal className="h-3 w-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Resource Actions</DropdownMenuLabel>
+                      {item.url && (
+                        <DropdownMenuItem 
+                          onClick={() => item.url && window.open(item.url, '_blank')}
+                          className="text-blue-600"
+                        >
+                          <Link className="h-4 w-4 mr-2" />
+                          Open Link
+                        </DropdownMenuItem>
+                      )}
+                      {item.status !== 'completed' && (
+                        <DropdownMenuItem 
+                          onClick={() => handleUpdateStatus(item.id, 'completed')}
+                          disabled={updatingItemId === item.id}
+                          className="text-green-600"
+                        >
+                          <Check className="h-4 w-4 mr-2" />
+                          Mark as Completed
+                        </DropdownMenuItem>
+                      )}
+                      {item.status !== 'archived' && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            onClick={() => handleUpdateStatus(item.id, 'archived')}
+                            disabled={updatingItemId === item.id}
+                            className="text-destructive"
+                          >
+                            <Archive className="h-4 w-4 mr-2" />
+                            Archive
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+                
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      <span>{formatDistanceToNow(new Date(item.created_at!), { addSuffix: true })}</span>
+                      {getTypeIcon(item.type)}
+                      <span className="capitalize">{item.type}</span>
                     </div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    <span>{formatDistanceToNow(new Date(item.created_at!), { addSuffix: true })}</span>
                   </div>
                 </div>
               </div>

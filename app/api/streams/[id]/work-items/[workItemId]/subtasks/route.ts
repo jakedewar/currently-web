@@ -52,7 +52,7 @@ export async function GET(
         due_date,
         estimated_hours,
         actual_hours,
-        // order_index, // Column doesn't exist in database
+        order_index,
         created_at,
         updated_at,
         parent_task_id,
@@ -63,7 +63,10 @@ export async function GET(
 
     if (error) {
       console.error('Error fetching subtasks:', error)
-      return NextResponse.json({ error: 'Failed to fetch subtasks' }, { status: 500 })
+      return NextResponse.json({ 
+        error: 'Failed to fetch subtasks', 
+        details: error.message 
+      }, { status: 500 })
     }
 
     return NextResponse.json(subtasks || [])
@@ -118,8 +121,15 @@ export async function POST(
       return NextResponse.json({ error: 'Title is required' }, { status: 400 })
     }
 
-    // Simple ordering for now (order_index column doesn't exist in database)
+    // Get the next order index for subtasks
+    const { data: existingSubtasks } = await supabase
+      .from('work_items')
+      .select('order_index')
+      .eq('parent_task_id', workItemId)
+      .order('order_index', { ascending: false })
+      .limit(1)
 
+    const nextOrderIndex = existingSubtasks?.[0]?.order_index ? existingSubtasks[0].order_index + 1 : 1
 
     // Create subtask as a work item with parent_task_id
     const { data: subtask, error } = await supabase
@@ -135,7 +145,7 @@ export async function POST(
         due_date: due_date || null,
         estimated_hours: estimated_hours || null,
         parent_task_id: workItemId,
-        // order_index: nextOrderIndex, // Column doesn't exist in database
+        order_index: nextOrderIndex,
         created_by: user.id,
       })
       .select()

@@ -10,8 +10,9 @@ import { Card } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Stream, StreamMember, StreamTool, WorkItem } from "@/lib/data/streams"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { MessageSquare, MoreVertical, UserMinus, UserPlus } from "lucide-react"
+import { MessageSquare, MoreVertical, UserMinus, UserPlus, Archive } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 interface StreamData {
@@ -41,6 +42,7 @@ export default function StreamPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isJoining, setIsJoining] = useState(false)
+  const [showArchived, setShowArchived] = useState(false)
   const { toast } = useToast()
 
   const fetchStream = useCallback(async () => {
@@ -262,23 +264,91 @@ export default function StreamPage() {
         </TabsContent>
 
         <TabsContent value="resources">
-          <WorkItemsList
-            streamId={data.stream.id}
-            workItems={data.stream.work_items.filter(item => item.type === 'url')}
-            onWorkItemCreated={fetchStream}
-            canAddItems={isMember}
-            type="resources"
-          />
+          <div className="space-y-4">
+            <WorkItemsList
+              streamId={data.stream.id}
+              workItems={data.stream.work_items.filter(item => item.type === 'url' && item.status !== 'archived')}
+              onWorkItemCreated={fetchStream}
+              canAddItems={isMember}
+              type="resources"
+            />
+            
+            {/* Archived Resources Section */}
+            {data.stream.work_items.filter(item => item.type === 'url' && item.status === 'archived').length > 0 && (
+              <div className="mt-8">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Archive className="h-5 w-5 text-muted-foreground" />
+                    <h2 className="text-lg font-semibold">Archived Resources</h2>
+                    <Badge variant="secondary">
+                      {data.stream.work_items.filter(item => item.type === 'url' && item.status === 'archived').length}
+                    </Badge>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowArchived(!showArchived)}
+                  >
+                    {showArchived ? 'Hide' : 'Show'} Archived
+                  </Button>
+                </div>
+                
+                {showArchived && (
+                  <WorkItemsList
+                    streamId={data.stream.id}
+                    workItems={data.stream.work_items.filter(item => item.type === 'url' && item.status === 'archived')}
+                    onWorkItemCreated={fetchStream}
+                    canAddItems={isMember}
+                    type="resources"
+                  />
+                )}
+              </div>
+            )}
+          </div>
         </TabsContent>
 
         <TabsContent value="tasks">
-          <TasksList
-            streamId={data.stream.id}
-            workItems={data.stream.work_items.filter(item => item.type === 'note')}
-            onWorkItemCreated={fetchStream}
-            onWorkItemUpdated={updateWorkItem}
-            canAddItems={isMember}
-          />
+          <div className="space-y-4">
+            <TasksList
+              streamId={data.stream.id}
+              workItems={data.stream.work_items.filter(item => item.type === 'note' && item.status !== 'archived')}
+              onWorkItemCreated={fetchStream}
+              onWorkItemUpdated={updateWorkItem}
+              canAddItems={isMember}
+            />
+            
+            {/* Archived Tasks Section */}
+            {data.stream.work_items.filter(item => item.type === 'note' && item.status === 'archived').length > 0 && (
+              <div className="mt-8">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <Archive className="h-5 w-5 text-muted-foreground" />
+                    <h2 className="text-lg font-semibold">Archived Tasks</h2>
+                    <Badge variant="secondary">
+                      {data.stream.work_items.filter(item => item.type === 'note' && item.status === 'archived').length}
+                    </Badge>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowArchived(!showArchived)}
+                  >
+                    {showArchived ? 'Hide' : 'Show'} Archived
+                  </Button>
+                </div>
+                
+                {showArchived && (
+                  <TasksList
+                    streamId={data.stream.id}
+                    workItems={data.stream.work_items.filter(item => item.type === 'note' && item.status === 'archived')}
+                    onWorkItemCreated={fetchStream}
+                    onWorkItemUpdated={updateWorkItem}
+                    canAddItems={isMember}
+                  />
+                )}
+              </div>
+            )}
+          </div>
         </TabsContent>
 
         <TabsContent value="team" className="space-y-4">

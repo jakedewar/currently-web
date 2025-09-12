@@ -21,11 +21,13 @@ import {
   Archive,
   ChevronLeft,
   ChevronRight,
+  Link,
+  CheckSquare,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ClientOnly } from "@/components/ui/client-only";
-import { PriorityBadge } from "@/components/ui/priority-badge";
+import { PriorityIndicator } from "@/components/ui/priority-indicator";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { StreamsData } from "@/lib/data/streams";
 import { ArchivedStreams } from "./archived-streams";
@@ -155,6 +157,15 @@ export function StreamsList({ data, pathname: customPathname }: StreamsListProps
     return stream.created_by === data.currentUser.id;
   };
 
+  // Helper functions to count resources and tasks
+  const getResourceCount = (stream: StreamsData['streams'][0]) => {
+    return stream.work_items.filter(item => item.type === 'url').length;
+  };
+
+  const getTaskCount = (stream: StreamsData['streams'][0]) => {
+    return stream.work_items.filter(item => item.type === 'note').length;
+  };
+
   return (
     <div className="space-y-6">
       {/* Search and Filters */}
@@ -205,7 +216,7 @@ export function StreamsList({ data, pathname: customPathname }: StreamsListProps
                     "All Priority"
                   ) : (
                     <div className="flex items-center gap-2">
-                      <PriorityBadge priority={priorityFilter} variant="minimal" />
+                      <PriorityIndicator priority={priorityFilter} />
                       {priorityFilter.charAt(0).toUpperCase() + priorityFilter.slice(1)}
                     </div>
                   )}
@@ -247,7 +258,7 @@ export function StreamsList({ data, pathname: customPathname }: StreamsListProps
           return (
             <Card
               key={stream.id}
-              className={`p-7 hover:shadow-md transition-shadow cursor-pointer h-fit flex flex-col ${
+              className={`hover:shadow-md transition-shadow cursor-pointer mb-3 p-4 ${
                 stream.status === 'archived' ? 'opacity-75 bg-muted/30' : ''
               } ${canJoin ? 'border-blue-200 hover:border-blue-300' : ''}`}
               onClick={() => {
@@ -256,83 +267,95 @@ export function StreamsList({ data, pathname: customPathname }: StreamsListProps
                 router.push(`/protected/streams/${stream.id}`)
               }}
             >
-              {/* Header with Title and Actions */}
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-2">
-                    {stream.emoji && (
-                      <span className="text-2xl">{stream.emoji}</span>
+              <div className="space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-2">
+                      {stream.emoji && (
+                        <span className="text-xl">{stream.emoji}</span>
+                      )}
+                      <h3 className="text-lg font-semibold line-clamp-1 hover:text-primary">
+                        {stream.name}
+                      </h3>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 mb-2">
+                      {stream.status !== 'active' && (
+                        <StatusBadge status={stream.status} variant="compact" />
+                      )}
+                      <PriorityIndicator priority={stream.priority} />
+                    </div>
+                    
+                    <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                      {stream.description || "No description available"}
+                    </p>
+                    
+                    {/* Progress */}
+                    <div className="mb-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-medium text-muted-foreground">Progress</span>
+                        <span className="text-xs text-muted-foreground">{stream.progress}%</span>
+                      </div>
+                      <Progress value={stream.progress} className="h-1.5" />
+                    </div>
+                  </div>
+                  
+                  {/* Role indicator or Join button */}
+                  <div className="flex-shrink-0">
+                    {isOwner && (
+                      <Badge variant="outline" className="text-xs">
+                        Owner
+                      </Badge>
                     )}
-                    <h3 className="text-lg font-semibold truncate">{stream.name}</h3>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <StatusBadge status={stream.status} variant="compact" />
-                    <PriorityBadge priority={stream.priority} variant="compact" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Description - increased height */}
-              <div className="h-16 mb-5">
-                <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
-                  {stream.description || "No description available"}
-                </p>
-              </div>
-
-              {/* Progress */}
-              <div className="mb-5">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-muted-foreground">Progress</span>
-                  <span className="text-sm text-muted-foreground">{stream.progress}%</span>
-                </div>
-                <Progress value={stream.progress} className="h-2" />
-              </div>
-
-              {/* Bottom Metadata */}
-              <div className="flex items-center justify-between text-sm text-muted-foreground mt-auto">
-                <div className="flex items-center gap-6">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    <span className="truncate max-w-24">{formatDate(stream.start_date)}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    <span>{stream.stream_members.length}</span>
+                    {isMember && !isOwner && (
+                      <Badge variant="outline" className="text-xs">
+                        Member
+                      </Badge>
+                    )}
+                    {canJoin && (
+                      <Button
+                        size="sm"
+                        onClick={(e) => handleJoinStream(stream.id, e)}
+                        disabled={isJoining}
+                        className="bg-blue-600 hover:bg-blue-700 text-white h-6 px-2 text-xs"
+                      >
+                        {isJoining ? (
+                          <>
+                            <div className="animate-spin rounded-full h-2 w-2 border-b-2 border-white mr-1" />
+                            Joining
+                          </>
+                        ) : (
+                          <>
+                            <UserPlus className="h-3 w-3 mr-1" />
+                            Join
+                          </>
+                        )}
+                      </Button>
+                    )}
                   </div>
                 </div>
                 
-                {/* Role indicator or Join button */}
-                <div className="flex-shrink-0">
-                  {isOwner && (
-                    <Badge variant="outline" className="text-xs px-3 py-1">
-                      Owner
-                    </Badge>
-                  )}
-                  {isMember && !isOwner && (
-                    <Badge variant="outline" className="text-xs px-3 py-1">
-                      Member
-                    </Badge>
-                  )}
-                  {canJoin && (
-                    <Button
-                      size="sm"
-                      onClick={(e) => handleJoinStream(stream.id, e)}
-                      disabled={isJoining}
-                      className="bg-blue-600 hover:bg-blue-700 text-white h-7 px-3 text-xs font-medium"
-                    >
-                      {isJoining ? (
-                        <>
-                          <div className="animate-spin rounded-full h-2 w-2 border-b-2 border-white mr-1" />
-                          Joining
-                        </>
-                      ) : (
-                        <>
-                          <UserPlus className="h-3 w-3 mr-1" />
-                          Join
-                        </>
-                      )}
-                    </Button>
-                  )}
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      <span>{formatDate(stream.start_date)}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Users className="h-3 w-3" />
+                      <span>{stream.stream_members.length}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                      <Link className="h-3 w-3" />
+                      <span>{getResourceCount(stream)}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                      <CheckSquare className="h-3 w-3" />
+                      <span>{getTaskCount(stream)}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </Card>
