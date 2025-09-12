@@ -225,14 +225,15 @@ export default function TaskDetailPage() {
                 Back
               </Button>
               <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-                <Badge 
-                  variant={task.status === 'completed' ? 'default' : task.status === 'archived' ? 'secondary' : 'outline'} 
-                  className="flex items-center gap-1"
-                >
-                  <span className="capitalize text-xs">{task.status}</span>
-                </Badge>
-                {task.priority && (
-                  <PriorityIndicator priority={task.priority} />
+                {task.status === 'completed' && (
+                  <Badge variant="default" className="flex items-center gap-1">
+                    <span className="capitalize text-xs">Completed</span>
+                  </Badge>
+                )}
+                {task.status === 'archived' && (
+                  <Badge variant="secondary" className="flex items-center gap-1">
+                    <span className="capitalize text-xs">Archived</span>
+                  </Badge>
                 )}
               </div>
             </div>
@@ -266,12 +267,41 @@ export default function TaskDetailPage() {
             </DropdownMenu>
           </div>
           <div className="mt-4">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight break-words">{task.title}</h1>
-            {task.description && (
-              <p className="text-muted-foreground mt-2 text-base sm:text-lg leading-relaxed break-words">
-                {task.description}
-              </p>
-            )}
+            <div className="flex items-start gap-3">
+              {/* Completion Checkbox */}
+              <button
+                onClick={() => {
+                  if (task.status === 'completed') {
+                    handleUpdateStatus('active')
+                  } else {
+                    handleUpdateStatus('completed')
+                  }
+                }}
+                className="flex-shrink-0 hover:bg-muted rounded-sm p-1 transition-colors mt-1"
+                title={task.status === 'completed' ? 'Mark as active' : 'Mark as completed'}
+              >
+                {task.status === 'completed' ? (
+                  <CheckCircle className="h-6 w-6 text-green-500" />
+                ) : (
+                  <Circle className="h-6 w-6 text-muted-foreground hover:text-primary" />
+                )}
+              </button>
+              
+              <div className="flex-1 min-w-0">
+                <h1 className={`text-2xl sm:text-3xl font-bold tracking-tight break-words ${
+                  task.status === 'completed' ? 'line-through text-muted-foreground' : ''
+                }`}>
+                  {task.title}
+                </h1>
+                {task.description && (
+                  <p className={`mt-2 text-base sm:text-lg leading-relaxed break-words ${
+                    task.status === 'completed' ? 'text-muted-foreground/60' : 'text-muted-foreground'
+                  }`}>
+                    {task.description}
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -466,6 +496,16 @@ export default function TaskDetailPage() {
                       <span className="text-muted-foreground">Estimated</span>
                     </div>
                     <span className="font-medium break-words">{task.estimated_hours}h</span>
+                  </div>
+                )}
+
+                {task.priority && (
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-sm">
+                    <div className="flex items-center gap-2">
+                      <PriorityIndicator priority={task.priority} />
+                      <span className="text-muted-foreground">Priority</span>
+                    </div>
+                    <span className="font-medium break-words capitalize">{task.priority}</span>
                   </div>
                 )}
               </div>

@@ -14,7 +14,8 @@ import {
   Archive,
   Check,
   FileText,
-  Calendar
+  Calendar,
+  Circle
 } from 'lucide-react'
 import { UrlLink } from '@/components/ui/url-link'
 import { formatDistanceToNow } from 'date-fns'
@@ -131,6 +132,26 @@ function TaskCard({ task, streamId, onWorkItemUpdated, onWorkItemCreated, canAdd
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2">
+              {/* Completion Checkbox */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  if (task.status === 'completed') {
+                    handleUpdateStatus(task.id, 'active')
+                  } else {
+                    handleUpdateStatus(task.id, 'completed')
+                  }
+                }}
+                className="flex-shrink-0 hover:bg-muted rounded-sm p-0.5 transition-colors"
+                title={task.status === 'completed' ? 'Mark as active' : 'Mark as completed'}
+              >
+                {task.status === 'completed' ? (
+                  <CheckCircle className="h-4 w-4 text-green-500" />
+                ) : (
+                  <Circle className="h-4 w-4 text-muted-foreground hover:text-primary" />
+                )}
+              </button>
+              
               {task.priority && (
                 <PriorityIndicator priority={task.priority} />
               )}
@@ -141,12 +162,16 @@ function TaskCard({ task, streamId, onWorkItemUpdated, onWorkItemCreated, canAdd
               )}
             </div>
             
-            <h4 className="font-medium text-sm mb-2 line-clamp-2 hover:text-primary">
+            <h4 className={`font-medium text-sm mb-2 line-clamp-2 hover:text-primary ${
+              task.status === 'completed' ? 'line-through text-muted-foreground' : ''
+            }`}>
               {task.title}
             </h4>
             
             {task.description && (
-              <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
+              <p className={`text-xs line-clamp-2 mb-2 ${
+                task.status === 'completed' ? 'text-muted-foreground/60' : 'text-muted-foreground'
+              }`}>
                 {task.description}
               </p>
             )}
