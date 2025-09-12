@@ -1,19 +1,20 @@
 'use client'
 
 import { useOrganization } from "@/components/organization-provider"
-import { useDashboardData } from "@/hooks/use-dashboard-updates"
-import { StatsCards } from "@/components/dashboard/stats-cards"
-import { DynamicDashboardSection } from "@/components/dashboard/dynamic-dashboard-section"
+import { useCurrentlyDashboardData } from "@/hooks/use-currently-dashboard"
+import { UpcomingTasks } from "@/components/dashboard/upcoming-tasks"
+import { RecentStreams } from "@/components/dashboard/recent-streams"
+import { TeamActivity } from "@/components/dashboard/team-activity"
 
 export default function ProtectedPage() {
   const { currentOrganization } = useOrganization()
-  const { data: dashboardData, isLoading, error } = useDashboardData(currentOrganization?.id)
+  const { data: dashboardData, isLoading, error } = useCurrentlyDashboardData(currentOrganization?.id)
 
   if (!currentOrganization) {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Welcome back!</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground">
             Please select an organization to view your dashboard.
           </p>
@@ -26,15 +27,16 @@ export default function ProtectedPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Welcome back!</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground">
             Loading your dashboard...
           </p>
         </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-24 bg-muted animate-pulse rounded-lg" />
-          ))}
+        <div className="grid gap-6 md:grid-cols-2">
+          <div className="h-64 bg-muted animate-pulse rounded-lg" />
+          <div className="h-64 bg-muted animate-pulse rounded-lg" />
+          <div className="h-64 bg-muted animate-pulse rounded-lg" />
+          <div className="h-64 bg-muted animate-pulse rounded-lg" />
         </div>
       </div>
     )
@@ -44,9 +46,9 @@ export default function ProtectedPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Welcome back!</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground">
-            Error loading dashboard data. Please try again.
+            Error loading your dashboard. Please try again.
           </p>
         </div>
       </div>
@@ -57,7 +59,7 @@ export default function ProtectedPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Welcome back!</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground">
             No dashboard data available.
           </p>
@@ -66,24 +68,29 @@ export default function ProtectedPage() {
     )
   }
 
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Welcome back!</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">
-          Here&apos;s what&apos;s happening with your team&apos;s work today.
+          Your central hub for staying on top of everything.
         </p>
       </div>
 
-      {/* Stats Cards */}
-      <StatsCards stats={dashboardData.stats} />
-
-      {/* Recent Work and Team Activity */}
-      <DynamicDashboardSection 
-        initialWorkItems={dashboardData.workItems}
-        initialTeamActivity={dashboardData.teamActivity}
-        initialActivityUsers={dashboardData.activityUsers}
-      />
+      {/* 3 Core Features Grid */}
+      <div className="grid gap-6 md:grid-cols-3">
+        <UpcomingTasks 
+          currentFocus={dashboardData.currentFocus}
+          upcomingDeadlines={dashboardData.upcomingDeadlines}
+        />
+        <RecentStreams 
+          quickActions={dashboardData.quickActions}
+        />
+        <TeamActivity 
+          context={dashboardData.context}
+        />
+      </div>
     </div>
   )
 }

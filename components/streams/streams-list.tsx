@@ -22,7 +22,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Link,
-  CheckSquare,
+  CircleCheck,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -56,6 +56,7 @@ export function StreamsList({ data, pathname: customPathname }: StreamsListProps
     streams: data.streams.map(stream => ({
       id: stream.id,
       name: stream.name,
+      emoji: stream.emoji,
       memberCount: stream.stream_members?.length,
       members: stream.stream_members
     })),
@@ -258,7 +259,7 @@ export function StreamsList({ data, pathname: customPathname }: StreamsListProps
           return (
             <Card
               key={stream.id}
-              className={`hover:shadow-md transition-shadow cursor-pointer mb-3 p-4 ${
+              className={`hover:shadow-md transition-shadow cursor-pointer mb-3 p-4 h-full flex flex-col ${
                 stream.status === 'archived' ? 'opacity-75 bg-muted/30' : ''
               } ${canJoin ? 'border-blue-200 hover:border-blue-300' : ''}`}
               onClick={() => {
@@ -267,14 +268,15 @@ export function StreamsList({ data, pathname: customPathname }: StreamsListProps
                 router.push(`/protected/streams/${stream.id}`)
               }}
             >
-              <div className="space-y-3">
-                <div className="flex items-start justify-between gap-2">
+              <div className="flex flex-col h-full">
+                {/* Header with title and role/join button */}
+                <div className="flex items-start justify-between gap-2 mb-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
                       {stream.emoji && (
                         <span className="text-xl">{stream.emoji}</span>
                       )}
-                      <h3 className="text-lg font-semibold line-clamp-1 hover:text-primary">
+                      <h3 className="text-lg font-semibold line-clamp-2 hover:text-primary">
                         {stream.name}
                       </h3>
                     </div>
@@ -283,20 +285,12 @@ export function StreamsList({ data, pathname: customPathname }: StreamsListProps
                       {stream.status !== 'active' && (
                         <StatusBadge status={stream.status} variant="compact" />
                       )}
-                      <PriorityIndicator priority={stream.priority} />
-                    </div>
-                    
-                    <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-                      {stream.description || "No description available"}
-                    </p>
-                    
-                    {/* Progress */}
-                    <div className="mb-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-medium text-muted-foreground">Progress</span>
-                        <span className="text-xs text-muted-foreground">{stream.progress}%</span>
+                      <div className="flex items-center gap-1">
+                        <PriorityIndicator priority={stream.priority} />
+                        <span className="text-xs text-muted-foreground capitalize">
+                          {stream.priority}
+                        </span>
                       </div>
-                      <Progress value={stream.progress} className="h-1.5" />
                     </div>
                   </div>
                   
@@ -335,7 +329,24 @@ export function StreamsList({ data, pathname: customPathname }: StreamsListProps
                   </div>
                 </div>
                 
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                {/* Description - flexible height */}
+                <div className="flex-1 mb-3">
+                  <p className="text-sm text-muted-foreground line-clamp-3">
+                    {stream.description || "No description available"}
+                  </p>
+                </div>
+                
+                {/* Progress - fixed at bottom */}
+                <div className="mb-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-medium text-muted-foreground">Progress</span>
+                    <span className="text-xs text-muted-foreground">{stream.progress}%</span>
+                  </div>
+                  <Progress value={stream.progress} className="h-1.5" />
+                </div>
+                
+                {/* Metadata - fixed at bottom */}
+                <div className="flex items-center justify-between text-xs text-muted-foreground mt-auto">
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
@@ -352,7 +363,7 @@ export function StreamsList({ data, pathname: customPathname }: StreamsListProps
                     </div>
                     <div className="flex items-center gap-1">
                       <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
-                      <CheckSquare className="h-3 w-3" />
+                      <CircleCheck className="h-3 w-3" />
                       <span>{getTaskCount(stream)}</span>
                     </div>
                   </div>

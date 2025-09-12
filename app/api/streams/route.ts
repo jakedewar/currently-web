@@ -8,6 +8,7 @@ type StreamResult = {
   id: string
   name: string
   description: string | null
+  emoji: string | null
   progress: number
   start_date: string | null
   end_date: string | null
@@ -220,6 +221,7 @@ export async function GET(request: Request) {
         id,
         name,
         description,
+        emoji,
         progress,
         start_date,
         end_date,

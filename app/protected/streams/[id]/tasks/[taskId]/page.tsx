@@ -186,7 +186,7 @@ export default function TaskDetailPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto px-4 sm:px-6 py-6">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
@@ -199,11 +199,11 @@ export default function TaskDetailPage() {
 
   if (!task) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto px-4 sm:px-6 py-6">
         <div className="text-center">
           <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h2 className="text-xl font-semibold mb-2">Task not found</h2>
-          <p className="text-muted-foreground mb-4">The task you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to it.</p>
+          <p className="text-muted-foreground mb-4 break-words">The task you&apos;re looking for doesn&apos;t exist or you don&apos;t have access to it.</p>
           <Button onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Go Back
@@ -217,14 +217,14 @@ export default function TaskDetailPage() {
     <div className="min-h-screen bg-background">
       {/* Clean Header */}
       <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" onClick={() => router.back()}>
+        <div className="container mx-auto px-4 sm:px-6 py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+              <Button variant="ghost" size="sm" onClick={() => router.back()} className="self-start">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
               </Button>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                 <Badge 
                   variant={task.status === 'completed' ? 'default' : task.status === 'archived' ? 'secondary' : 'outline'} 
                   className="flex items-center gap-1"
@@ -238,7 +238,7 @@ export default function TaskDetailPage() {
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="self-start sm:self-auto">
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -266,9 +266,9 @@ export default function TaskDetailPage() {
             </DropdownMenu>
           </div>
           <div className="mt-4">
-            <h1 className="text-3xl font-bold tracking-tight">{task.title}</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight break-words">{task.title}</h1>
             {task.description && (
-              <p className="text-muted-foreground mt-2 text-lg leading-relaxed">
+              <p className="text-muted-foreground mt-2 text-base sm:text-lg leading-relaxed break-words">
                 {task.description}
               </p>
             )}
@@ -277,20 +277,23 @@ export default function TaskDetailPage() {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-6 sm:space-y-8">
             {/* URL Section */}
             {task.url && (
               <div className="space-y-3">
                 <h2 className="text-lg font-semibold">Related Link</h2>
-                <div className="flex items-center gap-3 p-4 bg-muted/30 rounded-lg border">
-                  <UrlLink url={task.url} maxLength={60} />
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-muted/30 rounded-lg border">
+                  <div className="flex-1 min-w-0">
+                    <UrlLink url={task.url} maxLength={60} />
+                  </div>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => task.url && window.open(task.url, '_blank')}
+                    className="self-start sm:self-auto"
                   >
                     <ExternalLink className="h-4 w-4" />
                   </Button>
@@ -300,7 +303,7 @@ export default function TaskDetailPage() {
 
             {/* Subtasks Section */}
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <h2 className="text-lg font-semibold">Subtasks</h2>
                 <CreateSubtaskDialog
                   taskId={task.id}
@@ -318,51 +321,54 @@ export default function TaskDetailPage() {
               ) : (
                 <div className="space-y-3">
                   {subtasks.map((subtask) => (
-                    <div key={subtask.id} className="flex items-center gap-4 p-4 bg-muted/30 rounded-lg border hover:bg-muted/50 transition-colors">
-                      {/* Checkbox */}
-                      <button
-                        onClick={() => {
-                          const newStatus = subtask.status === 'completed' ? 'active' : 'completed'
-                          handleUpdateSubtaskStatus(subtask.id, newStatus)
-                        }}
-                        disabled={updatingSubtaskId === subtask.id}
-                        className="flex-shrink-0 p-1 hover:bg-muted/50 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {updatingSubtaskId === subtask.id ? (
-                          <div className="h-5 w-5 border-2 border-muted-foreground border-t-transparent rounded-full animate-spin" />
-                        ) : subtask.status === 'completed' ? (
-                          <CheckCircle className="h-5 w-5 text-green-500" />
-                        ) : (
-                          <Circle className="h-5 w-5 text-muted-foreground hover:text-foreground" />
-                        )}
-                      </button>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className={`font-medium ${subtask.status === 'completed' ? 'line-through text-muted-foreground' : ''}`}>
-                            {subtask.title}
-                          </span>
-                          {subtask.priority && subtask.status !== 'completed' && (
-                            <PriorityIndicator priority={subtask.priority} />
+                    <div key={subtask.id} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 bg-muted/30 rounded-lg border hover:bg-muted/50 transition-colors">
+                      {/* Checkbox and content */}
+                      <div className="flex items-start gap-3 flex-1 min-w-0">
+                        <button
+                          onClick={() => {
+                            const newStatus = subtask.status === 'completed' ? 'active' : 'completed'
+                            handleUpdateSubtaskStatus(subtask.id, newStatus)
+                          }}
+                          disabled={updatingSubtaskId === subtask.id}
+                          className="flex-shrink-0 p-1 hover:bg-muted/50 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-0.5"
+                        >
+                          {updatingSubtaskId === subtask.id ? (
+                            <div className="h-5 w-5 border-2 border-muted-foreground border-t-transparent rounded-full animate-spin" />
+                          ) : subtask.status === 'completed' ? (
+                            <CheckCircle className="h-5 w-5 text-green-500" />
+                          ) : (
+                            <Circle className="h-5 w-5 text-muted-foreground hover:text-foreground" />
+                          )}
+                        </button>
+                        
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
+                            <span className={`font-medium break-words ${subtask.status === 'completed' ? 'line-through text-muted-foreground' : ''}`}>
+                              {subtask.title}
+                            </span>
+                            {subtask.priority && subtask.status !== 'completed' && (
+                              <PriorityIndicator priority={subtask.priority} />
+                            )}
+                          </div>
+                          {subtask.description && (
+                            <p className="text-sm text-muted-foreground break-words">
+                              {subtask.description}
+                            </p>
+                          )}
+                          {subtask.url && (
+                            <div className="mt-2">
+                              <UrlLink url={subtask.url} maxLength={40} />
+                            </div>
                           )}
                         </div>
-                        {subtask.description && (
-                          <p className="text-sm text-muted-foreground">
-                            {subtask.description}
-                          </p>
-                        )}
-                        {subtask.url && (
-                          <div className="mt-2">
-                            <UrlLink url={subtask.url} maxLength={40} />
-                          </div>
-                        )}
                       </div>
                       
-                      <div className="flex items-center gap-2">
+                      {/* Actions */}
+                      <div className="flex items-center justify-between sm:justify-end gap-2">
                         {subtask.assignee_id && (
                           <div className="flex items-center gap-1 text-xs text-muted-foreground">
                             <User className="h-3 w-3" />
-                            <span>Assigned</span>
+                            <span className="hidden sm:inline">Assigned</span>
                           </div>
                         )}
                         <DropdownMenu>
@@ -415,41 +421,51 @@ export default function TaskDetailPage() {
             <div className="space-y-4">
               <h3 className="font-semibold">Task Information</h3>
               <div className="space-y-4">
-                <div className="flex items-center gap-3 text-sm">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">Created</span>
-                  <span className="font-medium">{formatDistanceToNow(new Date(task.created_at!), { addSuffix: true })}</span>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-sm">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span className="text-muted-foreground">Created</span>
+                  </div>
+                  <span className="font-medium break-words">{formatDistanceToNow(new Date(task.created_at!), { addSuffix: true })}</span>
                 </div>
                 
                 {task.updated_at && task.updated_at !== task.created_at && (
-                  <div className="flex items-center gap-3 text-sm">
-                    <Edit className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">Updated</span>
-                    <span className="font-medium">{formatDistanceToNow(new Date(task.updated_at), { addSuffix: true })}</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Edit className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="text-muted-foreground">Updated</span>
+                    </div>
+                    <span className="font-medium break-words">{formatDistanceToNow(new Date(task.updated_at), { addSuffix: true })}</span>
                   </div>
                 )}
 
                 {task.assignee_id && (
-                  <div className="flex items-center gap-3 text-sm">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">Assigned to</span>
-                    <span className="font-medium">User</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-sm">
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="text-muted-foreground">Assigned to</span>
+                    </div>
+                    <span className="font-medium break-words">User</span>
                   </div>
                 )}
 
                 {task.due_date && (
-                  <div className="flex items-center gap-3 text-sm">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">Due</span>
-                    <span className="font-medium">{new Date(task.due_date).toLocaleDateString()}</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="text-muted-foreground">Due</span>
+                    </div>
+                    <span className="font-medium break-words">{new Date(task.due_date).toLocaleDateString()}</span>
                   </div>
                 )}
 
                 {task.estimated_hours && (
-                  <div className="flex items-center gap-3 text-sm">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">Estimated</span>
-                    <span className="font-medium">{task.estimated_hours}h</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="text-muted-foreground">Estimated</span>
+                    </div>
+                    <span className="font-medium break-words">{task.estimated_hours}h</span>
                   </div>
                 )}
               </div>
