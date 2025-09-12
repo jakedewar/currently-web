@@ -11,6 +11,13 @@ export interface CurrentlyDashboardData {
     name: string;
     slug: string;
   };
+  stats: {
+    yourStreams: number;
+    totalStreams: number;
+    totalHours: number;
+    tasksCompletedThisWeek: number;
+    teamSize: number;
+  };
   currentFocus: {
     activeTasks: Array<{
       id: string;
@@ -245,11 +252,28 @@ export async function getCurrentlyDashboardData(organizationId?: string): Promis
     .eq('streams.organization_id', targetOrganizationId)
     .limit(10); // Get more streams initially, we'll sort them by user activity
 
+  // Get total streams in organization for stats
+  const { data: totalStreams } = await supabase
+    .from('streams')
+    .select('id')
+    .eq('organization_id', targetOrganizationId);
+
+  // Get team size for stats
+  const { data: teamMembers } = await supabase
+    .from('organization_members')
+    .select('user_id')
+    .eq('organization_id', targetOrganizationId);
+
 
   // Get today's date for filtering
   const today = new Date();
   const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
   const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+  
+  // Get start of this week for task completion tracking
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(today.getDate() - today.getDay()); // Sunday
+  startOfWeek.setHours(0, 0, 0, 0);
 
   // Get today's activity for hours tracking
   // const { data: todayActivity } = await supabase
@@ -380,6 +404,24 @@ export async function getCurrentlyDashboardData(organizationId?: string): Promis
   ).length;
   const tasksBlocked = workItems.filter(item => item.status === 'blocked').length;
 
+  // Calculate stats for dashboard cards
+  const yourStreams = userStreams?.length || 0;
+  const totalStreamsInOrg = totalStreams?.length || 0;
+  const teamSize = teamMembers?.length || 0;
+  
+  // Calculate tasks completed this week (tasks that were completed since start of week)
+  const tasksCompletedThisWeek = workItems.filter(item => {
+    if (item.status !== 'done' && item.status !== 'completed') return false;
+    if (!item.updated_at) return false;
+    const updatedDate = new Date(item.updated_at);
+    return updatedDate >= startOfWeek;
+  }).length;
+
+  // Calculate total hours from estimated hours of active tasks
+  const totalHours = workItems
+    .filter(item => item.status === 'in_progress' || item.status === 'active')
+    .reduce((total, item) => total + (item.estimated_hours || 0), 0);
+
   // Process stream updates
   const streamUpdates = streamActivity?.map(activity => ({
     id: activity.id,
@@ -401,7 +443,7 @@ export async function getCurrentlyDashboardData(organizationId?: string): Promis
       reason: 'High priority task not started'
     }));
 
-  return {
+  const result = {
     user: {
       id: user.id,
       full_name: user.user_metadata?.full_name || null,
@@ -410,6 +452,13 @@ export async function getCurrentlyDashboardData(organizationId?: string): Promis
       id: targetOrganization.id,
       name: targetOrganization.name,
       slug: targetOrganization.slug,
+    },
+    stats: {
+      yourStreams,
+      totalStreams: totalStreamsInOrg,
+      totalHours,
+      tasksCompletedThisWeek,
+      teamSize,
     },
     currentFocus: {
       activeTasks: activeTasks.map(item => ({
@@ -502,4 +551,6 @@ export async function getCurrentlyDashboardData(organizationId?: string): Promis
       blockers,
     },
   };
+
+  return result;
 }

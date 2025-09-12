@@ -51,10 +51,10 @@ export function UpcomingTasks({ currentFocus }: UpcomingTasksProps) {
               <div key={task.id} className="flex items-start gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-medium text-sm truncate">{task.title}</h4>
                     {task.priority && (
                       <PriorityIndicator priority={task.priority} />
                     )}
+                    <h4 className="font-medium text-sm truncate">{task.title}</h4>
                   </div>
                   <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
                     {task.stream_emoji && <span className="text-sm">{task.stream_emoji}</span>}

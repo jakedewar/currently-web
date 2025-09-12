@@ -1,4 +1,4 @@
-import { CheckSquare, FileText, Waves, Users } from "lucide-react";
+import { CheckSquare, FileText, Waves, Users, Clock, Target } from "lucide-react";
 
 export function getStatusColor(status: string): string {
   switch (status) {
@@ -60,48 +60,56 @@ export function getActivityDescription(activity: {
 }
 
 export function getDashboardStats(stats: {
-  activeStreams: number;
-  totalUrlItems?: number;
-  totalNoteItems?: number;
-  totalTasks?: number; // Legacy support
-  totalResources?: number; // Legacy support
+  yourStreams: number;
+  totalStreams: number;
+  totalHours: number;
+  tasksCompletedThisWeek: number;
   teamSize: number;
-}) {
-  // Handle both new and legacy property names
-  const urlItems = stats.totalUrlItems ?? stats.totalTasks ?? 0;
-  const noteItems = stats.totalNoteItems ?? stats.totalResources ?? 0;
+} | undefined) {
+  // Provide default values if stats is undefined
+  const safeStats = stats || {
+    yourStreams: 0,
+    totalStreams: 0,
+    totalHours: 0,
+    tasksCompletedThisWeek: 0,
+    teamSize: 0,
+  };
+
+  const hoursPercentage = Math.round((safeStats.totalHours / 40) * 100);
+  const hoursStatus = safeStats.totalHours >= 40 ? "Over target" : `${40 - safeStats.totalHours}h to go`;
+  const hoursColor = safeStats.totalHours >= 40 ? "text-green-600" : safeStats.totalHours >= 30 ? "text-yellow-600" : "text-red-600";
   
   return [
     {
-      title: "Active Streams",
-      value: (stats.activeStreams || 0).toString(),
-      description: "Streams you're working on",
+      title: "Your Streams",
+      value: safeStats.yourStreams.toString(),
+      description: "",
       icon: Waves,
-      trend: (stats.activeStreams || 0) > 0 ? `+${stats.activeStreams || 0} active` : "No active streams",
+      trend: `+${safeStats.yourStreams} this week`,
       color: "text-primary",
     },
     {
-      title: "URL Items",
-      value: urlItems.toString(),
-      description: "URL work items across all streams",
-      icon: CheckSquare,
-      trend: urlItems > 0 ? `${urlItems} URLs` : "No URL items yet",
-      color: "text-primary",
+      title: "Weekly Hours",
+      value: `${safeStats.totalHours}h`,
+      description: "",
+      icon: Clock,
+      trend: hoursStatus,
+      color: hoursColor,
     },
     {
-      title: "Note Items",
-      value: noteItems.toString(),
-      description: "Note work items available",
-      icon: FileText,
-      trend: noteItems > 0 ? `${noteItems} notes` : "No notes yet",
+      title: "Tasks Completed",
+      value: safeStats.tasksCompletedThisWeek.toString(),
+      description: "",
+      icon: Target,
+      trend: safeStats.tasksCompletedThisWeek > 0 ? `+${safeStats.tasksCompletedThisWeek} this week` : "No tasks this week",
       color: "text-primary",
     },
     {
       title: "Team Members",
-      value: (stats.teamSize || 0).toString(),
-      description: "Active collaborators",
+      value: (safeStats.teamSize || 0).toString(),
+      description: "",
       icon: Users,
-      trend: (stats.teamSize || 0) > 1 ? `${stats.teamSize || 0} members` : "Just you",
+      trend: (safeStats.teamSize || 0) > 1 ? `+${safeStats.teamSize || 0} active` : "Just you",
       color: "text-primary",
     },
   ];

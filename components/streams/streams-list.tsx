@@ -269,29 +269,18 @@ export function StreamsList({ data, pathname: customPathname }: StreamsListProps
               }}
             >
               <div className="flex flex-col h-full">
-                {/* Header with title and role/join button */}
-                <div className="flex items-start justify-between gap-2 mb-3">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      {stream.emoji && (
-                        <span className="text-xl">{stream.emoji}</span>
-                      )}
-                      <h3 className="text-lg font-semibold line-clamp-2 hover:text-primary">
-                        {stream.name}
-                      </h3>
+                {/* Header with priority, status, and role/join button */}
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                      <PriorityIndicator priority={stream.priority} />
+                      <span className="text-xs text-muted-foreground capitalize">
+                        {stream.priority}
+                      </span>
                     </div>
-                    
-                    <div className="flex items-center gap-2 mb-2">
-                      {stream.status !== 'active' && (
-                        <StatusBadge status={stream.status} variant="compact" />
-                      )}
-                      <div className="flex items-center gap-1">
-                        <PriorityIndicator priority={stream.priority} />
-                        <span className="text-xs text-muted-foreground capitalize">
-                          {stream.priority}
-                        </span>
-                      </div>
-                    </div>
+                    {stream.status !== 'active' && (
+                      <StatusBadge status={stream.status} variant="compact" />
+                    )}
                   </div>
                   
                   {/* Role indicator or Join button */}
@@ -327,6 +316,16 @@ export function StreamsList({ data, pathname: customPathname }: StreamsListProps
                       </Button>
                     )}
                   </div>
+                </div>
+                
+                {/* Title with emoji */}
+                <div className="flex items-center gap-2 mb-3">
+                  {stream.emoji && (
+                    <span className="text-xl">{stream.emoji}</span>
+                  )}
+                  <h3 className="text-lg font-semibold line-clamp-2 hover:text-primary">
+                    {stream.name}
+                  </h3>
                 </div>
                 
                 {/* Description - flexible height */}

@@ -7,11 +7,11 @@ import { Activity, Users, Clock, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { CurrentlyDashboardData } from "@/lib/data/currently-dashboard"
 
-interface TeamActivityProps {
+interface ActivityFeedProps {
   context: CurrentlyDashboardData['context']
 }
 
-export function TeamActivity({ context }: TeamActivityProps) {
+export function ActivityFeed({ context }: ActivityFeedProps) {
   const { streamUpdates } = context
 
   const formatTimeAgo = (dateString: string | null) => {
@@ -55,8 +55,8 @@ export function TeamActivity({ context }: TeamActivityProps) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Users className="h-5 w-5 text-purple-500" />
-          Team Activity
+          <Activity className="h-5 w-5 text-purple-500" />
+          Activity
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -100,8 +100,8 @@ export function TeamActivity({ context }: TeamActivityProps) {
         ) : (
           <div className="text-center py-6 text-muted-foreground">
             <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No recent team activity</p>
-            <p className="text-xs">Team updates will appear here</p>
+            <p className="text-sm">No recent activity</p>
+            <p className="text-xs">Updates from streams and integrations will appear here</p>
             <Button variant="outline" size="sm" className="mt-3" asChild>
               <Link href="/protected/streams">
                 <ArrowRight className="h-4 w-4 mr-2" />

@@ -4,7 +4,8 @@ import { useOrganization } from "@/components/organization-provider"
 import { useCurrentlyDashboardData } from "@/hooks/use-currently-dashboard"
 import { UpcomingTasks } from "@/components/dashboard/upcoming-tasks"
 import { RecentStreams } from "@/components/dashboard/recent-streams"
-import { TeamActivity } from "@/components/dashboard/team-activity"
+import { ActivityFeed } from "@/components/dashboard/team-activity"
+import { StatsCards } from "@/components/dashboard/stats-cards"
 
 export default function ProtectedPage() {
   const { currentOrganization } = useOrganization()
@@ -69,6 +70,7 @@ export default function ProtectedPage() {
   }
 
 
+
   return (
     <div className="space-y-6">
       <div>
@@ -77,6 +79,9 @@ export default function ProtectedPage() {
           Your central hub for staying on top of everything.
         </p>
       </div>
+
+      {/* Stats Cards */}
+      <StatsCards stats={dashboardData.stats} />
 
       {/* 3 Core Features Grid */}
       <div className="grid gap-6 md:grid-cols-3">
@@ -87,7 +92,7 @@ export default function ProtectedPage() {
         <RecentStreams 
           quickActions={dashboardData.quickActions}
         />
-        <TeamActivity 
+        <ActivityFeed 
           context={dashboardData.context}
         />
       </div>
