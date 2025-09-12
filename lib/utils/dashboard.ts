@@ -1,4 +1,4 @@
-import { CheckSquare, FileText, Waves, Users, Clock, Target } from "lucide-react";
+import { Waves, Users, Clock, Target } from "lucide-react";
 
 export function getStatusColor(status: string): string {
   switch (status) {
@@ -75,7 +75,6 @@ export function getDashboardStats(stats: {
     teamSize: 0,
   };
 
-  const hoursPercentage = Math.round((safeStats.totalHours / 40) * 100);
   const hoursStatus = safeStats.totalHours >= 40 ? "Over target" : `${40 - safeStats.totalHours}h to go`;
   const hoursColor = safeStats.totalHours >= 40 ? "text-green-600" : safeStats.totalHours >= 30 ? "text-yellow-600" : "text-red-600";
   
