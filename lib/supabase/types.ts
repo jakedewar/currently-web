@@ -55,6 +55,56 @@ export type Database = {
           },
         ]
       }
+      integrations: {
+        Row: {
+          access_token: string
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          metadata: Json | null
+          organization_id: string
+          provider: string
+          refresh_token: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          organization_id: string
+          provider: string
+          refresh_token?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          organization_id?: string
+          provider?: string
+          refresh_token?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integrations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string | null
@@ -205,6 +255,87 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      slack_messages: {
+        Row: {
+          attachments: Json | null
+          created_at: string | null
+          created_by: string
+          id: string
+          message_text: string
+          message_timestamp: string
+          metadata: Json | null
+          organization_id: string
+          permalink: string | null
+          reactions: Json | null
+          slack_channel_id: string
+          slack_channel_name: string
+          slack_message_id: string
+          slack_user_display_name: string | null
+          slack_user_id: string
+          slack_user_name: string
+          stream_id: string
+          thread_ts: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          attachments?: Json | null
+          created_at?: string | null
+          created_by: string
+          id?: string
+          message_text: string
+          message_timestamp: string
+          metadata?: Json | null
+          organization_id: string
+          permalink?: string | null
+          reactions?: Json | null
+          slack_channel_id: string
+          slack_channel_name: string
+          slack_message_id: string
+          slack_user_display_name?: string | null
+          slack_user_id: string
+          slack_user_name: string
+          stream_id: string
+          thread_ts?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          attachments?: Json | null
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          message_text?: string
+          message_timestamp?: string
+          metadata?: Json | null
+          organization_id?: string
+          permalink?: string | null
+          reactions?: Json | null
+          slack_channel_id?: string
+          slack_channel_name?: string
+          slack_message_id?: string
+          slack_user_display_name?: string | null
+          slack_user_id?: string
+          slack_user_name?: string
+          stream_id?: string
+          thread_ts?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "slack_messages_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "slack_messages_stream_id_fkey"
+            columns: ["stream_id"]
+            isOneToOne: false
+            referencedRelation: "streams"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       stream_members: {
         Row: {
@@ -749,6 +880,13 @@ export type Database = {
       expire_organization_invitations: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      find_slack_integration_by_user_id: {
+        Args: { slack_user_id: string }
+        Returns: {
+          metadata: Json
+          user_id: string
+        }[]
       }
       get_stream_members: {
         Args: { p_stream_ids: string[] }

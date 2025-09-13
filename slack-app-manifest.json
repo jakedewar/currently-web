@@ -1,0 +1,68 @@
+{
+  "display_information": {
+    "name": "Currently",
+    "description": "Pin important Slack messages to your Currently streams",
+    "background_color": "#4A90E2",
+    "long_description": "Currently helps teams organize important Slack discussions by allowing you to pin messages directly to project streams. Never lose track of important decisions, discussions, or updates again."
+  },
+  "features": {
+    "bot_user": {
+      "display_name": "Currently",
+      "always_online": true
+    },
+    "slash_commands": [
+      {
+        "command": "/pin-to-currently",
+        "description": "Pin a message to a Currently stream",
+        "usage_hint": "[stream-name]",
+        "should_escape": false,
+        "url": "https://your-domain.com/api/integrations/slack/slash-command"
+      }
+    ],
+    "message_shortcuts": [
+      {
+        "name": "Pin to Currently",
+        "type": "message",
+        "callback_id": "pin_message"
+      }
+    ]
+  },
+  "oauth_config": {
+    "scopes": {
+      "user": [
+        "channels:read",
+        "groups:read",
+        "im:read",
+        "mpim:read",
+        "users:read"
+      ],
+      "bot": [
+        "channels:read",
+        "groups:read",
+        "im:read",
+        "mpim:read",
+        "chat:write",
+        "users:read"
+      ]
+    }
+  },
+  "settings": {
+    "interactivity": {
+      "is_enabled": true,
+      "request_url": "https://your-domain.com/api/integrations/slack/interactive"
+    },
+    "event_subscriptions": {
+      "is_enabled": true,
+      "request_url": "https://your-domain.com/api/integrations/slack/events",
+      "bot_events": [
+        "message.channels",
+        "message.groups",
+        "message.im",
+        "message.mpim"
+      ]
+    },
+    "org_deploy_enabled": false,
+    "socket_mode_enabled": false,
+    "token_rotation_enabled": false
+  }
+}

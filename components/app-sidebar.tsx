@@ -1,6 +1,6 @@
 "use client"
 
-import { Home, Waves, Users, LogOut, Building2, Bug, Megaphone, Menu, Settings } from "lucide-react"
+import { Home, Waves, Users, LogOut, Building2, Bug, Megaphone, Menu, Settings, Plug } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { useEffect, useState, useRef } from "react"
@@ -64,6 +64,11 @@ export function AppSidebar() {
       icon: Users,
       label: "Team",
     },
+    {
+      href: "/protected/integrations",
+      icon: Plug,
+      label: "Integrations",
+    },
   ]
 
   const footerNavItems = [
@@ -126,7 +131,8 @@ export function AppSidebar() {
             // Check if the current path matches the nav item or is a sub-route
             const isActive = pathname === item.href || 
               (item.href === "/protected/users" && pathname.startsWith("/protected/users/")) ||
-              (item.href === "/protected/streams" && pathname.startsWith("/protected/streams/"))
+              (item.href === "/protected/streams" && pathname.startsWith("/protected/streams/")) ||
+              (item.href === "/protected/integrations" && pathname.startsWith("/protected/integrations/"))
             return (
               <a
                 key={item.href}

@@ -6,6 +6,7 @@ import { StreamHeader } from "@/components/streams/stream-header"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { WorkItemsList } from "@/components/streams/work-items-list"
 import { TasksList } from "@/components/streams/tasks-list"
+import { SlackMessages } from "@/components/streams/slack-messages"
 import { Card } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Stream, StreamMember, StreamTool, WorkItem } from "@/lib/data/streams"
@@ -240,6 +241,7 @@ export default function StreamPage() {
             <TabsTrigger value="overview" className="flex-shrink-0">Overview</TabsTrigger>
             <TabsTrigger value="resources" className="flex-shrink-0">Resources</TabsTrigger>
             <TabsTrigger value="tasks" className="flex-shrink-0">Tasks</TabsTrigger>
+            <TabsTrigger value="slack" className="flex-shrink-0">Slack Messages</TabsTrigger>
             <TabsTrigger value="team" className="flex-shrink-0">Team</TabsTrigger>
             {isOwner && (
               <TabsTrigger value="settings" className="flex-shrink-0">Settings</TabsTrigger>
@@ -349,6 +351,13 @@ export default function StreamPage() {
               </div>
             )}
           </div>
+        </TabsContent>
+
+        <TabsContent value="slack" className="space-y-4">
+          <SlackMessages 
+            streamId={data.stream.id} 
+            canManage={isMember}
+          />
         </TabsContent>
 
         <TabsContent value="team" className="space-y-4">
