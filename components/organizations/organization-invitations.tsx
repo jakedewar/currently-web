@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Copy, Mail, Plus, Clock, CheckCircle, XCircle, Send, AlertTriangle } from "lucide-react"
+import { Copy, Mail, Plus, Clock, CircleCheck, XCircle, Send, AlertTriangle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 interface Invitation {
@@ -187,7 +187,7 @@ export function OrganizationInvitations({ organizationId }: OrganizationInvitati
       case 'active':
         return <Clock className="h-4 w-4 text-blue-500" />
       case 'accepted':
-        return <CheckCircle className="h-4 w-4 text-green-500" />
+        return <CircleCheck className="h-4 w-4 text-green-500" />
       case 'expired':
         return <XCircle className="h-4 w-4 text-red-500" />
       default:
@@ -211,7 +211,7 @@ export function OrganizationInvitations({ organizationId }: OrganizationInvitati
   const getEmailStatusIcon = (emailStatus?: string) => {
     switch (emailStatus) {
       case 'sent':
-        return <CheckCircle className="h-4 w-4 text-green-500" />
+        return <CircleCheck className="h-4 w-4 text-green-500" />
       case 'failed':
         return <AlertTriangle className="h-4 w-4 text-red-500" />
       case 'pending':

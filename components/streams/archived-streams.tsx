@@ -10,7 +10,7 @@ import {
   Archive, 
   Calendar, 
   Users, 
-  CheckCircle,
+  CircleCheck,
   RefreshCw
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
@@ -154,7 +154,7 @@ export function ArchivedStreams({ streams, onStreamUpdated }: ArchivedStreamsPro
                     </>
                   ) : (
                     <>
-                      <CheckCircle className="h-3 w-3 mr-2" />
+                      <CircleCheck className="h-3 w-3 mr-2" />
                       Unarchive
                     </>
                   )}

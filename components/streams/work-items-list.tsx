@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { CreateWorkItemDialog } from './create-work-item-dialog'
 import { 
-  CheckCircle, 
+  CircleCheck, 
   XCircle, 
   Clock,
   MoreHorizontal,
@@ -20,8 +20,8 @@ import {
   Calendar
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
-import { URLPreview } from '@/components/url-preview'
 import { useToast } from '@/hooks/use-toast'
+import Image from 'next/image'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,7 +47,7 @@ export function WorkItemsList({ streamId, workItems, onWorkItemCreated, canAddIt
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
-        return <CheckCircle className="h-4 w-4 text-green-500" />
+        return <CircleCheck className="h-4 w-4 text-green-500" />
       case 'archived':
         return <XCircle className="h-4 w-4 text-gray-500" />
       default:
@@ -150,20 +150,36 @@ export function WorkItemsList({ streamId, workItems, onWorkItemCreated, canAddIt
                       )}
                     </div>
                     
-                    <h4 className="font-medium text-sm mb-2 line-clamp-2">
-                      {item.url ? (
-                        <a 
-                          href={item.url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="hover:underline text-blue-600 dark:text-blue-400"
-                        >
-                          {item.title}
-                        </a>
-                      ) : (
-                        <span>{item.title}</span>
+                    <div className="flex items-center gap-2 mb-2">
+                      {item.url && (
+                        <div className="relative w-4 h-4 flex-shrink-0">
+                          <Image
+                            src={`https://www.google.com/s2/favicons?domain=${new URL(item.url).hostname}&sz=16`}
+                            alt=""
+                            fill
+                            className="object-contain"
+                            onError={(e) => {
+                              const target = e.target as HTMLElement;
+                              target.style.display = 'none';
+                            }}
+                          />
+                        </div>
                       )}
-                    </h4>
+                      <h4 className="font-medium text-sm line-clamp-2">
+                        {item.url ? (
+                          <a 
+                            href={item.url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="hover:underline text-blue-600 dark:text-blue-400"
+                          >
+                            {item.title}
+                          </a>
+                        ) : (
+                          <span>{item.title}</span>
+                        )}
+                      </h4>
+                    </div>
                     
                     {item.description && (
                       <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
@@ -171,11 +187,6 @@ export function WorkItemsList({ streamId, workItems, onWorkItemCreated, canAddIt
                       </p>
                     )}
                     
-                    {item.url && (
-                      <div className="mb-2">
-                        <URLPreview url={item.url} />
-                      </div>
-                    )}
                   </div>
                   
                   <DropdownMenu>

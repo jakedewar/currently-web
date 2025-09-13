@@ -8,17 +8,18 @@ import { PriorityIndicator } from '@/components/ui/priority-indicator'
 import { CreateWorkItemDialog } from './create-work-item-dialog'
 import { CreateSubtaskDialog } from './create-subtask-dialog'
 import { 
-  CheckCircle,
+  CircleCheck,
   Clock,
   MoreHorizontal,
   Archive,
   Check,
   FileText,
   Calendar,
-  Circle
+  Circle,
+  AlertTriangle,
+  CalendarDays
 } from 'lucide-react'
 import { UrlLink } from '@/components/ui/url-link'
-import { formatDistanceToNow } from 'date-fns'
 import { useToast } from '@/hooks/use-toast'
 import {
   DropdownMenu,
@@ -28,6 +29,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 interface TasksListProps {
   streamId: string
@@ -50,7 +57,7 @@ type KanbanColumn = {
 const KANBAN_COLUMNS: KanbanColumn[] = [
   {
     id: 'active',
-    title: 'Active',
+    title: 'To Do',
     status: 'active',
     color: 'bg-blue-50 border-blue-200',
     icon: <Clock className="h-4 w-4 text-blue-500" />
@@ -60,7 +67,7 @@ const KANBAN_COLUMNS: KanbanColumn[] = [
     title: 'Completed',
     status: 'completed',
     color: 'bg-green-50 border-green-200',
-    icon: <CheckCircle className="h-4 w-4 text-green-500" />
+    icon: <CircleCheck className="h-4 w-4 text-green-500" />
   },
   {
     id: 'archived',
@@ -133,24 +140,32 @@ function TaskCard({ task, streamId, onWorkItemUpdated, onWorkItemCreated, canAdd
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2">
               {/* Completion Checkbox */}
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  if (task.status === 'completed') {
-                    handleUpdateStatus(task.id, 'active')
-                  } else {
-                    handleUpdateStatus(task.id, 'completed')
-                  }
-                }}
-                className="flex-shrink-0 hover:bg-muted rounded-sm p-0.5 transition-colors"
-                title={task.status === 'completed' ? 'Mark as active' : 'Mark as completed'}
-              >
-                {task.status === 'completed' ? (
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                ) : (
-                  <Circle className="h-4 w-4 text-muted-foreground hover:text-primary" />
-                )}
-              </button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (task.status === 'completed') {
+                          handleUpdateStatus(task.id, 'active')
+                        } else {
+                          handleUpdateStatus(task.id, 'completed')
+                        }
+                      }}
+                      className="flex-shrink-0 hover:bg-muted rounded-sm p-0.5 transition-colors group"
+                    >
+                      {task.status === 'completed' ? (
+                        <CircleCheck className="h-4 w-4 text-green-500 group-hover:scale-110 transition-transform" />
+                      ) : (
+                        <Circle className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:scale-110 transition-all" />
+                      )}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{task.status === 'completed' ? 'Mark as To Do' : 'Mark to Complete'}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               
               {task.priority && (
                 <PriorityIndicator priority={task.priority} />
@@ -237,10 +252,41 @@ function TaskCard({ task, streamId, onWorkItemUpdated, onWorkItemCreated, canAdd
           </DropdownMenu>
         </div>
         
-        <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <div className="flex items-center justify-between text-xs">
           <div className="flex items-center gap-1">
-            <Calendar className="h-3 w-3" />
-            <span>{formatDistanceToNow(new Date(task.created_at!), { addSuffix: true })}</span>
+            {task.due_date ? (
+              (() => {
+                const dueDate = new Date(task.due_date)
+                const now = new Date()
+                const isOverdue = dueDate < now
+                const isToday = dueDate.toDateString() === now.toDateString()
+                const isTomorrow = dueDate.toDateString() === new Date(now.getTime() + 24 * 60 * 60 * 1000).toDateString()
+                
+                return (
+                  <div className="flex items-center gap-1">
+                    {isOverdue ? (
+                      <AlertTriangle className="h-3 w-3 text-red-500" />
+                    ) : (
+                      <CalendarDays className="h-3 w-3 text-muted-foreground" />
+                    )}
+                    <span className={`${isOverdue ? 'text-red-500 font-medium' : isToday ? 'text-orange-500 font-medium' : 'text-muted-foreground'}`}>
+                      {isToday ? 'Today' : 
+                       isTomorrow ? 'Tomorrow' :
+                       isOverdue ? `Overdue ${Math.ceil((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24))}d` :
+                       new Date(task.due_date).toLocaleDateString('en-US', { 
+                         month: 'numeric', 
+                         day: 'numeric' 
+                       })}
+                    </span>
+                  </div>
+                )
+              })()
+            ) : (
+              <div className="flex items-center gap-1">
+                <Calendar className="h-3 w-3 text-muted-foreground" />
+                <span className="text-muted-foreground">No due date</span>
+              </div>
+            )}
           </div>
           {canAddItems && (
             <div onClick={(e) => e.stopPropagation()}>

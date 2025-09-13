@@ -8,7 +8,6 @@ interface ExtendedStream extends Stream {
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { PriorityIndicator } from '@/components/ui/priority-indicator'
-import { StatusBadge } from '@/components/ui/status-badge'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,7 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { 
   Calendar,
-  CheckCircle,
+  CircleCheck,
   Settings,
   Share2,
   Archive,
@@ -137,7 +136,6 @@ export function StreamHeader({ stream, userRole, onStreamUpdated }: StreamHeader
                 <h1 className="text-xl sm:text-2xl font-bold tracking-tight">{stream.name}</h1>
               </div>
               <div className="flex items-center gap-2 flex-wrap">
-                <StatusBadge status={stream.status} variant="compact" />
                 <PriorityIndicator priority={stream.priority} />
               </div>
             </div>
@@ -177,7 +175,7 @@ export function StreamHeader({ stream, userRole, onStreamUpdated }: StreamHeader
                         disabled={isUpdating}
                         className="text-green-600"
                       >
-                        <CheckCircle className="h-4 w-4 mr-2" />
+                        <CircleCheck className="h-4 w-4 mr-2" />
                         Mark as Completed
                       </DropdownMenuItem>
                     )}
@@ -187,7 +185,7 @@ export function StreamHeader({ stream, userRole, onStreamUpdated }: StreamHeader
                         disabled={isUpdating}
                         className="text-green-600"
                       >
-                        <CheckCircle className="h-4 w-4 mr-2" />
+                        <CircleCheck className="h-4 w-4 mr-2" />
                         Unarchive Stream
                       </DropdownMenuItem>
                     ) : (

@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { CheckCircle, Circle, AlertCircle, Clock, XCircle } from "lucide-react";
+import { CircleCheck, Circle, AlertCircle, Clock, XCircle } from "lucide-react";
 
 interface StatusBadgeProps {
   status: string;
@@ -17,12 +17,12 @@ export function StatusBadge({ status, variant = "default", className }: StatusBa
           textColor: "text-blue-700",
           borderColor: "border-blue-200",
           bgColor: "bg-blue-50",
-          label: "Active",
+          label: "",
           variant: "outline" as const
         };
       case "completed":
         return {
-          icon: <CheckCircle className="h-3 w-3 text-green-500" />,
+          icon: <CircleCheck className="h-3 w-3 text-green-500" />,
           textColor: "text-green-700",
           borderColor: "border-green-200",
           bgColor: "bg-green-50",

@@ -1,9 +1,9 @@
-import { CheckCircle, Circle, AlertCircle, Calendar, FileText, MessageSquare, Figma } from "lucide-react";
+import { CircleCheck, Circle, AlertCircle, Calendar, FileText, MessageSquare, Figma } from "lucide-react";
 import { StreamsData } from "@/lib/data/streams";
 
 export function getStatusIcon(status: string) {
   switch (status) {
-    case "completed": return <CheckCircle className="h-3 w-3 text-green-500" />;
+    case "completed": return <CircleCheck className="h-3 w-3 text-green-500" />;
     case "in-progress": return <Circle className="h-3 w-3 text-blue-500" />;
     case "todo": return <Circle className="h-3 w-3 text-gray-400" />;
     default: return <AlertCircle className="h-3 w-3 text-yellow-500" />;

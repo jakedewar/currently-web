@@ -25,7 +25,7 @@ import {
   Eye,
   User,
   Users,
-  CheckCircle,
+  CircleCheck,
   XCircle,
   Link as LinkIcon,
   UserPlus
@@ -265,7 +265,7 @@ export function Stream({ stream, currentUserId, onStreamUpdated }: StreamProps) 
                   <DropdownMenuSeparator />
                   {stream.status === 'archived' ? (
                     <DropdownMenuItem onClick={handleUnarchiveStream} className="cursor-pointer text-green-600">
-                      <CheckCircle className="h-4 w-4 mr-2" />
+                      <CircleCheck className="h-4 w-4 mr-2" />
                       Unarchive Stream
                     </DropdownMenuItem>
                   ) : (

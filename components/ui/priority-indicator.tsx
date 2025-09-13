@@ -47,10 +47,13 @@ export function PriorityIndicator({ priority, className }: PriorityIndicatorProp
 
   return (
     <div 
-      className={cn("flex items-center justify-center", className)}
+      className={cn("flex items-center gap-1.5", className)}
       title={config.description}
     >
       <Icon className={cn("h-3 w-3", config.color)} />
+      <span className="text-xs font-medium text-muted-foreground">
+        {priority.charAt(0).toUpperCase() + priority.slice(1)}
+      </span>
     </div>
   );
 }

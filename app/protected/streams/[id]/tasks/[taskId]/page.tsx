@@ -20,7 +20,9 @@ import {
   Edit,
   Trash2,
   Clock,
-  CheckCircle
+  CircleCheck,
+  AlertTriangle,
+  CalendarDays
 } from 'lucide-react'
 import { UrlLink } from '@/components/ui/url-link'
 import { formatDistanceToNow } from 'date-fns'
@@ -33,6 +35,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 export default function TaskDetailPage() {
   const params = useParams()
@@ -269,23 +277,31 @@ export default function TaskDetailPage() {
           <div className="mt-4">
             <div className="flex items-start gap-3">
               {/* Completion Checkbox */}
-              <button
-                onClick={() => {
-                  if (task.status === 'completed') {
-                    handleUpdateStatus('active')
-                  } else {
-                    handleUpdateStatus('completed')
-                  }
-                }}
-                className="flex-shrink-0 hover:bg-muted rounded-sm p-1 transition-colors mt-1"
-                title={task.status === 'completed' ? 'Mark as active' : 'Mark as completed'}
-              >
-                {task.status === 'completed' ? (
-                  <CheckCircle className="h-6 w-6 text-green-500" />
-                ) : (
-                  <Circle className="h-6 w-6 text-muted-foreground hover:text-primary" />
-                )}
-              </button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => {
+                        if (task.status === 'completed') {
+                          handleUpdateStatus('active')
+                        } else {
+                          handleUpdateStatus('completed')
+                        }
+                      }}
+                      className="flex-shrink-0 hover:bg-muted rounded-sm p-1 transition-colors mt-1 group"
+                    >
+                      {task.status === 'completed' ? (
+                        <CircleCheck className="h-6 w-6 text-green-500 group-hover:scale-110 transition-transform" />
+                      ) : (
+                        <Circle className="h-6 w-6 text-muted-foreground group-hover:text-primary group-hover:scale-110 transition-all" />
+                      )}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{task.status === 'completed' ? 'Mark as To Do' : 'Mark to Complete'}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               
               <div className="flex-1 min-w-0">
                 <h1 className={`text-2xl sm:text-3xl font-bold tracking-tight break-words ${
@@ -354,22 +370,31 @@ export default function TaskDetailPage() {
                     <div key={subtask.id} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 bg-muted/30 rounded-lg border hover:bg-muted/50 transition-colors">
                       {/* Checkbox and content */}
                       <div className="flex items-start gap-3 flex-1 min-w-0">
-                        <button
-                          onClick={() => {
-                            const newStatus = subtask.status === 'completed' ? 'active' : 'completed'
-                            handleUpdateSubtaskStatus(subtask.id, newStatus)
-                          }}
-                          disabled={updatingSubtaskId === subtask.id}
-                          className="flex-shrink-0 p-1 hover:bg-muted/50 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-0.5"
-                        >
-                          {updatingSubtaskId === subtask.id ? (
-                            <div className="h-5 w-5 border-2 border-muted-foreground border-t-transparent rounded-full animate-spin" />
-                          ) : subtask.status === 'completed' ? (
-                            <CheckCircle className="h-5 w-5 text-green-500" />
-                          ) : (
-                            <Circle className="h-5 w-5 text-muted-foreground hover:text-foreground" />
-                          )}
-                        </button>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                onClick={() => {
+                                  const newStatus = subtask.status === 'completed' ? 'active' : 'completed'
+                                  handleUpdateSubtaskStatus(subtask.id, newStatus)
+                                }}
+                                disabled={updatingSubtaskId === subtask.id}
+                                className="flex-shrink-0 p-1 hover:bg-muted/50 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-0.5 group"
+                              >
+                                {updatingSubtaskId === subtask.id ? (
+                                  <div className="h-5 w-5 border-2 border-muted-foreground border-t-transparent rounded-full animate-spin" />
+                                ) : subtask.status === 'completed' ? (
+                                  <CircleCheck className="h-5 w-5 text-green-500 group-hover:scale-110 transition-transform" />
+                                ) : (
+                                  <Circle className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:scale-110 transition-all" />
+                                )}
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>{subtask.status === 'completed' ? 'Mark as To Do' : 'Mark to Complete'}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                         
                         <div className="flex-1 min-w-0">
                           <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
@@ -424,7 +449,7 @@ export default function TaskDetailPage() {
                                 className="text-blue-600"
                               >
                                 <Circle className="h-4 w-4 mr-2" />
-                                Mark as Active
+                                Mark as To Do
                               </DropdownMenuItem>
                             )}
                             <DropdownMenuSeparator />
@@ -482,10 +507,48 @@ export default function TaskDetailPage() {
                 {task.due_date && (
                   <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-sm">
                     <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                      <span className="text-muted-foreground">Due</span>
+                      {(() => {
+                        const dueDate = new Date(task.due_date)
+                        const now = new Date()
+                        const isOverdue = dueDate < now
+                        
+                        return (
+                          <>
+                            {isOverdue ? (
+                              <AlertTriangle className="h-4 w-4 text-red-500 flex-shrink-0" />
+                            ) : (
+                              <CalendarDays className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                            )}
+                            <span className="text-muted-foreground">Due</span>
+                          </>
+                        )
+                      })()}
                     </div>
-                    <span className="font-medium break-words">{new Date(task.due_date).toLocaleDateString()}</span>
+                    <span className={`font-medium break-words ${
+                      (() => {
+                        const dueDate = new Date(task.due_date)
+                        const now = new Date()
+                        const isOverdue = dueDate < now
+                        const isToday = dueDate.toDateString() === now.toDateString()
+                        return isOverdue ? 'text-red-500' : isToday ? 'text-orange-500' : ''
+                      })()
+                    }`}>
+                      {(() => {
+                        const dueDate = new Date(task.due_date)
+                        const now = new Date()
+                        const isOverdue = dueDate < now
+                        const isToday = dueDate.toDateString() === now.toDateString()
+                        const isTomorrow = dueDate.toDateString() === new Date(now.getTime() + 24 * 60 * 60 * 1000).toDateString()
+                        
+                        return isToday ? 'Today' : 
+                               isTomorrow ? 'Tomorrow' :
+                               isOverdue ? `Overdue ${Math.ceil((now.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24))}d` :
+                               new Date(task.due_date).toLocaleDateString('en-US', { 
+                                 month: 'numeric', 
+                                 day: 'numeric' 
+                               })
+                      })()}
+                    </span>
                   </div>
                 )}
 

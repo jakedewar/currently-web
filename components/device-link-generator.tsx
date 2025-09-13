@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/hooks/use-toast'
-import { Copy, RefreshCw, Smartphone, CheckCircle } from 'lucide-react'
+import { Copy, RefreshCw, Smartphone, CircleCheck } from 'lucide-react'
 
 interface DeviceLinkCode {
   code: string
@@ -123,7 +123,7 @@ export function DeviceLinkGenerator() {
                   variant="outline"
                 >
                   {isCopying ? (
-                    <CheckCircle className="h-4 w-4" />
+                    <CircleCheck className="h-4 w-4" />
                   ) : (
                     <Copy className="h-4 w-4" />
                   )}

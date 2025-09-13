@@ -42,11 +42,11 @@ import { useToast } from "@/hooks/use-toast";
 interface StreamsListProps {
   data: StreamsData;
   pathname?: string;
+  streamsPerPage?: number;
 }
 
-const STREAMS_PER_PAGE = 6;
 
-export function StreamsList({ data, pathname: customPathname }: StreamsListProps) {
+export function StreamsList({ data, pathname: customPathname, streamsPerPage = 6 }: StreamsListProps) {
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
@@ -90,9 +90,9 @@ export function StreamsList({ data, pathname: customPathname }: StreamsListProps
   const activeStreams = filteredStreams.filter(stream => stream.status !== 'archived');
 
   // Pagination logic
-  const totalPages = Math.ceil(activeStreams.length / STREAMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * STREAMS_PER_PAGE;
-  const endIndex = startIndex + STREAMS_PER_PAGE;
+  const totalPages = Math.ceil(activeStreams.length / streamsPerPage);
+  const startIndex = (currentPage - 1) * streamsPerPage;
+  const endIndex = startIndex + streamsPerPage;
   const paginatedStreams = activeStreams.slice(startIndex, endIndex);
 
   // Reset to first page when filters change
@@ -272,12 +272,7 @@ export function StreamsList({ data, pathname: customPathname }: StreamsListProps
                 {/* Header with priority, status, and role/join button */}
                 <div className="flex items-center justify-between gap-2 mb-3">
                   <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1">
-                      <PriorityIndicator priority={stream.priority} />
-                      <span className="text-xs text-muted-foreground capitalize">
-                        {stream.priority}
-                      </span>
-                    </div>
+                    <PriorityIndicator priority={stream.priority} />
                     {stream.status !== 'active' && (
                       <StatusBadge status={stream.status} variant="compact" />
                     )}
