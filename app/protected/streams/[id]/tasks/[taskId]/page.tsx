@@ -6,6 +6,7 @@ import { WorkItem } from '@/lib/data/streams'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { PriorityIndicator } from '@/components/ui/priority-indicator'
+import { Skeleton } from '@/components/ui/skeleton'
 import { CreateSubtaskDialog } from '@/components/streams/create-subtask-dialog'
 import { 
   ArrowLeft,
@@ -194,11 +195,108 @@ export default function TaskDetailPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 sm:px-6 py-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading task details...</p>
+      <div className="min-h-screen bg-background">
+        {/* Header Skeleton */}
+        <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="container mx-auto px-4 sm:px-6 py-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                <Skeleton className="h-8 w-16" />
+                <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                  <Skeleton className="h-6 w-20" />
+                </div>
+              </div>
+              <Skeleton className="h-8 w-8" />
+            </div>
+            <div className="mt-4">
+              <div className="flex items-start gap-3">
+                <Skeleton className="h-6 w-6 rounded-full flex-shrink-0 mt-1" />
+                <div className="flex-1 min-w-0 space-y-2">
+                  <Skeleton className="h-8 w-3/4" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-2/3" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content Skeleton */}
+        <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+            {/* Main Content */}
+            <div className="lg:col-span-2 space-y-6 sm:space-y-8">
+              {/* URL Section Skeleton */}
+              <div className="space-y-3">
+                <Skeleton className="h-6 w-24" />
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 bg-muted/30 rounded-lg border">
+                  <div className="flex-1 min-w-0">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-3 w-2/3 mt-1" />
+                  </div>
+                  <Skeleton className="h-8 w-8" />
+                </div>
+              </div>
+
+              {/* Subtasks Section Skeleton */}
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <Skeleton className="h-6 w-20" />
+                  <Skeleton className="h-9 w-32" />
+                </div>
+                
+                <div className="space-y-3">
+                  {/* Subtask skeletons */}
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-4 bg-muted/30 rounded-lg border">
+                      <div className="flex items-start gap-3 flex-1 min-w-0">
+                        <Skeleton className="h-5 w-5 rounded-full flex-shrink-0 mt-0.5" />
+                        <div className="flex-1 min-w-0 space-y-2">
+                          <Skeleton className="h-4 w-3/4" />
+                          <Skeleton className="h-3 w-full" />
+                          <Skeleton className="h-3 w-1/2" />
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between sm:justify-end gap-2">
+                        <Skeleton className="h-4 w-16" />
+                        <Skeleton className="h-8 w-8" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Sidebar Skeleton */}
+            <div className="space-y-6">
+              {/* Task Info Skeleton */}
+              <div className="space-y-4">
+                <Skeleton className="h-5 w-32" />
+                <div className="space-y-4">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-4 w-4 flex-shrink-0" />
+                        <Skeleton className="h-4 w-16" />
+                      </div>
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Progress Skeleton */}
+              <div className="space-y-4">
+                <Skeleton className="h-5 w-20" />
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-4 w-8" />
+                  </div>
+                  <Skeleton className="w-full h-3 rounded-full" />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

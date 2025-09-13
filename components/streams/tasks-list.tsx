@@ -59,22 +59,22 @@ const KANBAN_COLUMNS: KanbanColumn[] = [
     id: 'active',
     title: 'To Do',
     status: 'active',
-    color: 'bg-blue-50 border-blue-200',
-    icon: <Clock className="h-4 w-4 text-blue-500" />
+    color: 'bg-blue-50/80 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800/50',
+    icon: <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
   },
   {
     id: 'completed',
     title: 'Completed',
     status: 'completed',
-    color: 'bg-green-50 border-green-200',
-    icon: <CircleCheck className="h-4 w-4 text-green-500" />
+    color: 'bg-green-50/80 dark:bg-green-950/30 border-green-200 dark:border-green-800/50',
+    icon: <CircleCheck className="h-4 w-4 text-green-600 dark:text-green-400" />
   },
   {
     id: 'archived',
     title: 'Archived',
     status: 'archived',
-    color: 'bg-gray-50 border-gray-200',
-    icon: <Archive className="h-4 w-4 text-gray-500" />
+    color: 'bg-gray-50/80 dark:bg-gray-950/30 border-gray-200 dark:border-gray-800/50',
+    icon: <Archive className="h-4 w-4 text-gray-600 dark:text-gray-400" />
   }
 ]
 
@@ -318,12 +318,19 @@ function TaskColumn({ column, tasks, streamId, onWorkItemUpdated, onWorkItemCrea
       {/* Column Header */}
       <div className={`p-4 rounded-lg border-2 ${column.color} transition-colors`}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {column.icon}
-            <h4 className="font-semibold text-sm">{column.title}</h4>
-            <Badge variant="secondary" className="text-xs font-medium">
-              {tasks.length}
-            </Badge>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              {column.icon}
+              <h4 className="font-semibold text-sm text-gray-900 dark:text-gray-100">{column.title}</h4>
+            </div>
+            <div className="flex items-center">
+              <Badge 
+                variant="secondary" 
+                className="text-xs font-semibold px-2.5 py-1 bg-white/80 dark:bg-gray-800/80 border border-white/20 dark:border-gray-700/50 shadow-sm hover:bg-white/90 dark:hover:bg-gray-800/90 transition-all duration-200 min-w-[24px] justify-center"
+              >
+                {tasks.length}
+              </Badge>
+            </div>
           </div>
         </div>
       </div>
