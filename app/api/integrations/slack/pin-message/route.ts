@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SlackMessageService } from '@/lib/integrations/slack-messages';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import type { Database } from '@/lib/supabase/types';
-import { logSlackError } from '@/lib/integrations/slack-debug';
+import { logSlackError } from '@/docs/tests/slack-debug';
 
 function createServiceRoleClient() {
   return createServiceClient<Database>(
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       attachments,
       reactions,
       metadata,
-      stream_id,
+      project_id,
       user_id,
     } = body;
 
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       slack_message_id,
       slack_channel_id,
       slack_user_id,
-      stream_id,
+      project_id,
       user_id,
       message_text_length: message_text?.length,
       has_permalink: !!permalink
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     if (!slack_user_id) missingFields.push('slack_user_id');
     if (!message_text) missingFields.push('message_text');
     if (!permalink) missingFields.push('permalink');
-    if (!stream_id) missingFields.push('stream_id');
+    if (!project_id) missingFields.push('project_id');
     if (!user_id) missingFields.push('user_id');
 
     if (missingFields.length > 0) {
@@ -69,42 +69,42 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Verify user has access to the stream using service role client
+    // Verify user has access to the project using service role client
     const serviceSupabase = createServiceRoleClient();
-    const { data: streamMember, error: streamMemberError } = await serviceSupabase
-      .from('stream_members')
+    const { data: projectMember, error: projectMemberError } = await serviceSupabase
+      .from('project_members')
       .select('id')
-      .eq('stream_id', stream_id)
+      .eq('project_id', project_id)
       .eq('user_id', user_id)
       .single();
 
-    if (streamMemberError || !streamMember) {
-      logSlackError('/api/integrations/slack/pin-message', new Error('User does not have access to stream'), {
-        stream_id,
+    if (projectMemberError || !projectMember) {
+      logSlackError('/api/integrations/slack/pin-message', new Error('User does not have access to project'), {
+        project_id,
         user_id,
-        error: streamMemberError
+        error: projectMemberError
       });
       return NextResponse.json({ 
-        error: 'User does not have access to this stream',
-        details: streamMemberError
+        error: 'User does not have access to this project',
+        details: projectMemberError
       }, { status: 403 });
     }
 
-    // Get stream organization
-    const { data: stream, error: streamError } = await serviceSupabase
-      .from('streams')
+    // Get project organization
+    const { data: project, error: projectError } = await serviceSupabase
+      .from('projects')
       .select('organization_id')
-      .eq('id', stream_id)
+      .eq('id', project_id)
       .single();
 
-    if (streamError || !stream) {
-      logSlackError('/api/integrations/slack/pin-message', new Error('Stream not found'), {
-        stream_id,
-        error: streamError
+    if (projectError || !project) {
+      logSlackError('/api/integrations/slack/pin-message', new Error('Project not found'), {
+        project_id,
+        error: projectError
       });
       return NextResponse.json({ 
-        error: 'Stream not found',
-        details: streamError
+        error: 'Project not found',
+        details: projectError
       }, { status: 404 });
     }
 
@@ -115,20 +115,20 @@ export async function POST(request: NextRequest) {
         slack_message_id
       });
       return NextResponse.json({ 
-        error: 'Message already linked to a stream' 
+        error: 'Message already linked to a project' 
       }, { status: 409 });
     }
 
-    console.log('[SLACK DEBUG] Adding message to stream:', {
-      stream_id,
-      organization_id: stream.organization_id,
+    console.log('[SLACK DEBUG] Adding message to project:', {
+      project_id,
+      organization_id: project.organization_id,
       slack_message_id
     });
 
-    // Add message to stream
-    const message = await SlackMessageService.addMessageToStream(user_id, {
-      stream_id,
-      organization_id: stream.organization_id,
+    // Add message to project
+    const message = await SlackMessageService.addMessageToProject(user_id, {
+      project_id,
+      organization_id: project.organization_id,
       slack_message_id,
       slack_channel_id,
       slack_channel_name,
@@ -145,24 +145,24 @@ export async function POST(request: NextRequest) {
     });
 
     if (!message) {
-      logSlackError('/api/integrations/slack/pin-message', new Error('Failed to add message to stream'), {
-        stream_id,
+      logSlackError('/api/integrations/slack/pin-message', new Error('Failed to add message to project'), {
+        project_id,
         user_id,
         slack_message_id
       });
       return NextResponse.json({ 
-        error: 'Failed to add message to stream' 
+        error: 'Failed to add message to project' 
       }, { status: 500 });
     }
 
     console.log('[SLACK DEBUG] Message successfully pinned:', {
       message_id: message.id,
-      stream_id: message.stream_id
+      project_id: message.project_id
     });
 
     return NextResponse.json({
       success: true,
-      message: 'Message successfully pinned to stream',
+      message: 'Message successfully pinned to project',
       data: message,
     });
 

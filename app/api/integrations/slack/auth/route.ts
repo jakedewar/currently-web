@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { getSlackConfig } from '@/lib/integrations/slack-config';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -30,16 +31,17 @@ export async function GET(request: NextRequest) {
     }
 
     // Exchange code for access token
+    const slackConfig = getSlackConfig();
     const tokenResponse = await fetch('https://slack.com/api/oauth.v2.access', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
-        client_id: process.env.SLACK_CLIENT_ID!,
-        client_secret: process.env.SLACK_CLIENT_SECRET!,
+        client_id: slackConfig.clientId,
+        client_secret: slackConfig.clientSecret,
         code,
-        redirect_uri: `${process.env.NEXT_PUBLIC_SITE_URL}/api/integrations/slack/auth`,
+        redirect_uri: `${slackConfig.siteUrl}/api/integrations/slack/auth`,
       }),
     });
 

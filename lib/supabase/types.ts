@@ -256,152 +256,71 @@ export type Database = {
         }
         Relationships: []
       }
-      slack_messages: {
-        Row: {
-          attachments: Json | null
-          created_at: string | null
-          created_by: string
-          id: string
-          message_text: string
-          message_timestamp: string
-          metadata: Json | null
-          organization_id: string
-          permalink: string | null
-          reactions: Json | null
-          slack_channel_id: string
-          slack_channel_name: string
-          slack_message_id: string
-          slack_user_display_name: string | null
-          slack_user_id: string
-          slack_user_name: string
-          stream_id: string
-          thread_ts: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          attachments?: Json | null
-          created_at?: string | null
-          created_by: string
-          id?: string
-          message_text: string
-          message_timestamp: string
-          metadata?: Json | null
-          organization_id: string
-          permalink?: string | null
-          reactions?: Json | null
-          slack_channel_id: string
-          slack_channel_name: string
-          slack_message_id: string
-          slack_user_display_name?: string | null
-          slack_user_id: string
-          slack_user_name: string
-          stream_id: string
-          thread_ts?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          attachments?: Json | null
-          created_at?: string | null
-          created_by?: string
-          id?: string
-          message_text?: string
-          message_timestamp?: string
-          metadata?: Json | null
-          organization_id?: string
-          permalink?: string | null
-          reactions?: Json | null
-          slack_channel_id?: string
-          slack_channel_name?: string
-          slack_message_id?: string
-          slack_user_display_name?: string | null
-          slack_user_id?: string
-          slack_user_name?: string
-          stream_id?: string
-          thread_ts?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "slack_messages_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "slack_messages_stream_id_fkey"
-            columns: ["stream_id"]
-            isOneToOne: false
-            referencedRelation: "streams"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      stream_members: {
+      project_members: {
         Row: {
           id: string
           joined_at: string | null
+          project_id: string
           role: string
-          stream_id: string
           user_id: string
         }
         Insert: {
           id?: string
           joined_at?: string | null
+          project_id: string
           role?: string
-          stream_id: string
           user_id: string
         }
         Update: {
           id?: string
           joined_at?: string | null
+          project_id?: string
           role?: string
-          stream_id?: string
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "stream_members_stream_id_fkey"
-            columns: ["stream_id"]
+            foreignKeyName: "project_members_project_id_fkey"
+            columns: ["project_id"]
             isOneToOne: false
-            referencedRelation: "streams"
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
       }
-      stream_tools: {
+      project_tools: {
         Row: {
           connected_at: string | null
           id: string
-          stream_id: string
+          project_id: string
           tool_name: string
           tool_type: string | null
         }
         Insert: {
           connected_at?: string | null
           id?: string
-          stream_id: string
+          project_id: string
           tool_name: string
           tool_type?: string | null
         }
         Update: {
           connected_at?: string | null
           id?: string
-          stream_id?: string
+          project_id?: string
           tool_name?: string
           tool_type?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "stream_tools_stream_id_fkey"
-            columns: ["stream_id"]
+            foreignKeyName: "project_tools_project_id_fkey"
+            columns: ["project_id"]
             isOneToOne: false
-            referencedRelation: "streams"
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
       }
-      streams: {
+      projects: {
         Row: {
           created_at: string | null
           created_by: string
@@ -449,10 +368,91 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "streams_organization_id_fkey"
+            foreignKeyName: "projects_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      slack_messages: {
+        Row: {
+          attachments: Json | null
+          created_at: string | null
+          created_by: string
+          id: string
+          message_text: string
+          message_timestamp: string
+          metadata: Json | null
+          organization_id: string
+          permalink: string | null
+          project_id: string
+          reactions: Json | null
+          slack_channel_id: string
+          slack_channel_name: string
+          slack_message_id: string
+          slack_user_display_name: string | null
+          slack_user_id: string
+          slack_user_name: string
+          thread_ts: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          attachments?: Json | null
+          created_at?: string | null
+          created_by: string
+          id?: string
+          message_text: string
+          message_timestamp: string
+          metadata?: Json | null
+          organization_id: string
+          permalink?: string | null
+          project_id: string
+          reactions?: Json | null
+          slack_channel_id: string
+          slack_channel_name: string
+          slack_message_id: string
+          slack_user_display_name?: string | null
+          slack_user_id: string
+          slack_user_name: string
+          thread_ts?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          attachments?: Json | null
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          message_text?: string
+          message_timestamp?: string
+          metadata?: Json | null
+          organization_id?: string
+          permalink?: string | null
+          project_id?: string
+          reactions?: Json | null
+          slack_channel_id?: string
+          slack_channel_name?: string
+          slack_message_id?: string
+          slack_user_display_name?: string | null
+          slack_user_id?: string
+          slack_user_name?: string
+          thread_ts?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "slack_messages_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "slack_messages_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
@@ -678,7 +678,7 @@ export type Database = {
           created_at: string | null
           description: string
           id: string
-          stream_id: string | null
+          project_id: string | null
           tool: string | null
           user_id: string
           work_item_id: string | null
@@ -688,7 +688,7 @@ export type Database = {
           created_at?: string | null
           description: string
           id?: string
-          stream_id?: string | null
+          project_id?: string | null
           tool?: string | null
           user_id: string
           work_item_id?: string | null
@@ -698,17 +698,17 @@ export type Database = {
           created_at?: string | null
           description?: string
           id?: string
-          stream_id?: string | null
+          project_id?: string | null
           tool?: string | null
           user_id?: string
           work_item_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "user_activity_stream_id_fkey"
-            columns: ["stream_id"]
+            foreignKeyName: "user_activity_project_id_fkey"
+            columns: ["project_id"]
             isOneToOne: false
-            referencedRelation: "streams"
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
           {
@@ -766,8 +766,8 @@ export type Database = {
           order_index: number | null
           parent_task_id: string | null
           priority: string | null
+          project_id: string
           status: string
-          stream_id: string
           title: string
           tool: string | null
           type: string
@@ -786,8 +786,8 @@ export type Database = {
           order_index?: number | null
           parent_task_id?: string | null
           priority?: string | null
+          project_id: string
           status?: string
-          stream_id: string
           title: string
           tool?: string | null
           type: string
@@ -806,8 +806,8 @@ export type Database = {
           order_index?: number | null
           parent_task_id?: string | null
           priority?: string | null
+          project_id?: string
           status?: string
-          stream_id?: string
           title?: string
           tool?: string | null
           type?: string
@@ -823,10 +823,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "work_items_stream_id_fkey"
-            columns: ["stream_id"]
+            foreignKeyName: "work_items_project_id_fkey"
+            columns: ["project_id"]
             isOneToOne: false
-            referencedRelation: "streams"
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
@@ -850,6 +850,10 @@ export type Database = {
       }
       cleanup_expired_invitations: {
         Args: { days_old?: number }
+        Returns: undefined
+      }
+      cleanup_expired_stream_shares: {
+        Args: Record<PropertyKey, never>
         Returns: undefined
       }
       create_stream_and_owner: {
@@ -887,6 +891,10 @@ export type Database = {
           metadata: Json
           user_id: string
         }[]
+      }
+      generate_share_token: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       get_stream_members: {
         Args: { p_stream_ids: string[] }

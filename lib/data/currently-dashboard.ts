@@ -12,8 +12,8 @@ export interface CurrentlyDashboardData {
     slug: string;
   };
   stats: {
-    yourStreams: number;
-    totalStreams: number;
+    yourProjects: number;
+    totalProjects: number;
     totalHours: number;
     tasksCompletedThisWeek: number;
     teamSize: number;
@@ -29,9 +29,9 @@ export interface CurrentlyDashboardData {
       due_date: string | null;
       estimated_hours: number | null;
       actual_hours: number | null;
-      stream_id: string;
-      stream_name: string;
-      stream_emoji: string | null;
+      project_id: string;
+      project_name: string;
+      project_emoji: string | null;
       created_at: string | null;
       updated_at: string | null;
     }>;
@@ -45,9 +45,9 @@ export interface CurrentlyDashboardData {
       due_date: string | null;
       estimated_hours: number | null;
       actual_hours: number | null;
-      stream_id: string;
-      stream_name: string;
-      stream_emoji: string | null;
+      project_id: string;
+      project_name: string;
+      project_emoji: string | null;
       created_at: string | null;
       updated_at: string | null;
     }>;
@@ -61,15 +61,15 @@ export interface CurrentlyDashboardData {
       due_date: string | null;
       estimated_hours: number | null;
       actual_hours: number | null;
-      stream_id: string;
-      stream_name: string;
-      stream_emoji: string | null;
+      project_id: string;
+      project_name: string;
+      project_emoji: string | null;
       created_at: string | null;
       updated_at: string | null;
     }>;
   };
   quickActions: {
-    recentStreams: Array<{
+    recentProjects: Array<{
       id: string;
       name: string;
       description: string | null;
@@ -85,8 +85,8 @@ export interface CurrentlyDashboardData {
       title: string;
       type: string;
       status: string;
-      stream_id: string;
-      stream_name: string;
+      project_id: string;
+      project_name: string;
       updated_at: string | null;
     }>;
   };
@@ -102,23 +102,23 @@ export interface CurrentlyDashboardData {
     title: string;
     due_date: string;
     priority: string | null;
-    stream_name: string;
+    project_name: string;
     daysUntilDue: number;
   }>;
   context: {
-    streamUpdates: Array<{
+    projectUpdates: Array<{
       id: string;
       activity_type: string;
       description: string;
       created_at: string | null;
-      stream_name: string;
+      project_name: string;
       user_name: string | null;
     }>;
     blockers: Array<{
       id: string;
       title: string;
       status: string;
-      stream_name: string;
+      project_name: string;
       reason: string;
     }>;
   };
@@ -183,7 +183,7 @@ export async function getCurrentlyDashboardData(organizationId?: string): Promis
   }
 
 
-  // Get user's assigned work items with stream information
+  // Get user's assigned work items with project information
   const { data: userWorkItems } = await supabase
     .from('work_items')
     .select(`
@@ -198,8 +198,8 @@ export async function getCurrentlyDashboardData(organizationId?: string): Promis
       actual_hours,
       created_at,
       updated_at,
-      stream_id,
-      streams!inner (
+      project_id,
+      projects!inner (
         id,
         name,
         emoji,
@@ -207,7 +207,7 @@ export async function getCurrentlyDashboardData(organizationId?: string): Promis
       )
     `)
     .eq('assignee_id', user.id)
-    .eq('streams.organization_id', targetOrganizationId)
+    .eq('projects.organization_id', targetOrganizationId)
     .order('updated_at', { ascending: false });
 
   // Get user's recent work items (created by user, not necessarily assigned)
@@ -219,8 +219,8 @@ export async function getCurrentlyDashboardData(organizationId?: string): Promis
       type,
       status,
       updated_at,
-      stream_id,
-      streams!inner (
+      project_id,
+      projects!inner (
         id,
         name,
         emoji,
@@ -228,16 +228,16 @@ export async function getCurrentlyDashboardData(organizationId?: string): Promis
       )
     `)
     .eq('created_by', user.id)
-    .eq('streams.organization_id', targetOrganizationId)
+    .eq('projects.organization_id', targetOrganizationId)
     .order('updated_at', { ascending: false })
     .limit(5);
 
-  // Get streams user is a member of
-  const { data: userStreams } = await supabase
-    .from('stream_members')
+  // Get projects user is a member of
+  const { data: userProjects } = await supabase
+    .from('project_members')
     .select(`
-      stream_id,
-      streams!inner (
+      project_id,
+      projects!inner (
         id,
         name,
         description,
@@ -249,12 +249,12 @@ export async function getCurrentlyDashboardData(organizationId?: string): Promis
       )
     `)
     .eq('user_id', user.id)
-    .eq('streams.organization_id', targetOrganizationId)
-    .limit(10); // Get more streams initially, we'll sort them by user activity
+    .eq('projects.organization_id', targetOrganizationId)
+    .limit(10); // Get more projects initially, we'll sort them by user activity
 
-  // Get total streams in organization for stats
-  const { data: totalStreams } = await supabase
-    .from('streams')
+  // Get total projects in organization for stats
+  const { data: totalProjects } = await supabase
+    .from('projects')
     .select('id')
     .eq('organization_id', targetOrganizationId);
 
@@ -283,32 +283,32 @@ export async function getCurrentlyDashboardData(organizationId?: string): Promis
   //   .gte('created_at', todayStart.toISOString())
   //   .lt('created_at', todayEnd.toISOString());
 
-  // Get user's most recent activity in each stream to sort by interaction
-  const streamIds = userStreams?.map(s => s.streams.id) || [];
+  // Get user's most recent activity in each project to sort by interaction
+  const projectIds = userProjects?.map(p => p.projects.id) || [];
   
-  // Get user's most recent work item activity in each stream
-  const { data: userStreamActivity } = await supabase
+  // Get user's most recent work item activity in each project
+  const { data: userProjectActivity } = await supabase
     .from('work_items')
     .select(`
-      stream_id,
+      project_id,
       updated_at,
       created_at
     `)
-    .in('stream_id', streamIds)
+    .in('project_id', projectIds)
     .or(`created_by.eq.${user.id},assignee_id.eq.${user.id}`)
     .order('updated_at', { ascending: false });
 
-  // Get work items for streams to calculate counts
-  const { data: streamWorkItems } = await supabase
+  // Get work items for projects to calculate counts
+  const { data: projectWorkItems } = await supabase
     .from('work_items')
     .select(`
-      stream_id,
+      project_id,
       type
     `)
-    .in('stream_id', streamIds);
+    .in('project_id', projectIds);
 
-  // Get recent stream activity for team activity component
-  const { data: streamActivity } = await supabase
+  // Get recent project activity for team activity component
+  const { data: projectActivity } = await supabase
     .from('user_activity')
     .select(`
       id,
@@ -316,18 +316,18 @@ export async function getCurrentlyDashboardData(organizationId?: string): Promis
       description,
       created_at,
       user_id,
-      streams (
+      projects (
         id,
         name
       )
     `)
-    .in('stream_id', streamIds)
+    .in('project_id', projectIds)
     .order('created_at', { ascending: false })
     .limit(10);
 
 
   // Get user details for activity
-  const activityUserIds = streamActivity?.map(a => a.user_id).filter(Boolean) || [];
+  const activityUserIds = projectActivity?.map(a => a.user_id).filter(Boolean) || [];
   const { data: activityUsers } = await supabase
     .from('users')
     .select('id, full_name')
@@ -335,21 +335,21 @@ export async function getCurrentlyDashboardData(organizationId?: string): Promis
 
   const userMap = new Map(activityUsers?.map(u => [u.id, u]) || []);
 
-  // Sort streams by user's most recent interaction
-  const sortedStreams = userStreams?.map(streamMember => {
-    const stream = streamMember.streams;
-    const userActivity = userStreamActivity?.find(activity => activity.stream_id === stream.id);
+  // Sort projects by user's most recent interaction
+  const sortedProjects = userProjects?.map(projectMember => {
+    const project = projectMember.projects;
+    const userActivity = userProjectActivity?.find(activity => activity.project_id === project.id);
     
     return {
-      ...streamMember,
-      lastUserInteraction: userActivity?.updated_at || userActivity?.created_at || stream.updated_at
+      ...projectMember,
+      lastUserInteraction: userActivity?.updated_at || userActivity?.created_at || project.updated_at
     };
   }).sort((a, b) => {
-    // Sort by most recent user interaction, fallback to stream update time
+    // Sort by most recent user interaction, fallback to project update time
     const aTime = new Date(a.lastUserInteraction || 0).getTime();
     const bTime = new Date(b.lastUserInteraction || 0).getTime();
     return bTime - aTime; // Most recent first
-  }).slice(0, 5) || []; // Take top 5 most recently interacted with streams
+  }).slice(0, 5) || []; // Take top 5 most recently interacted with projects
 
   // Process work items
   const workItems = userWorkItems || [];
@@ -385,7 +385,7 @@ export async function getCurrentlyDashboardData(organizationId?: string): Promis
         title: item.title,
         due_date: item.due_date!,
         priority: item.priority,
-        stream_name: item.streams.name,
+        project_name: item.projects.name,
         daysUntilDue
       };
     })
@@ -405,8 +405,8 @@ export async function getCurrentlyDashboardData(organizationId?: string): Promis
   const tasksBlocked = workItems.filter(item => item.status === 'blocked').length;
 
   // Calculate stats for dashboard cards
-  const yourStreams = userStreams?.length || 0;
-  const totalStreamsInOrg = totalStreams?.length || 0;
+  const yourProjects = userProjects?.length || 0;
+  const totalProjectsInOrg = totalProjects?.length || 0;
   const teamSize = teamMembers?.length || 0;
   
   // Calculate tasks completed this week (tasks that were completed since start of week)
@@ -422,13 +422,13 @@ export async function getCurrentlyDashboardData(organizationId?: string): Promis
     .filter(item => item.status === 'in_progress' || item.status === 'active')
     .reduce((total, item) => total + (item.estimated_hours || 0), 0);
 
-  // Process stream updates
-  const streamUpdates = streamActivity?.map(activity => ({
+  // Process project updates
+  const projectUpdates = projectActivity?.map(activity => ({
     id: activity.id,
     activity_type: activity.activity_type,
     description: activity.description,
     created_at: activity.created_at,
-    stream_name: activity.streams?.name || 'Unknown Stream',
+    project_name: activity.projects?.name || 'Unknown Project',
     user_name: userMap.get(activity.user_id)?.full_name || 'Unknown User'
   })) || [];
 
@@ -439,7 +439,7 @@ export async function getCurrentlyDashboardData(organizationId?: string): Promis
       id: item.id,
       title: item.title,
       status: item.status,
-      stream_name: item.streams.name,
+      project_name: item.projects.name,
       reason: 'High priority task not started'
     }));
 
@@ -454,8 +454,8 @@ export async function getCurrentlyDashboardData(organizationId?: string): Promis
       slug: targetOrganization.slug,
     },
     stats: {
-      yourStreams,
-      totalStreams: totalStreamsInOrg,
+      yourProjects,
+      totalProjects: totalProjectsInOrg,
       totalHours,
       tasksCompletedThisWeek,
       teamSize,
@@ -471,9 +471,9 @@ export async function getCurrentlyDashboardData(organizationId?: string): Promis
         due_date: item.due_date,
         estimated_hours: item.estimated_hours,
         actual_hours: item.actual_hours,
-        stream_id: item.stream_id,
-        stream_name: item.streams.name,
-        stream_emoji: item.streams.emoji,
+        project_id: item.project_id,
+        project_name: item.projects.name,
+        project_emoji: item.projects.emoji,
         created_at: item.created_at,
         updated_at: item.updated_at,
       })),
@@ -487,9 +487,9 @@ export async function getCurrentlyDashboardData(organizationId?: string): Promis
         due_date: item.due_date,
         estimated_hours: item.estimated_hours,
         actual_hours: item.actual_hours,
-        stream_id: item.stream_id,
-        stream_name: item.streams.name,
-        stream_emoji: item.streams.emoji,
+        project_id: item.project_id,
+        project_name: item.projects.name,
+        project_emoji: item.projects.emoji,
         created_at: item.created_at,
         updated_at: item.updated_at,
       })),
@@ -503,27 +503,27 @@ export async function getCurrentlyDashboardData(organizationId?: string): Promis
         due_date: item.due_date,
         estimated_hours: item.estimated_hours,
         actual_hours: item.actual_hours,
-        stream_id: item.stream_id,
-        stream_name: item.streams.name,
-        stream_emoji: item.streams.emoji,
+        project_id: item.project_id,
+        project_name: item.projects.name,
+        project_emoji: item.projects.emoji,
         created_at: item.created_at,
         updated_at: item.updated_at,
       })),
     },
     quickActions: {
-      recentStreams: sortedStreams.map(s => {
-        const streamWorkItemsForStream = streamWorkItems?.filter(item => item.stream_id === s.streams.id) || [];
-        const resourceCount = streamWorkItemsForStream.filter(item => item.type === 'url').length;
-        const taskCount = streamWorkItemsForStream.filter(item => item.type === 'note').length;
+      recentProjects: sortedProjects.map(p => {
+        const projectWorkItemsForProject = projectWorkItems?.filter(item => item.project_id === p.projects.id) || [];
+        const resourceCount = projectWorkItemsForProject.filter(item => item.type === 'url').length;
+        const taskCount = projectWorkItemsForProject.filter(item => item.type === 'note').length;
         
         return {
-          id: s.streams.id,
-          name: s.streams.name,
-          description: s.streams.description,
-          emoji: s.streams.emoji,
-          status: s.streams.status,
-          progress: s.streams.progress,
-          last_activity: s.lastUserInteraction,
+          id: p.projects.id,
+          name: p.projects.name,
+          description: p.projects.description,
+          emoji: p.projects.emoji,
+          status: p.projects.status,
+          progress: p.projects.progress,
+          last_activity: p.lastUserInteraction,
           resource_count: resourceCount,
           task_count: taskCount,
         };
@@ -533,8 +533,8 @@ export async function getCurrentlyDashboardData(organizationId?: string): Promis
         title: item.title,
         type: item.type,
         status: item.status,
-        stream_id: item.stream_id,
-        stream_name: item.streams.name,
+        project_id: item.project_id,
+        project_name: item.projects.name,
         updated_at: item.updated_at,
       })) || [],
     },
@@ -547,7 +547,7 @@ export async function getCurrentlyDashboardData(organizationId?: string): Promis
     },
     upcomingDeadlines,
     context: {
-      streamUpdates,
+      projectUpdates,
       blockers,
     },
   };

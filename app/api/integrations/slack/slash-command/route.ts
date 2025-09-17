@@ -1,19 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { verifySlackRequest } from '@/lib/integrations/slack-verification';
+import { getSlackConfig } from '@/lib/integrations/slack-config';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
-    const signingSecret = process.env.SLACK_SIGNING_SECRET;
+    const slackConfig = getSlackConfig();
 
-    if (!signingSecret) {
-      console.error('SLACK_SIGNING_SECRET not configured');
+    if (!slackConfig.signingSecret) {
+      console.error('Slack signing secret not configured');
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
 
     // Verify the request signature
-    const verification = verifySlackRequest(body, request.headers, signingSecret);
+    const verification = verifySlackRequest(body, request.headers, slackConfig.signingSecret);
     if (!verification.isValid) {
       console.error('Slack request verification failed:', verification.error);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -29,7 +30,7 @@ export async function POST(request: NextRequest) {
 
     console.log('Slash command received:', { text, userId, channelId, teamId, userName });
 
-    // Get user's accessible streams
+    // Get user's accessible projects
     const supabase = await createClient();
     
     // First, we need to find the user in our database by their Slack user ID
@@ -68,51 +69,51 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Get streams for each organization
-    const streamPromises = orgMembers.map(async (org) => {
-      const { data: streams } = await supabase
-        .from('streams')
+    // Get projects for each organization
+    const projectPromises = orgMembers.map(async (org) => {
+      const { data: projects } = await supabase
+        .from('projects')
         .select(`
           id,
           name,
           description,
-          stream_members!inner(user_id)
+          project_members!inner(user_id)
         `)
         .eq('organization_id', org.organization_id)
-        .eq('stream_members.user_id', user.id)
+        .eq('project_members.user_id', user.id)
         .eq('status', 'active')
         .order('name');
 
-      return streams || [];
+      return projects || [];
     });
 
-    const allStreams = (await Promise.all(streamPromises)).flat();
+    const allStreams = (await Promise.all(projectPromises)).flat();
 
     if (allStreams.length === 0) {
       return NextResponse.json({
         response_type: 'ephemeral',
-        text: 'No accessible streams found. Create a stream in Currently first.'
+        text: 'No accessible projects found. Create a project in Currently first.'
       });
     }
 
-    // If no stream name provided, show available streams
+    // If no project name provided, show available projects
     if (!text) {
-      const streamList = allStreams.map(stream => `• ${stream.name}`).join('\n');
+      const projectList = allStreams.map(project => `• ${project.name}`).join('\n');
       return NextResponse.json({
         response_type: 'ephemeral',
-        text: `Available streams:\n${streamList}\n\nUsage: /pin-to-currently [stream-name]\n\nTo pin a message, right-click on it and select "Pin to Currently" from the message actions menu.`
+        text: `Available projects:\n${projectList}\n\nUsage: /pin-to-currently [project-name]\n\nTo pin a message, right-click on it and select "Pin to Currently" from the message actions menu.`
       });
     }
 
-    // Find matching stream
-    const matchingStream = allStreams.find(stream => 
-      stream.name.toLowerCase().includes(text.toLowerCase())
+    // Find matching project
+    const matchingStream = allStreams.find(project => 
+      project.name.toLowerCase().includes(text.toLowerCase())
     );
 
     if (!matchingStream) {
       return NextResponse.json({
         response_type: 'ephemeral',
-        text: `Stream "${text}" not found. Available streams:\n${allStreams.map(s => `• ${s.name}`).join('\n')}`
+        text: `Stream "${text}" not found. Available projects:\n${allStreams.map(s => `• ${s.name}`).join('\n')}`
       });
     }
 

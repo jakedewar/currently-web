@@ -85,8 +85,8 @@ export function useOrganizationPrefetch() {
       // Use React Query's prefetch instead of direct API calls
       // This ensures proper caching and prevents duplicate requests
       queryClient.prefetchQuery({
-        queryKey: ['streams', currentOrganization.id],
-        queryFn: () => apiClient.fetch('/api/streams', { params: { organizationId: currentOrganization.id } }),
+        queryKey: ['projects', currentOrganization.id],
+        queryFn: () => apiClient.fetch('/api/projects', { params: { organizationId: currentOrganization.id } }),
         staleTime: 5 * 60 * 1000, // 5 minutes
       })
       

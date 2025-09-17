@@ -2,8 +2,8 @@
 
 import { useEffect, useState, use } from "react"
 import { usePathname } from "next/navigation"
-import { StreamsList } from "@/components/streams/streams-list"
-import type { StreamsData } from "@/lib/data/streams"
+import { ProjectsList } from "@/components/projects/projects-list"
+import type { ProjectsData } from "@/lib/data/projects"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
@@ -29,15 +29,15 @@ interface UserProfile {
   joined_at: string | null;
 }
 
-function UserStreams({ userId }: { userId: string }) {
+function UserProjects({ userId }: { userId: string }) {
   const pathname = usePathname()
-  const [streamsData, setStreamsData] = useState<StreamsData | null>(null)
+  const [projectsData, setProjectsData] = useState<ProjectsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const { currentOrganization } = useOrganization()
 
   useEffect(() => {
-    const fetchUserStreams = async () => {
+    const fetchUserProjects = async () => {
       if (!currentOrganization) {
         setError('Please select an organization')
         setLoading(false)
@@ -45,31 +45,31 @@ function UserStreams({ userId }: { userId: string }) {
       }
 
       try {
-        const response = await fetch(`/api/users/${userId}/streams?organizationId=${currentOrganization.id}`)
+        const response = await fetch(`/api/users/${userId}/projects?organizationId=${currentOrganization.id}`)
         
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}))
-          throw new Error(errorData.error || `HTTP ${response.status}: Failed to fetch user streams`)
+          throw new Error(errorData.error || `HTTP ${response.status}: Failed to fetch user projects`)
         }
 
         const data = await response.json()
         
         // Validate the data structure
-        if (!data || !Array.isArray(data.streams)) {
+        if (!data || !Array.isArray(data.projects)) {
           throw new Error('Invalid data structure received from server')
         }
 
-        setStreamsData(data)
+        setProjectsData(data)
         setError(null)
       } catch (err) {
-        console.error('Error fetching user streams:', err)
-        setError(err instanceof Error ? err.message : 'Failed to load user streams')
+        console.error('Error fetching user projects:', err)
+        setError(err instanceof Error ? err.message : 'Failed to load user projects')
       } finally {
         setLoading(false)
       }
     }
 
-    fetchUserStreams()
+    fetchUserProjects()
   }, [userId, currentOrganization])
 
   if (loading) {
@@ -93,15 +93,15 @@ function UserStreams({ userId }: { userId: string }) {
     )
   }
 
-  if (!streamsData || streamsData.streams.length === 0) {
+  if (!projectsData || projectsData.projects.length === 0) {
     return (
       <div className="text-center py-4 sm:py-6">
-        <p className="text-sm sm:text-base text-muted-foreground">No streams found for this user.</p>
+        <p className="text-sm sm:text-base text-muted-foreground">No projects found for this user.</p>
       </div>
     )
   }
 
-  return <StreamsList data={streamsData} pathname={pathname} />
+  return <ProjectsList data={projectsData} pathname={pathname} />
 }
 
 export default function UserPage({ params }: { params: Promise<{ id: string }> }) {
@@ -287,15 +287,15 @@ export default function UserPage({ params }: { params: Promise<{ id: string }> }
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="streams" className="space-y-4">
+      <Tabs defaultValue="projects" className="space-y-4">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="streams" className="text-xs sm:text-sm">Streams</TabsTrigger>
+          <TabsTrigger value="projects" className="text-xs sm:text-sm">Projects</TabsTrigger>
           <TabsTrigger value="tasks" className="text-xs sm:text-sm">Tasks</TabsTrigger>
           <TabsTrigger value="activity" className="text-xs sm:text-sm">Activity</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="streams" className="space-y-4">
-          <UserStreams userId={id} />
+        <TabsContent value="projects" className="space-y-4">
+          <UserProjects userId={id} />
         </TabsContent>
 
         <TabsContent value="tasks" className="space-y-4">

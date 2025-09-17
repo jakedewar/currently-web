@@ -5,7 +5,7 @@ import { useOrganization } from "./organization-provider"
 import { useUser } from "@/hooks/use-user"
 import { useOrganizations } from "@/hooks/use-organizations"
 import { useDashboardData } from "@/hooks/use-dashboard-updates"
-import { useStreams } from "@/hooks/use-streams"
+import { useProjects } from "@/hooks/use-projects"
 import { useUsers } from "@/hooks/use-users"
 
 interface DataProviderProps {
@@ -22,7 +22,7 @@ export function DataProvider({ children }: DataProviderProps) {
   
   // Organization-specific data - only fetch when we have an organization
   useDashboardData(currentOrganization?.id)
-  useStreams(currentOrganization?.id)
+  useProjects(currentOrganization?.id)
   useUsers(currentOrganization?.id, 1, 10)
   
   return <>{children}</>

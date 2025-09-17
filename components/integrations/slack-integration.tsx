@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useOrganization } from '@/components/organization-provider';
+import { getSlackConfig, isStagingEnvironment, getSlackAppName } from '@/lib/integrations/slack-config';
 
 interface SlackIntegration {
   id: string;
@@ -62,12 +63,12 @@ export function SlackIntegration() {
   const connectSlack = () => {
     if (!currentOrganization) return;
     
-    const clientId = process.env.NEXT_PUBLIC_SLACK_CLIENT_ID;
-    const redirectUri = `${process.env.NEXT_PUBLIC_SITE_URL}/api/integrations/slack/auth`;
+    const slackConfig = getSlackConfig();
+    const redirectUri = `${slackConfig.siteUrl}/api/integrations/slack/auth`;
     const scopes = 'channels:read,chat:write,team:read';
     const state = currentOrganization.id; // Pass organization ID as state
     
-    const authUrl = `https://slack.com/oauth/v2/authorize?client_id=${clientId}&scope=${scopes}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}`;
+    const authUrl = `https://slack.com/oauth/v2/authorize?client_id=${slackConfig.clientId}&scope=${scopes}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}`;
     
     window.open(authUrl, '_blank', 'width=600,height=700');
   };
@@ -223,6 +224,16 @@ export function SlackIntegration() {
             <span className="font-medium">
               {new Date(integration.created_at).toLocaleDateString()}
             </span>
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Environment:</span>
+            <Badge variant={isStagingEnvironment() ? "outline" : "default"} className="text-xs">
+              {isStagingEnvironment() ? 'Staging' : 'Production'}
+            </Badge>
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">Slack App:</span>
+            <span className="font-medium text-xs">{getSlackAppName()}</span>
           </div>
         </div>
 

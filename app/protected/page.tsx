@@ -3,7 +3,7 @@
 import { useOrganization } from "@/components/organization-provider"
 import { useCurrentlyDashboardData } from "@/hooks/use-currently-dashboard"
 import { UpcomingTasks } from "@/components/dashboard/upcoming-tasks"
-import { RecentStreams } from "@/components/dashboard/recent-streams"
+import { RecentProjects } from "@/components/dashboard/recent-projects"
 import { ActivityFeed } from "@/components/dashboard/team-activity"
 import { StatsCards } from "@/components/dashboard/stats-cards"
 
@@ -89,7 +89,7 @@ export default function ProtectedPage() {
           currentFocus={dashboardData.currentFocus}
           upcomingDeadlines={dashboardData.upcomingDeadlines}
         />
-        <RecentStreams 
+        <RecentProjects 
           quickActions={dashboardData.quickActions}
         />
         <ActivityFeed 

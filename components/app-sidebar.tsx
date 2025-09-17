@@ -55,9 +55,9 @@ export function AppSidebar() {
       label: "Dashboard",
     },
     {
-      href: "/protected/streams",
+      href: "/protected/projects",
       icon: Waves,
-      label: "Streams",
+      label: "Projects",
     },
     {
       href: "/protected/users",
@@ -131,7 +131,7 @@ export function AppSidebar() {
             // Check if the current path matches the nav item or is a sub-route
             const isActive = pathname === item.href || 
               (item.href === "/protected/users" && pathname.startsWith("/protected/users/")) ||
-              (item.href === "/protected/streams" && pathname.startsWith("/protected/streams/")) ||
+              (item.href === "/protected/projects" && pathname.startsWith("/protected/projects/")) ||
               (item.href === "/protected/integrations" && pathname.startsWith("/protected/integrations/"))
             return (
               <a

@@ -22,7 +22,7 @@ export function useDashboardData(organizationId: string | undefined) {
   })
 }
 
-// New hook that combines dashboard data with streams data to reduce API calls
+// New hook that combines dashboard data with projects data to reduce API calls
 export function useOptimizedDashboardData(organizationId: string | undefined) {
   const { data: dashboardData, isLoading: dashboardLoading, error: dashboardError } = useDashboardData(organizationId)
   
@@ -33,8 +33,8 @@ export function useOptimizedDashboardData(organizationId: string | undefined) {
     // Add derived data that could come from other hooks
     derivedStats: dashboardData ? {
       ...dashboardData.stats,
-      // Additional stats that could be calculated from streams data
-      totalStreams: dashboardData.streams.length,
+      // Additional stats that could be calculated from projects data
+      totalProjects: dashboardData.projects.length,
       completedWorkItems: dashboardData.workItems.filter(item => item.status === 'completed').length,
     } : null
   }

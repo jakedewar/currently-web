@@ -12,12 +12,12 @@ export interface DashboardData {
     slug: string;
   };
   stats: {
-    activeStreams: number;
+    activeProjects: number;
     totalUrlItems: number;
     totalNoteItems: number;
     teamSize: number;
   };
-  streams: Array<{
+  projects: Array<{
     id: string;
     name: string;
     description: string | null;
@@ -36,7 +36,7 @@ export interface DashboardData {
     tool: string | null;
     created_at: string | null;
     updated_at: string | null;
-    streams: {
+    projects: {
       id: string;
       name: string | null;
     } | null;
@@ -48,7 +48,7 @@ export interface DashboardData {
     description: string;
     tool: string | null;
     created_at: string | null;
-    streams: {
+    projects: {
       id: string;
       name: string | null;
     } | null;
@@ -118,9 +118,9 @@ export async function getDashboardData(organizationId?: string): Promise<Dashboa
     targetOrganization = userOrg.organizations;
   }
 
-  // Get streams for the organization
-  const { data: streams } = await supabase
-    .from('streams')
+  // Get projects for the organization
+  const { data: projects } = await supabase
+    .from('projects')
     .select(`
       id,
       name,
@@ -141,11 +141,11 @@ export async function getDashboardData(organizationId?: string): Promise<Dashboa
     .select(`
       id,
       type,
-      streams!inner (
+      projects!inner (
         organization_id
       )
     `)
-    .eq('streams.organization_id', targetOrganizationId);
+    .eq('projects.organization_id', targetOrganizationId);
 
   // Get recent work items for display
   const { data: recentWorkItems } = await supabase
@@ -159,13 +159,13 @@ export async function getDashboardData(organizationId?: string): Promise<Dashboa
       tool,
       created_at,
       updated_at,
-      streams!inner (
+      projects!inner (
         id,
         name,
         organization_id
       )
     `)
-    .eq('streams.organization_id', targetOrganizationId)
+    .eq('projects.organization_id', targetOrganizationId)
     .order('updated_at', { ascending: false })
     .limit(5);
 
@@ -179,7 +179,7 @@ export async function getDashboardData(organizationId?: string): Promise<Dashboa
       tool,
       created_at,
       user_id,
-      streams (
+      projects (
         id,
         name
       ),
@@ -187,7 +187,7 @@ export async function getDashboardData(organizationId?: string): Promise<Dashboa
         title
       )
     `)
-    .eq('streams.organization_id', targetOrganizationId)
+    .eq('projects.organization_id', targetOrganizationId)
     .order('created_at', { ascending: false })
     .limit(6);
 
@@ -214,7 +214,7 @@ export async function getDashboardData(organizationId?: string): Promise<Dashboa
   const userMap = new Map(activityUsers?.map(user => [user.id, user]) || []);
 
   // Calculate statistics
-  const activeStreams = streams?.filter(s => s.status === 'active').length || 0;
+  const activeProjects = projects?.filter(p => p.status === 'active').length || 0;
   const totalUrlItems = allWorkItems?.filter(w => w.type === 'url').length || 0;
   const totalNoteItems = allWorkItems?.filter(w => w.type === 'note').length || 0;
   const teamSize = orgMembers?.length || 0;
@@ -230,12 +230,12 @@ export async function getDashboardData(organizationId?: string): Promise<Dashboa
       slug: targetOrganization.slug,
     },
     stats: {
-      activeStreams,
+      activeProjects,
       totalUrlItems,
       totalNoteItems,
       teamSize,
     },
-    streams: streams || [],
+    projects: projects || [],
     workItems: recentWorkItems || [],
     teamActivity: teamActivity || [],
     activityUsers: userMap,

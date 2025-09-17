@@ -12,7 +12,7 @@ interface ActivityFeedProps {
 }
 
 export function ActivityFeed({ context }: ActivityFeedProps) {
-  const { streamUpdates } = context
+  const { projectUpdates } = context
 
   const formatTimeAgo = (dateString: string | null) => {
     if (!dateString) return 'Unknown'
@@ -60,9 +60,9 @@ export function ActivityFeed({ context }: ActivityFeedProps) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {streamUpdates && streamUpdates.length > 0 ? (
+        {projectUpdates && projectUpdates.length > 0 ? (
           <div className="space-y-3">
-            {streamUpdates.slice(0, 5).map((update) => (
+            {projectUpdates.slice(0, 5).map((update) => (
               <div key={update.id} className="flex items-start gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors">
                 <div className="text-lg flex-shrink-0">{getActivityIcon(update.activity_type)}</div>
                 <div className="flex-1 min-w-0">
@@ -76,7 +76,7 @@ export function ActivityFeed({ context }: ActivityFeedProps) {
                     {update.description}
                   </p>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span>{update.stream_name}</span>
+                    <span>{update.project_name}</span>
                     <span>•</span>
                     <span className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
@@ -87,10 +87,10 @@ export function ActivityFeed({ context }: ActivityFeedProps) {
               </div>
             ))}
             
-            {streamUpdates.length > 5 && (
+            {projectUpdates.length > 5 && (
               <div className="text-center pt-2">
                 <Button variant="ghost" size="sm" asChild>
-                  <Link href="/protected/streams">
+                  <Link href="/protected/projects">
                     View all activity
                   </Link>
                 </Button>
@@ -101,11 +101,11 @@ export function ActivityFeed({ context }: ActivityFeedProps) {
           <div className="text-center py-6 text-muted-foreground">
             <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
             <p className="text-sm">No recent activity</p>
-            <p className="text-xs">Updates from streams and integrations will appear here</p>
+            <p className="text-xs">Updates from projects and integrations will appear here</p>
             <Button variant="outline" size="sm" className="mt-3" asChild>
-              <Link href="/protected/streams">
+              <Link href="/protected/projects">
                 <ArrowRight className="h-4 w-4 mr-2" />
-                View Streams
+                View Projects
               </Link>
             </Button>
           </div>

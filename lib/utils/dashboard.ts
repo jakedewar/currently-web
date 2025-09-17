@@ -29,17 +29,17 @@ export function getActivityDescription(activity: {
   activity_type: string;
   description: string;
   tool?: string | null;
-  streams?: { name: string | null } | null;
+  projects?: { name: string | null } | null;
   work_items?: { title: string | null } | null;
 }, userName: string): string {
-  const streamName = activity.streams?.name || "a stream";
+  const projectName = activity.projects?.name || "a project";
   const workItemTitle = activity.work_items?.title || "an item";
   
   switch (activity.activity_type) {
-    case "stream_created":
-      return `${userName} created ${streamName}`;
-    case "stream_updated":
-      return `${userName} updated ${streamName}`;
+    case "project_created":
+      return `${userName} created ${projectName}`;
+    case "project_updated":
+      return `${userName} updated ${projectName}`;
     case "work_item_created":
       return `${userName} created ${workItemTitle}`;
     case "work_item_updated":
@@ -47,29 +47,29 @@ export function getActivityDescription(activity: {
     case "work_item_completed":
       return `${userName} completed ${workItemTitle}`;
     case "tool_connected":
-      return `${userName} connected ${activity.tool} to ${streamName}`;
+      return `${userName} connected ${activity.tool} to ${projectName}`;
     case "member_joined":
-      return `${userName} joined ${streamName}`;
+      return `${userName} joined ${projectName}`;
     case "status_changed":
       return `${userName} changed status of ${workItemTitle}`;
     case "progress_updated":
-      return `${userName} updated progress on ${streamName}`;
+      return `${userName} updated progress on ${projectName}`;
     default:
       return activity.description;
   }
 }
 
 export function getDashboardStats(stats: {
-  yourStreams: number;
-  totalStreams: number;
+  yourProjects: number;
+  totalProjects: number;
   totalHours: number;
   tasksCompletedThisWeek: number;
   teamSize: number;
 } | undefined) {
   // Provide default values if stats is undefined
   const safeStats = stats || {
-    yourStreams: 0,
-    totalStreams: 0,
+    yourProjects: 0,
+    totalProjects: 0,
     totalHours: 0,
     tasksCompletedThisWeek: 0,
     teamSize: 0,
@@ -80,11 +80,11 @@ export function getDashboardStats(stats: {
   
   return [
     {
-      title: "Your Streams",
-      value: safeStats.yourStreams.toString(),
+      title: "Your Projects",
+      value: safeStats.yourProjects.toString(),
       description: "",
       icon: Waves,
-      trend: `+${safeStats.yourStreams} this week`,
+      trend: `+${safeStats.yourProjects} this week`,
       color: "text-primary",
     },
     {

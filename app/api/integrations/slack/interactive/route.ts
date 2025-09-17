@@ -3,7 +3,8 @@ import { createClient } from '@/lib/supabase/server';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { verifySlackRequest } from '@/lib/integrations/slack-verification';
 import { WebClient } from '@slack/web-api';
-import { logSlackError } from '@/lib/integrations/slack-debug';
+import { logSlackError } from '@/docs/tests/slack-debug';
+import { getSlackConfig } from '@/lib/integrations/slack-config';
 import type { Database } from '@/lib/supabase/types';
 
 // Type definitions for Slack interactive components
@@ -82,15 +83,15 @@ export async function POST(request: NextRequest) {
     console.log('[SLACK DEBUG] Request headers:', Object.fromEntries(request.headers.entries()));
     
     const body = await request.text();
-    const signingSecret = process.env.SLACK_SIGNING_SECRET;
+    const slackConfig = getSlackConfig();
 
-    if (!signingSecret) {
-      logSlackError('/api/integrations/slack/interactive', new Error('SLACK_SIGNING_SECRET not configured'));
+    if (!slackConfig.signingSecret) {
+      logSlackError('/api/integrations/slack/interactive', new Error('Slack signing secret not configured'));
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
 
     // Verify the request signature
-    const verification = verifySlackRequest(body, request.headers, signingSecret);
+    const verification = verifySlackRequest(body, request.headers, slackConfig.signingSecret);
     if (!verification.isValid) {
       logSlackError('/api/integrations/slack/interactive', new Error('Request verification failed'), { 
         error: verification.error,
@@ -179,8 +180,8 @@ async function handleBlockActions(payload: SlackPayload) {
     for (const action of actions) {
       if (action.action_id === 'pin_to_currently') {
         console.log('[SLACK DEBUG] Pin to Currently action triggered');
-        // Show stream selection modal
-        return showStreamSelectionModal(user.id, channel?.id || '', message, payload.trigger_id);
+        // Show project selection modal
+        return showProjectSelectionModal(user.id, channel?.id || '', message, payload.trigger_id);
       }
     }
 
@@ -206,7 +207,7 @@ async function handleShortcut(payload: SlackPayload) {
     
     if (payload.callback_id === 'pin_message') {
       console.log('[SLACK DEBUG] Pin message shortcut triggered');
-      return showStreamSelectionModal(user.id, channel?.id || '', message, payload.trigger_id);
+      return showProjectSelectionModal(user.id, channel?.id || '', message, payload.trigger_id);
     }
 
     console.log('[SLACK DEBUG] Unknown callback_id:', payload.callback_id);
@@ -245,27 +246,27 @@ async function handleViewSubmission(payload: SlackPayload) {
       fullValues: values
     });
     
-    // Extract selected stream ID - find the stream_select action in any block
-    let streamId: string | undefined;
+    // Extract selected project ID - find the project_select action in any block
+    let projectId: string | undefined;
     for (const blockId of Object.keys(values)) {
       const block = values[blockId];
-      if (block.stream_select?.selected_option?.value) {
-        streamId = block.stream_select.selected_option.value;
+      if (block.project_select?.selected_option?.value) {
+        projectId = block.project_select.selected_option.value;
         break;
       }
     }
     
-    console.log('[SLACK DEBUG] Extracted stream ID:', streamId);
+    console.log('[SLACK DEBUG] Extracted project ID:', projectId);
     
-    if (!streamId) {
-      logSlackError('handleViewSubmission', new Error('No stream selected'), { 
+    if (!projectId) {
+      logSlackError('handleViewSubmission', new Error('No project selected'), { 
         userId: user.id, 
         values: values 
       });
       return NextResponse.json({
         response_action: 'errors',
         errors: {
-          stream_selection: 'Please select a stream'
+          project_selection: 'Please select a project'
         }
       });
     }
@@ -305,7 +306,7 @@ async function handleViewSubmission(payload: SlackPayload) {
       return NextResponse.json({
         response_action: 'errors',
         errors: {
-          stream_selection: 'You need to connect your Slack account to Currently first.'
+          project_selection: 'You need to connect your Slack account to Currently first.'
         }
       });
     }
@@ -315,20 +316,21 @@ async function handleViewSubmission(payload: SlackPayload) {
       slack_user_id: user.id
     });
 
-    // Pin the message to the selected stream
+    // Pin the message to the selected project
     const pinPayload = {
       ...messageData,
-      stream_id: streamId,
+      project_id: projectId,
       user_id: integration?.[0]?.user_id, // Use the database user ID, not Slack user ID
     };
 
     console.log('[SLACK DEBUG] Calling pin-message API with payload:', {
-      stream_id: streamId,
+      project_id: projectId,
       user_id: integration?.[0]?.user_id,
       slack_message_id: messageData.slack_message_id
     });
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/integrations/slack/pin-message`, {
+    const slackConfig = getSlackConfig();
+    const response = await fetch(`${slackConfig.siteUrl}/api/integrations/slack/pin-message`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -352,7 +354,7 @@ async function handleViewSubmission(payload: SlackPayload) {
       return NextResponse.json({
         response_action: 'errors',
         errors: {
-          stream_selection: `Failed to pin message: ${responseData.error || 'Unknown error'}`
+          project_selection: `Failed to pin message: ${responseData.error || 'Unknown error'}`
         }
       });
     }
@@ -361,13 +363,13 @@ async function handleViewSubmission(payload: SlackPayload) {
     return NextResponse.json({
       response_action: 'errors',
       errors: {
-        stream_selection: 'Failed to pin message. Please try again.'
+        project_selection: 'Failed to pin message. Please try again.'
       }
     });
   }
 }
 
-async function showStreamSelectionModal(userId: string, channelId: string, message: SlackMessage | undefined, triggerId?: string) {
+async function showProjectSelectionModal(userId: string, channelId: string, message: SlackMessage | undefined, triggerId?: string) {
   try {
     if (!message) {
       return NextResponse.json({
@@ -380,7 +382,7 @@ async function showStreamSelectionModal(userId: string, channelId: string, messa
 
     console.log('showStreamSelectionModal called with:', { userId, channelId, message: message.text.substring(0, 100) });
     
-    // Get user's accessible streams
+    // Get user's accessible projects
     const supabase = await createClient();
     
     // First, we need to find the user in our database by their Slack user ID
@@ -435,23 +437,23 @@ async function showStreamSelectionModal(userId: string, channelId: string, messa
     console.log('[SLACK DEBUG] Organization memberships found:', orgMembers?.length || 0);
     console.log('[SLACK DEBUG] Organization IDs:', orgMembers?.map(om => om.organization_id));
 
-    // Debug: Check if there are any streams at all in the user's organizations
+    // Debug: Check if there are any projects at all in the user's organizations
     if (orgMembers) {
       for (const org of orgMembers) {
-        const { data: allStreamsInOrg } = await supabase
-          .from('streams')
+        const { data: allProjectsInOrg } = await supabase
+          .from('projects')
           .select('id, name, status')
           .eq('organization_id', org.organization_id);
         
-        console.log('[SLACK DEBUG] All streams in org', org.organization_id, ':', allStreamsInOrg?.length || 0);
+        console.log('[SLACK DEBUG] All projects in org', org.organization_id, ':', allProjectsInOrg?.length || 0);
         
-        // Check if user is a member of any streams
-        const { data: userStreamMemberships } = await supabase
-          .from('stream_members')
-          .select('stream_id, streams!inner(name)')
+        // Check if user is a member of any projects
+        const { data: userProjectMemberships } = await supabase
+          .from('project_members')
+          .select('project_id, projects!inner(name)')
           .eq('user_id', integration?.[0]?.user_id);
         
-        console.log('[SLACK DEBUG] User stream memberships:', userStreamMemberships?.length || 0);
+        console.log('[SLACK DEBUG] User project memberships:', userProjectMemberships?.length || 0);
       }
     }
 
@@ -465,33 +467,33 @@ async function showStreamSelectionModal(userId: string, channelId: string, messa
       });
     }
 
-    // First get the stream IDs the user is a member of (once, outside the loop)
-    console.log('[SLACK DEBUG] Querying stream memberships for user:', integration?.[0]?.user_id);
+    // First get the project IDs the user is a member of (once, outside the loop)
+    console.log('[SLACK DEBUG] Querying project memberships for user:', integration?.[0]?.user_id);
     
     // Use service role client to bypass RLS for this query
     const serviceSupabase = createServiceRoleClient();
-    const { data: userStreamMemberships, error: membershipError } = await serviceSupabase
-      .from('stream_members')
-      .select('stream_id')
+    const { data: userProjectMemberships, error: membershipError } = await serviceSupabase
+      .from('project_members')
+      .select('project_id')
       .eq('user_id', integration?.[0]?.user_id);
 
-    console.log('[SLACK DEBUG] Stream membership query result:', {
-      count: userStreamMemberships?.length || 0,
+    console.log('[SLACK DEBUG] Project membership query result:', {
+      count: userProjectMemberships?.length || 0,
       error: membershipError?.message,
-      data: userStreamMemberships
+      data: userProjectMemberships
     });
 
-    const streamIds = userStreamMemberships?.map(sm => sm.stream_id) || [];
+    const projectIds = userProjectMemberships?.map(pm => pm.project_id) || [];
     
-    console.log('[SLACK DEBUG] User stream IDs:', streamIds);
+    console.log('[SLACK DEBUG] User project IDs:', projectIds);
 
-    // Get streams for each organization
-    const streamPromises = orgMembers.map(async (org) => {
-      console.log('[SLACK DEBUG] Querying streams for organization:', org.organization_id);
+    // Get projects for each organization
+    const projectPromises = orgMembers.map(async (org) => {
+      console.log('[SLACK DEBUG] Querying projects for organization:', org.organization_id);
 
-      // Get the streams for this organization that the user is a member of
-      const { data: streams, error: streamsError } = await serviceSupabase
-        .from('streams')
+      // Get the projects for this organization that the user is a member of
+      const { data: projects, error: projectsError } = await serviceSupabase
+        .from('projects')
         .select(`
           id,
           name,
@@ -499,29 +501,29 @@ async function showStreamSelectionModal(userId: string, channelId: string, messa
         `)
         .eq('organization_id', org.organization_id)
         .eq('status', 'active')
-        .in('id', streamIds)
+        .in('id', projectIds)
         .order('name');
 
-      console.log('[SLACK DEBUG] Streams query result for org', org.organization_id, ':', {
-        count: streams?.length || 0,
-        error: streamsError?.message,
-        streamNames: streams?.map(s => s.name)
+      console.log('[SLACK DEBUG] Projects query result for org', org.organization_id, ':', {
+        count: projects?.length || 0,
+        error: projectsError?.message,
+        projectNames: projects?.map(p => p.name)
       });
 
-      return streams || [];
+      return projects || [];
     });
 
-    const allStreams = (await Promise.all(streamPromises)).flat();
+    const allProjects = (await Promise.all(projectPromises)).flat();
 
-    console.log('[SLACK DEBUG] Total streams found:', allStreams.length);
-    console.log('[SLACK DEBUG] Stream names:', allStreams.map(s => s.name));
+    console.log('[SLACK DEBUG] Total projects found:', allProjects.length);
+    console.log('[SLACK DEBUG] Project names:', allProjects.map(p => p.name));
 
-    if (allStreams.length === 0) {
-      console.log('[SLACK DEBUG] No streams found, returning error');
+    if (allProjects.length === 0) {
+      console.log('[SLACK DEBUG] No projects found, returning error');
       return NextResponse.json({
         response_action: 'errors',
         errors: {
-          general: 'No accessible streams found'
+          general: 'No accessible projects found'
         }
       });
     }
@@ -612,7 +614,7 @@ async function showStreamSelectionModal(userId: string, channelId: string, messa
             type: 'section' as const,
             text: {
               type: 'mrkdwn' as const,
-              text: `*Pin this message to a Currently stream:*\n\n> ${message.text.substring(0, 200)}${message.text.length > 200 ? '...' : ''}`
+              text: `*Pin this message to a Currently project:*\n\n> ${message.text.substring(0, 200)}${message.text.length > 200 ? '...' : ''}`
             }
           },
           {
@@ -622,25 +624,25 @@ async function showStreamSelectionModal(userId: string, channelId: string, messa
             type: 'section' as const,
             text: {
               type: 'mrkdwn' as const,
-              text: '*Select a stream:*'
+              text: '*Select a project:*'
             },
             accessory: {
               type: 'static_select' as const,
-              action_id: 'stream_select',
+              action_id: 'project_select',
               placeholder: {
                 type: 'plain_text' as const,
-                text: 'Choose a stream...'
+                text: 'Choose a project...'
               },
-              options: allStreams.map(stream => ({
+              options: allProjects.map(project => ({
                 text: {
                   type: 'plain_text' as const,
-                  text: stream.name
+                  text: project.name
                 },
-                value: stream.id,
+                value: project.id,
                 description: {
                   type: 'plain_text' as const,
-                  text: stream.description ? 
-                    (stream.description.length > 75 ? stream.description.substring(0, 72) + '...' : stream.description) :
+                  text: project.description ? 
+                    (project.description.length > 75 ? project.description.substring(0, 72) + '...' : project.description) :
                     'No description'
                 }
               }))
@@ -667,7 +669,7 @@ async function showStreamSelectionModal(userId: string, channelId: string, messa
         return NextResponse.json({
           response_action: 'errors',
           errors: {
-            general: 'Failed to open stream selection modal. Please try again.'
+            general: 'Failed to open project selection modal. Please try again.'
           }
         });
       }
@@ -682,11 +684,11 @@ async function showStreamSelectionModal(userId: string, channelId: string, messa
     }
 
   } catch (error) {
-    console.error('Error showing stream selection modal:', error);
+    console.error('Error showing project selection modal:', error);
     return NextResponse.json({
       response_action: 'errors',
       errors: {
-        general: 'Failed to load streams. Please try again.'
+        general: 'Failed to load projects. Please try again.'
       }
     });
   }

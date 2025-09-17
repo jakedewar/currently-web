@@ -1,12 +1,12 @@
 import { Database } from './types'
 
-export type Stream = Database['public']['Tables']['streams']['Row']
+export type Project = Database['public']['Tables']['projects']['Row']
 
-export interface CreateStreamWithOwnerResponse {
-  stream: Stream
+export interface CreateProjectWithOwnerResponse {
+  project: Project
 }
 
-export interface CreateStreamWithOwnerParams {
+export interface CreateProjectWithOwnerParams {
   p_name: string
   p_description: string | null
   p_priority: string | null

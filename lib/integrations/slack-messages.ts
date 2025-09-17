@@ -4,7 +4,7 @@ import type { Database, Json } from '@/lib/supabase/types';
 
 export interface SlackMessageData {
   id: string;
-  stream_id: string;
+  project_id: string;
   organization_id: string;
   slack_message_id: string;
   slack_channel_id: string;
@@ -25,7 +25,7 @@ export interface SlackMessageData {
 }
 
 export interface SlackMessageInput {
-  stream_id: string;
+  project_id: string;
   organization_id: string;
   slack_message_id: string;
   slack_channel_id: string;
@@ -60,9 +60,9 @@ export class SlackMessageService {
   }
 
   /**
-   * Add a Slack message to a stream
+   * Add a Slack message to a project
    */
-  static async addMessageToStream(
+  static async addMessageToProject(
     userId: string,
     messageData: SlackMessageInput
   ): Promise<SlackMessageData | null> {
@@ -71,7 +71,7 @@ export class SlackMessageService {
       const supabase = this.createServiceRoleClient();
       
       const insertData = {
-        stream_id: messageData.stream_id,
+        project_id: messageData.project_id,
         organization_id: messageData.organization_id,
         slack_message_id: messageData.slack_message_id,
         slack_channel_id: messageData.slack_channel_id,
@@ -102,32 +102,32 @@ export class SlackMessageService {
 
       return message as SlackMessageData;
     } catch (error) {
-      console.error('Error in addMessageToStream:', error);
+      console.error('Error in addMessageToProject:', error);
       return null;
     }
   }
 
   /**
-   * Get all Slack messages for a stream
+   * Get all Slack messages for a project
    */
-  static async getStreamMessages(streamId: string): Promise<SlackMessageData[]> {
+  static async getProjectMessages(projectId: string): Promise<SlackMessageData[]> {
     try {
       const supabase = await createClient();
       
       const { data: messages, error } = await supabase
         .from('slack_messages')
         .select('*')
-        .eq('stream_id', streamId)
+        .eq('project_id', projectId)
         .order('message_timestamp', { ascending: false });
 
       if (error) {
-        console.error('Error fetching stream Slack messages:', error);
+        console.error('Error fetching project Slack messages:', error);
         return [];
       }
 
       return (messages as SlackMessageData[]) || [];
     } catch (error) {
-      console.error('Error in getStreamMessages:', error);
+      console.error('Error in getProjectMessages:', error);
       return [];
     }
   }
@@ -143,7 +143,7 @@ export class SlackMessageService {
         .from('slack_messages')
         .select(`
           *,
-          streams!inner(name, id)
+          projects!inner(name, id)
         `)
         .eq('organization_id', organizationId)
         .order('message_timestamp', { ascending: false })
@@ -162,9 +162,9 @@ export class SlackMessageService {
   }
 
   /**
-   * Remove a Slack message from a stream
+   * Remove a Slack message from a project
    */
-  static async removeMessageFromStream(
+  static async removeMessageFromProject(
     userId: string,
     messageId: string
   ): Promise<boolean> {
@@ -178,19 +178,19 @@ export class SlackMessageService {
         .eq('created_by', userId);
 
       if (error) {
-        console.error('Error removing Slack message from stream:', error);
+        console.error('Error removing Slack message from project:', error);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('Error in removeMessageFromStream:', error);
+      console.error('Error in removeMessageFromProject:', error);
       return false;
     }
   }
 
   /**
-   * Check if a Slack message is already linked to any stream
+   * Check if a Slack message is already linked to any project
    */
   static async isMessageLinked(slackMessageId: string): Promise<boolean> {
     try {

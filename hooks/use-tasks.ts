@@ -31,7 +31,7 @@ export function useTasks({ streamId, workItemId }: UseTasksOptions) {
   const fetchSubtasks = useCallback(async () => {
     setLoading(true)
     try {
-      const response = await fetch(`/api/streams/${streamId}/work-items/${workItemId}/subtasks`)
+      const response = await fetch(`/api/projects/${streamId}/work-items/${workItemId}/subtasks`)
       if (response.ok) {
         const data = await response.json()
         setSubtasks(data)
@@ -52,7 +52,7 @@ export function useTasks({ streamId, workItemId }: UseTasksOptions) {
 
   const createSubtask = useCallback(async (title: string, description?: string, priority = 'medium') => {
     try {
-      const response = await fetch(`/api/streams/${streamId}/work-items/${workItemId}/subtasks`, {
+      const response = await fetch(`/api/projects/${streamId}/work-items/${workItemId}/subtasks`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -90,7 +90,7 @@ export function useTasks({ streamId, workItemId }: UseTasksOptions) {
 
   const updateSubtask = useCallback(async (subtaskId: string, updates: Partial<Subtask>) => {
     try {
-      const response = await fetch(`/api/streams/${streamId}/work-items/${workItemId}/subtasks/${subtaskId}`, {
+      const response = await fetch(`/api/projects/${streamId}/work-items/${workItemId}/subtasks/${subtaskId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -126,7 +126,7 @@ export function useTasks({ streamId, workItemId }: UseTasksOptions) {
 
   const deleteSubtask = useCallback(async (subtaskId: string) => {
     try {
-      const response = await fetch(`/api/streams/${streamId}/work-items/${workItemId}/subtasks/${subtaskId}`, {
+      const response = await fetch(`/api/projects/${streamId}/work-items/${workItemId}/subtasks/${subtaskId}`, {
         method: 'DELETE',
       })
 

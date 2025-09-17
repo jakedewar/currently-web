@@ -93,28 +93,28 @@ export async function batchFetchOrganizationMembers(organizationId: string, offs
 }
 
 /**
- * Batch fetch stream-related data in parallel
+ * Batch fetch project-related data in parallel
  */
-export async function batchFetchStreamData(streamIds: string[]) {
-  if (streamIds.length === 0) {
+export async function batchFetchProjectData(projectIds: string[]) {
+  if (projectIds.length === 0) {
     return {
-      streamMembers: [],
+      projectMembers: [],
       workItems: [],
-      streamTools: []
+      projectTools: []
     }
   }
 
   const supabase = await createClient()
   
   const [
-    { data: streamMembers },
+    { data: projectMembers },
     { data: workItems },
-    { data: streamTools }
+    { data: projectTools }
   ] = await Promise.all([
     supabase
-      .from('stream_members')
-      .select('id, user_id, role, joined_at, stream_id')
-      .in('stream_id', streamIds),
+      .from('project_members')
+      .select('id, user_id, role, joined_at, project_id')
+      .in('project_id', projectIds),
     supabase
       .from('work_items')
       .select(`
@@ -126,21 +126,21 @@ export async function batchFetchStreamData(streamIds: string[]) {
         tool,
         created_at,
         updated_at,
-        stream_id,
+        project_id,
         created_by
       `)
-      .in('stream_id', streamIds),
+      .in('project_id', projectIds),
     supabase
-      .from('stream_tools')
+      .from('project_tools')
       .select(`
         id,
         tool_name,
         tool_type,
         connected_at,
-        stream_id
+        project_id
       `)
-      .in('stream_id', streamIds)
+      .in('project_id', projectIds)
   ])
 
-  return { streamMembers, workItems, streamTools }
+  return { projectMembers, workItems, projectTools }
 }

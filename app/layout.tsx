@@ -4,6 +4,8 @@ import { GeistMono } from 'geist/font/mono'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Analytics } from '@vercel/analytics/react'
 import { Providers } from '@/components/providers'
+import { SpeedInsights } from "@vercel/speed-insights/next"
+
 import './globals.css'
 
 const defaultUrl = process.env.VERCEL_URL
@@ -44,6 +46,7 @@ html {
         <Providers>
           <ThemeProvider>
             {children}
+            <SpeedInsights />
           </ThemeProvider>
           <Analytics />
         </Providers>

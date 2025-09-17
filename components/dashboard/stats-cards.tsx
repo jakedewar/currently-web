@@ -4,8 +4,8 @@ import { getDashboardStats } from "@/lib/utils/dashboard";
 
 interface StatsCardsProps {
   stats: {
-    yourStreams: number;
-    totalStreams: number;
+    yourProjects: number;
+    totalProjects: number;
     totalHours: number;
     tasksCompletedThisWeek: number;
     teamSize: number;

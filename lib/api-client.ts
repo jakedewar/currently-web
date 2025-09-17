@@ -100,13 +100,13 @@ export const apiClient = new ApiClient()
 
 // Convenience methods for common API calls
 export const api = {
-  streams: {
+  projects: {
     list: (organizationId: string) => 
-      apiClient.fetch('/api/streams', { params: { organizationId } }),
-    get: (streamId: string) => 
-      apiClient.fetch(`/api/streams/${streamId}`),
+      apiClient.fetch('/api/projects', { params: { organizationId } }),
+    get: (projectId: string) => 
+      apiClient.fetch(`/api/projects/${projectId}`),
     create: (data: Record<string, unknown>) => 
-      apiClient.fetch('/api/streams', { 
+      apiClient.fetch('/api/projects', { 
         method: 'POST', 
         body: JSON.stringify(data),
         cache: false 

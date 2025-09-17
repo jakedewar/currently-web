@@ -57,8 +57,8 @@ export function UpcomingTasks({ currentFocus }: UpcomingTasksProps) {
                     <h4 className="font-medium text-sm truncate">{task.title}</h4>
                   </div>
                   <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
-                    {task.stream_emoji && <span className="text-sm">{task.stream_emoji}</span>}
-                    {task.stream_name}
+                    {task.project_emoji && <span className="text-sm">{task.project_emoji}</span>}
+                    {task.project_name}
                   </p>
                   <div className="flex items-center gap-3 text-xs text-muted-foreground">
                     {task.estimated_hours && (
@@ -76,7 +76,7 @@ export function UpcomingTasks({ currentFocus }: UpcomingTasksProps) {
                   </div>
                 </div>
                 <Button variant="ghost" size="sm" asChild>
-                  <Link href={`/protected/streams/${task.stream_id}`}>
+                  <Link href={`/protected/projects/${task.project_id}`}>
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
@@ -86,7 +86,7 @@ export function UpcomingTasks({ currentFocus }: UpcomingTasksProps) {
             {allTasks.length >= 5 && (
               <div className="text-center pt-2">
                 <Button variant="ghost" size="sm" asChild>
-                  <Link href="/protected/streams">
+                  <Link href="/protected/projects">
                     View all tasks
                   </Link>
                 </Button>

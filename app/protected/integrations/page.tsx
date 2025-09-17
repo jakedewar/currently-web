@@ -13,7 +13,7 @@ import {
   Clock
 } from "lucide-react";
 import { SlackIntegration } from "@/components/integrations/slack-integration";
-import { SlackDebug } from "@/components/integrations/slack-debug";
+import { SlackDebug } from "@/docs/tests/components/slack-debug";
 
 export default function IntegrationsPage() {
   return (

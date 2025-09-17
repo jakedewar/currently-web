@@ -1,18 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifySlackRequest } from '@/lib/integrations/slack-verification';
+import { getSlackConfig } from '@/lib/integrations/slack-config';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
-    const signingSecret = process.env.SLACK_SIGNING_SECRET;
+    const slackConfig = getSlackConfig();
 
-    if (!signingSecret) {
-      console.error('SLACK_SIGNING_SECRET not configured');
+    if (!slackConfig.signingSecret) {
+      console.error('Slack signing secret not configured');
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });
     }
 
     // Verify the request signature
-    const verification = verifySlackRequest(body, request.headers, signingSecret);
+    const verification = verifySlackRequest(body, request.headers, slackConfig.signingSecret);
     if (!verification.isValid) {
       console.error('Slack request verification failed:', verification.error);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

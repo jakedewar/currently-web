@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { logSlackError, getErrorLog } from '@/lib/integrations/slack-debug';
+import { getSlackConfig, isStagingEnvironment, getSlackAppName, validateSlackConfig } from '@/lib/integrations/slack-config';
+import { logSlackError, getErrorLog } from '@/docs/tests/slack-debug';
 
 interface DebugInfo {
   timestamp: string;
@@ -8,6 +9,11 @@ interface DebugInfo {
     SLACK_SIGNING_SECRET: boolean;
     NEXT_PUBLIC_SLACK_CLIENT_ID: boolean;
     NEXT_PUBLIC_SITE_URL: boolean;
+    is_staging: boolean;
+    slack_app_name: string;
+    site_url: string;
+    config_valid: boolean;
+    missing_vars: string[];
   };
   database: {
     integrations_count: number;
@@ -34,12 +40,21 @@ export async function GET() {
       supabase.from('integrations').select('user_id', { count: 'exact' }).eq('provider', 'slack')
     ]);
 
+    const slackConfig = getSlackConfig();
+    const configValidation = validateSlackConfig();
+    
     const debugInfo: DebugInfo = {
       timestamp: new Date().toISOString(),
       environment: {
-        SLACK_SIGNING_SECRET: !!process.env.SLACK_SIGNING_SECRET,
-        NEXT_PUBLIC_SLACK_CLIENT_ID: !!process.env.NEXT_PUBLIC_SLACK_CLIENT_ID,
-        NEXT_PUBLIC_SITE_URL: !!process.env.NEXT_PUBLIC_SITE_URL,
+        SLACK_SIGNING_SECRET: !!slackConfig.signingSecret,
+        NEXT_PUBLIC_SLACK_CLIENT_ID: !!slackConfig.clientId,
+        NEXT_PUBLIC_SITE_URL: !!slackConfig.siteUrl,
+        // Add environment-specific info
+        is_staging: isStagingEnvironment(),
+        slack_app_name: getSlackAppName(),
+        site_url: slackConfig.siteUrl,
+        config_valid: configValidation.isValid,
+        missing_vars: configValidation.missing,
       },
       database: {
         integrations_count: integrationsResult.count || 0,
@@ -189,34 +204,34 @@ async function testStreamAccess(data: { user_id: string }) {
       });
     }
 
-    // Get streams for each organization
-    const streamPromises = orgMembers.map(async (org) => {
-      const { data: streams, error: streamError } = await supabase
-        .from('streams')
+    // Get projects for each organization
+    const projectPromises = orgMembers.map(async (org) => {
+      const { data: projects, error: projectError } = await supabase
+        .from('projects')
         .select(`
           id,
           name,
           description,
-          stream_members!inner(user_id)
+          project_members!inner(user_id)
         `)
         .eq('organization_id', org.organization_id)
-        .eq('stream_members.user_id', data.user_id)
+        .eq('project_members.user_id', data.user_id)
         .eq('status', 'active')
         .order('name');
 
       return {
         organization_id: org.organization_id,
         organization_name: org.organizations.name,
-        streams: streams || [],
-        error: streamError
+        projects: projects || [],
+        error: projectError
       };
     });
 
-    const streamResults = await Promise.all(streamPromises);
+    const projectResults = await Promise.all(projectPromises);
 
     return NextResponse.json({
       success: true,
-      organizations: streamResults
+      organizations: projectResults
     });
   } catch (error) {
     logSlackError('test_stream_access', error, data);
@@ -229,7 +244,7 @@ async function testStreamAccess(data: { user_id: string }) {
 
 async function simulatePinMessage(data: {
   slack_user_id: string;
-  stream_id: string;
+  project_id: string;
   message_data: Record<string, unknown>;
 }) {
   try {
@@ -252,34 +267,34 @@ async function simulatePinMessage(data: {
       });
     }
 
-    // Verify user has access to the stream
-    const { data: streamMember, error: streamError } = await supabase
-      .from('stream_members')
+    // Verify user has access to the project
+    const { data: projectMember, error: projectError } = await supabase
+      .from('project_members')
       .select('id')
-      .eq('stream_id', data.stream_id)
+      .eq('project_id', data.project_id)
       .eq('user_id', integration.user_id)
       .single();
 
-    if (streamError || !streamMember) {
+    if (projectError || !projectMember) {
       return NextResponse.json({
         success: false,
-        error: 'User does not have access to this stream',
-        details: streamError
+        error: 'User does not have access to this project',
+        details: projectError
       });
     }
 
-    // Get stream organization
-    const { data: stream, error: streamOrgError } = await supabase
-      .from('streams')
+    // Get project organization
+    const { data: project, error: projectOrgError } = await supabase
+      .from('projects')
       .select('organization_id')
-      .eq('id', data.stream_id)
+      .eq('id', data.project_id)
       .single();
 
-    if (streamOrgError || !stream) {
+    if (projectOrgError || !project) {
       return NextResponse.json({
         success: false,
-        error: 'Stream not found',
-        details: streamOrgError
+        error: 'Project not found',
+        details: projectOrgError
       });
     }
 
@@ -291,7 +306,7 @@ async function simulatePinMessage(data: {
       },
       body: JSON.stringify({
         ...data.message_data,
-        stream_id: data.stream_id,
+        project_id: data.project_id,
         user_id: integration.user_id,
       }),
     });
@@ -303,7 +318,7 @@ async function simulatePinMessage(data: {
       status: pinResponse.status,
       result: pinResult,
       user_id: integration.user_id,
-      stream_organization_id: stream.organization_id
+      project_organization_id: project.organization_id
     });
   } catch (error) {
     logSlackError('simulate_pin', error, data);
